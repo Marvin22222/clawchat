@@ -139,4 +139,11 @@ class WebSocketService extends ChangeNotifier {
     _status = ConnectionStatus.disconnected;
     notifyListeners();
   }
+
+  @override
+  void dispose() {
+    _channel?.sink.close();
+    _channel = null;
+    super.dispose();
+  }
 }

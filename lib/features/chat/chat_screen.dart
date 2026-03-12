@@ -35,9 +35,10 @@ class _ChatScreenState extends State<ChatScreen> {
       if (mounted) {
         setState(() {
           if (_messages.isNotEmpty && _messages.last.type == MessageType.assistant) {
-            // Append to existing message
-            _messages[_messages.length - 1] = _messages.last.copyWith(
-              content: _messages.last.content + content,
+            // Create new message with appended content
+            final lastMsg = _messages.last;
+            _messages[_messages.length - 1] = lastMsg.copyWith(
+              content: lastMsg.content + content,
             );
           } else {
             _messages.add(ChatMessage(
@@ -92,6 +93,12 @@ class _ChatScreenState extends State<ChatScreen> {
     // Send to WebSocket
     auth.ws.sendMessage(text, agent: _currentAgent);
     _scrollToBottom();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override

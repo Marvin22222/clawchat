@@ -33,7 +33,7 @@ class AuthProvider extends ChangeNotifier {
       _token = await _secureStorage.read(key: 'gateway_token');
       _useBiometrics = await _getBiometricPreference();
     } catch (e) {
-      // Ignore errors during loading
+      debugPrint('Error loading credentials: $e');
     }
 
     _isLoading = false;
