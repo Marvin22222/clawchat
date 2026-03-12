@@ -11,12 +11,18 @@ class WebSocketService extends ChangeNotifier {
   String? _token;
   List<String> _availableAgents = [];
   
+  // Auto-reconnect settings
+  bool _autoReconnect = true;
+  int _reconnectAttempts = 0;
+  int _maxReconnectAttempts = 5;
+  
   // Callbacks
   Function(String)? onMessage;
   Function(String)? onThinking;
   Function(Map<String, dynamic>)? onToolCall;
   Function(String)? onError;
   Function()? onConnected;
+  Function()? onDisconnected;
 
   ConnectionStatus get status => _status;
   List<String> get availableAgents => _availableAgents;
@@ -61,7 +67,13 @@ class WebSocketService extends ChangeNotifier {
         },
         onDone: () {
           _status = ConnectionStatus.disconnected;
+          onDisconnected?.call();
           notifyListeners();
+          
+          // Auto-reconnect
+          if (_autoReconnect && _reconnectAttempts < _maxReconnectAttempts) {
+            _scheduleReconnect();
+          }
         },
       );
 
@@ -134,10 +146,28 @@ class WebSocketService extends ChangeNotifier {
   }
 
   void disconnect() {
+    _autoReconnect = false;
     _channel?.sink.close();
     _channel = null;
     _status = ConnectionStatus.disconnected;
     notifyListeners();
+  }
+
+  void _scheduleReconnect() {
+    _reconnectAttempts++;
+    final delay = Duration(seconds: _reconnectAttempts * 2); // Exponential backoff
+    
+    Future.delayed(delay, () {
+      if (_autoReconnect && _status != ConnectionStatus.connected) {
+        connect(_gatewayUrl!, _token!);
+      }
+    });
+  }
+
+  Future<bool> reconnect() async {
+    _reconnectAttempts = 0;
+    _autoReconnect = true;
+    return await connect(_gatewayUrl!, _token!);
   }
 
   @override

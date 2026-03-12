@@ -121,22 +121,48 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
+          // Connection Error Banner
+          if (!auth.ws.isConnected && _messages.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              color: AppColors.error.withOpacity(0.1),
+              child: Row(
+                children: [
+                  const Icon(Icons.wifi_off, color: AppColors.error, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Nicht verbunden. Nachricht senden fehlgeschlagen.',
+                      style: TextStyle(color: AppColors.error, fontSize: 13),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => auth.reconnect(),
+                    child: const Text('Erneut'),
+                  ),
+                ],
+              ),
+            ),
+          
           // Messages
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-              itemCount: _messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isTyping) {
-                  return ThinkingIndicator(isDark: isDark);
-                }
-                return MessageBubble(
-                  message: _messages[index],
-                  isDark: isDark,
-                );
-              },
-            ),
+            child: _messages.isEmpty
+                ? _buildEmptyState(isDark, auth.ws.isConnected)
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    itemCount: _messages.length + (_isTyping ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == _messages.length && _isTyping) {
+                        return ThinkingIndicator(isDark: isDark);
+                      }
+                      return MessageBubble(
+                        message: _messages[index],
+                        isDark: isDark,
+                      );
+                    },
+                  ),
           ),
           
           // Input
@@ -145,6 +171,47 @@ class _ChatScreenState extends State<ChatScreen> {
             enabled: auth.ws.isConnected,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark, bool isConnected) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isConnected ? Icons.chat_bubble_outline : Icons.wifi_off,
+              size: 64,
+              color: isDark 
+                  ? AppColors.textDarkSecondary 
+                  : AppColors.textLightSecondary,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              isConnected ? 'Keine Nachrichten' : 'Nicht verbunden',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.textDark : AppColors.textLight,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              isConnected 
+                  ? 'Starte eine Unterhaltung!' 
+                  : 'Verbinde dich mit dem Gateway',
+              style: TextStyle(
+                color: isDark 
+                    ? AppColors.textDarkSecondary 
+                    : AppColors.textLightSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -32,6 +32,13 @@ class AuthProvider extends ChangeNotifier {
       _gatewayUrl = await _secureStorage.read(key: 'gateway_url');
       _token = await _secureStorage.read(key: 'gateway_token');
       _useBiometrics = await _getBiometricPreference();
+      
+      // Auto-login if credentials exist
+      if (_gatewayUrl != null && _token != null) {
+        debugPrint('Auto-login with saved credentials...');
+        await _ws.connect(_gatewayUrl!, _token!);
+        notifyListeners();
+      }
     } catch (e) {
       debugPrint('Error loading credentials: $e');
     }
@@ -63,6 +70,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return success;
     } catch (e) {
+      debugPrint('Login error: $e');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -82,45 +90,13 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setBool('use_biometrics', value);
     notifyListeners();
   }
-}
 
-class ChatProvider extends ChangeNotifier {
-  final List<ChatMessage> _messages = [];
-  String? _currentAgent;
-  bool _isTyping = false;
-  String _thinkingText = '';
-
-  List<ChatMessage> get messages => List.unmodifiable(_messages);
-  String? get currentAgent => _currentAgent;
-  bool get isTyping => _isTyping;
-  String get thinkingText => _thinkingText;
-
-  void setCurrentAgent(String agent) {
-    _currentAgent = agent;
-    notifyListeners();
-  }
-
-  void addMessage(ChatMessage message) {
-    _messages.add(message);
-    notifyListeners();
-  }
-
-  void updateLastMessage(String content) {
-    if (_messages.isNotEmpty) {
-      _messages.last.copyWith(content: content);
+  // Reconnection
+  Future<void> reconnect() async {
+    if (_gatewayUrl != null && _token != null) {
+      await _ws.connect(_gatewayUrl!, _token!);
       notifyListeners();
     }
-  }
-
-  void setTyping(bool typing, {String? thinking}) {
-    _isTyping = typing;
-    _thinkingText = thinking ?? '';
-    notifyListeners();
-  }
-
-  void clearChat() {
-    _messages.clear();
-    notifyListeners();
   }
 }
 
@@ -129,13 +105,30 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get isDarkMode => _isDarkMode;
 
+  ThemeProvider() {
+    _loadTheme();
+  }
+
+  Future<void> _loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isDarkMode = prefs.getBool('dark_mode') ?? true;
+    notifyListeners();
+  }
+
   void toggleTheme() {
     _isDarkMode = !_isDarkMode;
+    _saveTheme();
     notifyListeners();
   }
 
   void setDarkMode(bool value) {
     _isDarkMode = value;
+    _saveTheme();
     notifyListeners();
+  }
+
+  Future<void> _saveTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('dark_mode', _isDarkMode);
   }
 }
