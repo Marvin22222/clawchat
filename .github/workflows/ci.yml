@@ -1,0 +1,61 @@
+name: ClawChat CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Run tests
+      run: flutter test
+    
+    - name: Analyze code
+      run: flutter analyze
+    
+    - name: Build iOS
+      run: flutter build ios --simulator --no-codesign
+      if: matrix.os == 'macos-latest'
+    
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Analyze code
+      run: flutter analyze
+
+  notify:
+    needs: [build, lint]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Notify on success
+      if: success()
+      run: echo "✅ ClawChat CI passed!"
+    
+    - name: Notify on failure
+      if: failure()
+      run: echo "❌ ClawChat CI failed!"
