@@ -6,18 +6,22 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      apple_id: 
+        # Add your Apple ID in Codemagic UI
+        key: APPLE_ID
+        key_chain: 
     scripts:
-      - name: Set up code signing
-        script: |
-          keychain initialize
-          app-store-connect fetch-signing-files "com.openclaw.clawchat" --type IOS_APP_STORE
-          keychain add-certificates
-          xcode-project use-profiles
       - name: Get dependencies
         script: |
           flutter packages pub get
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "com.openclaw.clawchat" --type AD_HOC
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Build iOS
         script: |
-          flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+          flutter build ipa --release
     artifacts:
       - build/ios/ipa/*.ipa
