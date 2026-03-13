@@ -6,10 +6,6 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      apple_id: 
-        # Add your Apple ID in Codemagic UI
-        key: APPLE_ID
-        key_chain: 
     scripts:
       - name: Get dependencies
         script: |
