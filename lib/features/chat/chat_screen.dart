@@ -172,9 +172,26 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (index == _messages.length && _isTyping) {
                         return ThinkingIndicator(isDark: isDark);
                       }
+                      final msg = _messages[index];
+                      
+                      // Render ToolCallCard for tool call messages
+                      if (msg.type == MessageType.toolCall && msg.toolData != null) {
+                        return ToolCallCard(
+                          toolName: msg.toolData!['tool'] ?? 'Unknown',
+                          status: msg.toolData!['status'] ?? 'running',
+                          progress: (msg.toolData!['progress'] ?? 0).toDouble(),
+                          parameters: msg.toolData!['parameters'],
+                          response: msg.toolData!['response'],
+                          isDark: isDark,
+                        );
+                      }
+                      
                       return MessageBubble(
-                        message: _messages[index],
+                        content: msg.content,
+                        isUser: msg.type == MessageType.user,
                         isDark: isDark,
+                        agentName: msg.agentName,
+                        timestamp: msg.timestamp,
                       );
                     },
                   ),
