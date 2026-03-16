@@ -2,6 +2,20 @@ enum MessageType { user, assistant, system, thinking, toolCall }
 
 enum MessageStatus { sending, sent, error }
 
+class MessageAttachment {
+  final String path;
+  final String fileName;
+  final String mimeType;
+  final int? size;
+
+  MessageAttachment({
+    required this.path,
+    required this.fileName,
+    this.mimeType = 'image/jpeg',
+    this.size,
+  });
+}
+
 class ChatMessage {
   final String id;
   final String content;
@@ -10,6 +24,7 @@ class ChatMessage {
   final MessageStatus status;
   final String? agentName;
   final Map<String, dynamic>? toolData;
+  final List<MessageAttachment>? attachments;
 
   ChatMessage({
     required this.id,
@@ -19,12 +34,14 @@ class ChatMessage {
     this.status = MessageStatus.sent,
     this.agentName,
     this.toolData,
+    this.attachments,
   });
 
   ChatMessage copyWith({
     String? content,
     MessageStatus? status,
     Map<String, dynamic>? toolData,
+    List<MessageAttachment>? attachments,
   }) {
     return ChatMessage(
       id: id,
@@ -34,6 +51,7 @@ class ChatMessage {
       status: status ?? this.status,
       agentName: agentName ?? this.agentName,
       toolData: toolData ?? this.toolData,
+      attachments: attachments ?? this.attachments,
     );
   }
 }

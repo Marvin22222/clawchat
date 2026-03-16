@@ -76,7 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _sendMessage(String text) {
+  void _sendMessage(String text, {List<MessageAttachment>? attachments}) {
     final auth = context.read<AuthProvider>();
     
     // Add user message
@@ -86,13 +86,28 @@ class _ChatScreenState extends State<ChatScreen> {
         content: text,
         type: MessageType.user,
         timestamp: DateTime.now(),
+        attachments: attachments,
       ));
       _isTyping = true;
     });
 
-    // Send to WebSocket
+    // Send to WebSocket (text + attachment info)
+    final messageData = {
+      'text': text,
+      if (attachments != null && attachments.isNotEmpty)
+        'attachments': attachments.map((a) => {
+          'path': a.path,
+          'fileName': a.fileName,
+          'mimeType': a.mimeType,
+        }).toList(),
+    };
     auth.ws.sendMessage(text, agent: _currentAgent);
     _scrollToBottom();
+  }
+
+  void _onImageSelected(MessageAttachment attachment) {
+    // Send message with image attachment
+    _sendMessage('[Bild: ${attachment.fileName}]', attachments: [attachment]);
   }
 
   @override
@@ -168,6 +183,7 @@ class _ChatScreenState extends State<ChatScreen> {
           // Input
           ChatInput(
             onSend: _sendMessage,
+            onImageSelected: _onImageSelected,
             enabled: auth.ws.isConnected,
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/voice_input_service.dart';
+import '../../core/services/image_upload_service.dart';
 import '../../models/message.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -228,12 +229,14 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
 
 class ChatInput extends StatefulWidget {
   final Function(String) onSend;
+  final Function(MessageAttachment)? onImageSelected;
   final bool enabled;
   final bool showVoiceInput;
 
   const ChatInput({
     super.key,
     required this.onSend,
+    this.onImageSelected,
     this.enabled = true,
     this.showVoiceInput = true,
   });
@@ -339,6 +342,13 @@ class _ChatInputState extends State<ChatInput> {
                     onPressed: widget.enabled ? _toggleVoiceInput : null,
                     tooltip: isListening ? 'Sprachaufnahme stoppen' : 'Spracheingabe',
                   ),
+                // Image Upload Button
+                if (widget.onImageSelected != null)
+                  _ImagePickerButton(
+                    enabled: widget.enabled,
+                    isDark: isDark,
+                    onImageSelected: widget.onImageSelected!,
+                  ),
                 Expanded(
                   child: TextField(
                     controller: _controller,
@@ -386,6 +396,83 @@ class _ChatInputState extends State<ChatInput> {
           ),
         );
       },
+    );
+  }
+}
+
+class _ImagePickerButton extends StatelessWidget {
+  final bool enabled;
+  final bool isDark;
+  final Function(MessageAttachment) onImageSelected;
+
+  const _ImagePickerButton({
+    required this.enabled,
+    required this.isDark,
+    required this.onImageSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final imageService = ImageUploadService();
+
+    return PopupMenuButton<String>(
+      icon: Icon(
+        Icons.add_photo_alternate,
+        color: enabled 
+            ? (isDark ? AppColors.textDark : AppColors.textLight)
+            : Colors.grey,
+      ),
+      enabled: enabled,
+      onSelected: (value) async {
+        MessageAttachment? attachment;
+        switch (value) {
+          case 'gallery':
+            final file = await imageService.pickImage();
+            if (file != null) {
+              final fileName = file.path.split('/').last;
+              attachment = MessageAttachment(
+                path: file.path,
+                fileName: fileName,
+              );
+            }
+            break;
+          case 'camera':
+            final file = await imageService.takePhoto();
+            if (file != null) {
+              final fileName = file.path.split('/').last;
+              attachment = MessageAttachment(
+                path: file.path,
+                fileName: fileName,
+              );
+            }
+            break;
+        }
+        if (attachment != null) {
+          onImageSelected(attachment);
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'gallery',
+          child: Row(
+            children: [
+              Icon(Icons.photo_library),
+              SizedBox(width: AppSpacing.sm),
+              Text('Aus Galerie'),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'camera',
+          child: Row(
+            children: [
+              Icon(Icons.camera_alt),
+              SizedBox(width: AppSpacing.sm),
+              Text('Foto aufnehmen'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

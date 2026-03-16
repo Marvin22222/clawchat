@@ -49,5 +49,9 @@
 	<string>ClawChat benötigt Zugriff auf das Mikrofon für Sprachnachrichten.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>ClawChat benötigt Zugriff auf die Spracherkennung um Ihre Stimme in Text umzuwandeln.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>ClawChat benötigt Zugriff auf die Kamera um Fotos aufzunehmen.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ClawChat benötigt Zugriff auf die Fotobibliothek um Bilder zu senden.</string>
 </dict>
 </plist>
