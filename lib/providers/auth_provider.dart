@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/constants/colors.dart';
 import '../../core/services/websocket_service.dart';
 import '../../models/message.dart';
 
@@ -12,6 +14,7 @@ class AuthProvider extends ChangeNotifier {
   String? _token;
   bool _isLoading = false;
   bool _useBiometrics = false;
+  String? _selectedAgent;
 
   WebSocketService get ws => _ws;
   String? get gatewayUrl => _gatewayUrl;
@@ -19,6 +22,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _token != null && _gatewayUrl != null;
   bool get useBiometrics => _useBiometrics;
+  String? get selectedAgent => _selectedAgent;
+  bool get isConnected => _ws.isConnected;
 
   AuthProvider() {
     _loadSavedCredentials();
@@ -91,6 +96,41 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setGatewayUrl(String url) async {
+    _gatewayUrl = url;
+    await _secureStorage.write(key: 'gateway_url', value: url);
+    notifyListeners();
+  }
+
+  Future<void> setToken(String token) async {
+    _token = token;
+    await _secureStorage.write(key: 'gateway_token', value: token);
+    notifyListeners();
+  }
+
+  Future<void> setSelectedAgent(String? agent) async {
+    _selectedAgent = agent;
+    final prefs = await SharedPreferences.getInstance();
+    if (agent != null) {
+      await prefs.setString('selected_agent', agent);
+    } else {
+      await prefs.remove('selected_agent');
+    }
+    notifyListeners();
+  }
+
+  Future<void> connect() async {
+    if (_gatewayUrl != null && _token != null) {
+      await _ws.connect(_gatewayUrl!, _token!);
+      notifyListeners();
+    }
+  }
+
+  Future<void> disconnect() async {
+    _ws.disconnect();
+    notifyListeners();
+  }
+
   // Reconnection
   Future<void> reconnect() async {
     if (_gatewayUrl != null && _token != null) {
@@ -102,8 +142,10 @@ class AuthProvider extends ChangeNotifier {
 
 class ThemeProvider extends ChangeNotifier {
   bool _isDarkMode = true;
+  Color _accentColor = AppColors.primary;
 
   bool get isDarkMode => _isDarkMode;
+  Color get accentColor => _accentColor;
 
   ThemeProvider() {
     _loadTheme();
@@ -112,6 +154,10 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     _isDarkMode = prefs.getBool('dark_mode') ?? true;
+    final accentColorValue = prefs.getInt('accent_color');
+    if (accentColorValue != null) {
+      _accentColor = Color(accentColorValue);
+    }
     notifyListeners();
   }
 
@@ -127,8 +173,15 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAccentColor(Color color) {
+    _accentColor = color;
+    _saveTheme();
+    notifyListeners();
+  }
+
   Future<void> _saveTheme() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('dark_mode', _isDarkMode);
+    await prefs.setInt('accent_color', _accentColor.value);
   }
 }
