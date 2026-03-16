@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
+import '../../core/services/voice_input_service.dart';
 import '../../models/message.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -42,7 +44,7 @@ class MessageBubble extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                 child: Text(
                   message.agentName!,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,
@@ -258,19 +260,42 @@ class _ChatInputState extends State<ChatInput> {
     }
   }
 
+  /// Toggle Voice Input - nutzt den echten VoiceInputService
   void _toggleVoiceInput() {
-    setState(() {
-      _isRecording = !_isRecording;
-    });
+    final voiceService = context.read<VoiceInputService>();
+    
     if (_isRecording) {
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted && _isRecording) {
-          setState(() {
-            _isRecording = false;
-            _controller.text = "Voice input placeholder";
-          });
-        }
+      // Stop recording
+      voiceService.stopListening();
+      setState(() {
+        _isRecording = false;
       });
+    } else {
+      // Start recording
+      if (voiceService.isAvailable) {
+        voiceService.startListening();
+        setState(() {
+          _isRecording = true;
+        });
+      } else {
+        // Zeige Fehlermeldung wenn nicht verfügbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Spracherkennung nicht verfügbar'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Aktualisiert das TextField mit transkribiertem Text
+  void _updateTextFromVoice(String text) {
+    if (text.isNotEmpty) {
+      _controller.text = text;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: text.length),
+      );
     }
   }
 
@@ -278,68 +303,89 @@ class _ChatInputState extends State<ChatInput> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.bgDarkTertiary : AppColors.bgLightTertiary,
+    return Consumer<VoiceInputService>(
+      builder: (context, voiceService, _) {
+        // Höre auf Änderungen vom Service
+        final isListening = voiceService.isListening;
+        final transcribedText = voiceService.transcribedText;
+        
+        // Wenn nicht mehr hören aber Text vorhanden - Text ins Feld
+        if (_isRecording && !isListening && transcribedText.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _updateTextFromVoice(transcribedText);
+          });
+          _isRecording = false;
+        }
+        
+        return Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppColors.bgDarkTertiary : AppColors.bgLightTertiary,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            if (widget.showVoiceInput)
-              IconButton(
-                icon: Icon(
-                  _isRecording ? Icons.stop : Icons.mic,
-                  color: _isRecording ? AppColors.error : AppColors.primary,
-                ),
-                onPressed: widget.enabled ? _toggleVoiceInput : null,
-              ),
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                enabled: widget.enabled && !_isRecording,
-                maxLines: 5,
-                minLines: 1,
-                decoration: InputDecoration(
-                  hintText: _isRecording ? 'Sprich jetzt...' : 'Nachricht eingeben...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.large),
-                    borderSide: BorderSide.none,
+          child: SafeArea(
+            child: Row(
+              children: [
+                if (widget.showVoiceInput)
+                  IconButton(
+                    icon: Icon(
+                      isListening ? Icons.stop : Icons.mic,
+                      color: isListening ? AppColors.error : AppColors.primary,
+                    ),
+                    onPressed: widget.enabled ? _toggleVoiceInput : null,
+                    tooltip: isListening ? 'Sprachaufnahme stoppen' : 'Spracheingabe',
                   ),
-                  filled: true,
-                  fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    enabled: widget.enabled && !isListening,
+                    maxLines: 5,
+                    minLines: 1,
+                    decoration: InputDecoration(
+                      hintText: isListening 
+                          ? 'Sprich jetzt...' 
+                          : (voiceService.isAvailable 
+                              ? 'Nachricht oder Mikro' 
+                              : 'Nachricht eingeben...'),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                    ),
+                    onSubmitted: (_) => _send(),
                   ),
                 ),
-                onSubmitted: (_) => _send(),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              decoration: BoxDecoration(
-                color: widget.enabled ? AppColors.primary : Colors.grey,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: Icon(
-                  _isRecording ? Icons.stop : Icons.send,
-                  color: Colors.white,
+                const SizedBox(width: AppSpacing.sm),
+                Container(
+                  decoration: BoxDecoration(
+                    color: widget.enabled ? AppColors.primary : Colors.grey,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      isListening ? Icons.stop : Icons.send,
+                      color: Colors.white,
+                    ),
+                    onPressed: widget.enabled 
+                        ? (isListening ? _toggleVoiceInput : _send)
+                        : null,
+                  ),
                 ),
-                onPressed: widget.enabled 
-                    ? (_isRecording ? _toggleVoiceInput : _send)
-                    : null,
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
