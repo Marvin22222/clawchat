@@ -5,6 +5,7 @@ import 'core/services/voice_input_service.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/splash/splash_screen.dart';
+import 'features/tasks/providers/task_provider.dart';
 import 'providers/auth_provider.dart';
 
 class ClawChatApp extends StatelessWidget {
@@ -17,6 +18,7 @@ class ClawChatApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => VoiceInputService()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
