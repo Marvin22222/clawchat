@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../core/constants/colors.dart';
+import '../../../core/constants/colors.dart';
 
 class MessageBubble extends StatelessWidget {
   final String content;

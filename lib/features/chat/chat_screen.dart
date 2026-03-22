@@ -105,9 +105,9 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  void _onImageSelected(MessageAttachment attachment) {
+  void _onImageSelected(String fileName) {
     // Send message with image attachment
-    _sendMessage('[Bild: ${attachment.fileName}]', attachments: [attachment]);
+    _sendMessage('[Bild: $fileName]');
   }
 
   @override

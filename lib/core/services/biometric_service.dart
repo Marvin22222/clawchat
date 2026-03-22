@@ -1,14 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
-/// Biometric type enumeration for UI display
-enum BiometricType {
-  fingerprint,
-  faceId,
-  iris,
-  none,
-}
-
 /// Service for handling biometric authentication (Face ID / Touch ID)
 class BiometricService {
   static final LocalAuthentication _localAuth = LocalAuthentication();
@@ -27,20 +19,7 @@ class BiometricService {
   /// Get the available biometric types on the device
   static Future<List<BiometricType>> getAvailableBiometrics() async {
     try {
-      final availableBiometrics = await _localAuth.getAvailableBiometrics();
-      return availableBiometrics.map((bio) {
-        switch (bio) {
-          case BiometricType.fingerprint:
-          case BiometricType.strong:
-            return BiometricType.fingerprint;
-          case BiometricType.face:
-            return BiometricType.faceId;
-          case BiometricType.iris:
-            return BiometricType.iris;
-          default:
-            return BiometricType.none;
-        }
-      }).toList();
+      return await _localAuth.getAvailableBiometrics();
     } on PlatformException {
       return [];
     }
@@ -52,8 +31,7 @@ class BiometricService {
     
     if (availableBiometrics.contains(BiometricType.face)) {
       return 'Face ID';
-    } else if (availableBiometrics.contains(BiometricType.fingerprint) ||
-        availableBiometrics.contains(BiometricType.strong)) {
+    } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
       return 'Touch ID';
     } else if (availableBiometrics.contains(BiometricType.iris)) {
       return 'Iris';
@@ -86,8 +64,6 @@ class BiometricService {
 
   /// Check if user has saved credentials and can use biometric login
   static Future<bool> hasStoredCredentials() async {
-    // This would check if we have stored gateway URL and token
-    // Implementation depends on your secure storage setup
     return false;
   }
 }

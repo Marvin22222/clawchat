@@ -70,12 +70,12 @@ class VoiceInputService extends ChangeNotifier {
   }
 
   /// Fehler Callback vom speech_to_text Package
-  void _onError(SpeechRecognitionError error) {
+  void _onError(Object error) {
     if (kDebugMode) {
-      debugPrint('VoiceInputService Error: ${error.errorMsg}');
+      debugPrint('VoiceInputService Error: $error');
     }
     
-    _lastError = error.errorMsg;
+    _lastError = error.toString();
     _isListening = false;
     notifyListeners();
   }

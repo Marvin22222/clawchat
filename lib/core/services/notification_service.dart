@@ -103,8 +103,6 @@ class NotificationService extends ChangeNotifier {
 
       debugPrint('📱 iOS Notification Permission: ${settings.authorizationStatus.name}');
 
-      // Enable Apple Push Notifications
-      await _firebaseMessaging.setAutoRefreshEnabled(true);
     } else if (Platform.isAndroid) {
       // Android permissions are handled automatically
       final android = _firebaseMessaging;
@@ -158,7 +156,7 @@ class NotificationService extends ChangeNotifier {
   }) async {
     if (!_isEnabled) return;
 
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'clawchat_messages',
       'Messages',
       channelDescription: 'Chat message notifications',
@@ -169,13 +167,13 @@ class NotificationService extends ChangeNotifier {
       playSound: _soundEnabled,
     );
 
-    const iosDetails = DarwinNotificationDetails(
+    final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: _soundEnabled,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

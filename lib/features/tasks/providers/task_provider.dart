@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'models/task_model.dart';
+import '../models/task_model.dart';
 
 enum TaskEventType {
   taskCreated,
@@ -49,20 +49,6 @@ class TaskProvider extends ChangeNotifier {
   void setFilter(TaskStatus? status) {
     _filterStatus = status;
     notifyListeners();
-  }
-
-  void addListener(void Function(TaskEvent) callback) {
-    _listeners.add(callback);
-  }
-
-  void removeListener(void Function(TaskEvent) callback) {
-    _listeners.remove(callback);
-  }
-
-  void _notifyListeners(TaskEvent event) {
-    for (final callback in _listeners) {
-      callback(event);
-    }
   }
 
   Future<void> connect(String gatewayUrl, String token) async {
@@ -114,7 +100,7 @@ class TaskProvider extends ChangeNotifier {
         case 'task_created':
           final task = TaskModel.fromJson(message['task']);
           _tasks.insert(0, task);
-          _notifyListeners(TaskEvent(type: TaskEventType.taskCreated, task: task));
+          notifyListeners();
           break;
           
         case 'task_started':
@@ -185,7 +171,7 @@ class TaskProvider extends ChangeNotifier {
           eventType = TaskEventType.taskProgress;
       }
       
-      _notifyListeners(TaskEvent(type: eventType, task: updatedTask));
+      notifyListeners();
     }
   }
 
