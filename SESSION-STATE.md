@@ -119,3 +119,15 @@ Working autonomously. Last push: `e430513`
 - ✅ ToolExecutionCardSkeleton, AgentActivityCardSkeleton
 
 **Total: 51 commits auf dev**
+
+### Update um 16:10 UTC:
+- `90f5660` - AgentActivityCard für Agent Monitoring
+  - Pulsing animation when running
+  - Expandable steps mit timeline
+  - Progress bar, cancel button
+
+**UI Plan P2 vollständig:**
+- ✅ Skeleton Loaders
+- ✅ Agent Activity Card
+
+**Total: 53 commits auf dev**
