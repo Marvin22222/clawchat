@@ -366,35 +366,77 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showAgentPicker(BuildContext context, AuthProvider auth) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Agent auswählen',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            ...auth.ws.availableAgents.map((agent) => ListTile(
-              leading: CircleAvatar(
-                backgroundColor: AppColors.primary,
-                child: Text(
-                  agent[0].toUpperCase(),
-                  style: const TextStyle(color: Colors.white),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[600] : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              title: Text(agent),
-              selected: agent == _currentAgent,
-              onTap: () {
-                setState(() => _currentAgent = agent);
-                auth.ws.switchAgent(agent);
-                Navigator.pop(context);
-              },
-            )),
+            ),
+            Text(
+              'Agent auswählen',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: isDark ? AppColors.textDark : AppColors.textLight,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            if (auth.ws.availableAgents.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Text(
+                  'Keine Agents verfügbar',
+                  style: TextStyle(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                  ),
+                ),
+              )
+            else
+              ...auth.ws.availableAgents.map((agent) => ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: agent == _currentAgent 
+                      ? AppColors.primary 
+                      : AppColors.primary.withOpacity(0.3),
+                  child: Text(
+                    agent[0].toUpperCase(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                title: Text(
+                  agent,
+                  style: TextStyle(
+                    fontWeight: agent == _currentAgent ? FontWeight.bold : FontWeight.normal,
+                    color: isDark ? AppColors.textDark : AppColors.textLight,
+                  ),
+                ),
+                trailing: agent == _currentAgent
+                    ? Icon(Icons.check, color: AppColors.primary)
+                    : null,
+                selected: agent == _currentAgent,
+                onTap: () {
+                  setState(() => _currentAgent = agent);
+                  auth.ws.switchAgent(agent);
+                  Navigator.pop(context);
+                },
+              )),
           ],
         ),
       ),
