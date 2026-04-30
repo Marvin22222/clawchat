@@ -165,3 +165,11 @@ Working autonomously. Last push: `e430513`
 - `44c177e` - Long-press copy für Code Blocks
 
 **57 commits auf dev**
+
+### Update um 17:06 UTC - Marvin sagt weiter!
+- Marvin will UI Polish
+- Message bubble long-press menu ist bereits fertig (line 114 & 524)
+- Syntax highlighting ist bereits implementiert
+- 60 commits auf dev
+
+**Weitermachen mit:** Kleinigkeiten die auffallen
