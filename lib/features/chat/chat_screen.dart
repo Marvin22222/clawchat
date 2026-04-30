@@ -258,6 +258,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         timestamp: msg.timestamp,
                         attachments: msg.attachments,
                         status: msg.status,
+                        reactions: msg.reactions,
                         onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
                       );
                     },
