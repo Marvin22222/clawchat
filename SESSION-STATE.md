@@ -1,17 +1,17 @@
 # SESSION-STATE.md - Cody Working on ClawChat
 
 **Date:** 2026-04-30
-**Time:** ~16:00 UTC
+**Time:** ~16:30 UTC
 **Task:** ClawChat Voice Input & Image Upload Implementation
 
 ## Progress
 
 ### Commits on dev branch (newest first):
-1. `382006e` - feat: Implement Auto-lock feature
-2. `86532eb` - docs: Update SESSION-STATE.md
-3. `63a36f6` - docs: Update SESSION-STATE.md - 19 commits total
-4. `0ef2782` - feat: Add notifications toggle to Settings screen
-5. `1aa26b6` - docs: Update SESSION-STATE.md
+1. `4b4081e` - docs: Update SESSION-STATE.md
+2. `382006e` - feat: Implement Auto-lock feature
+3. `86532eb` - docs: Update SESSION-STATE.md
+4. `63a36f6` - docs: Update SESSION-STATE.md
+5. `0ef2782` - feat: Add notifications toggle to Settings screen
 6. `ece0cb6` - feat: Add date separators between messages
 7. `aff3069` - feat: Pass reactions to MessageBubble in chat list
 8. `382c270` - feat: Add reaction support to messages
@@ -46,5 +46,10 @@
 - ✅ Push Notifications Toggle (UI only)
 - ✅ Auto-lock Feature (tracks app lifecycle, 5 min timeout)
 
+### Remaining TODOs (small):
+- Notification Backend (FCM integration)
+- Message bubble long-press actions (copy, share)
+- Typing indicator animation polish
+
 ## Status
-Working autonomously. Last push: `382006e`
+Working autonomously. Last push: `4b4081e`
