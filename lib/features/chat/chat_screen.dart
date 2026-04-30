@@ -6,8 +6,9 @@ import '../../core/services/chat_persistence_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/message.dart';
-import 'widgets/chat_widgets.dart' hide ThinkingIndicator;
+import 'widgets/chat_widgets.dart' hide ThinkingIndicator, ToolCallCard;
 import 'widgets/thinking_indicator.dart';
+import 'widgets/tool_execution_card.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? initialAgent;
@@ -300,13 +301,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             _DateSeparator(timestamp: msg.timestamp, isDark: isDark),
                           // Render ToolCallCard for tool call messages
                           if (msg.type == MessageType.toolCall && msg.toolData != null)
-                            ToolCallCard(
+                            ToolExecutionCard(
                               toolName: msg.toolData!['tool'] ?? 'Unknown',
-                              status: msg.toolData!['status'] ?? 'running',
-                              progress: (msg.toolData!['progress'] ?? 0).toDouble(),
+                              toolDescription: msg.toolData!['description'],
+                              status: _getToolStatus(msg.toolData!['status'] ?? 'running'),
                               parameters: msg.toolData!['parameters'],
-                              response: msg.toolData!['response'],
-                              isDark: isDark,
+                              result: msg.toolData!['response']?.toString(),
                             )
                           else
                             MessageBubble(
@@ -359,6 +359,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  ToolStatus _getToolStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'running':
+        return ToolStatus.running;
+      case 'completed':
+      case 'success':
+        return ToolStatus.completed;
+      case 'error':
+      case 'failed':
+        return ToolStatus.error;
+      default:
+        return ToolStatus.running;
+    }
   }
 
   Widget _buildConnectionStatusBar({
