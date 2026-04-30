@@ -255,3 +255,16 @@ Working autonomously. Last push: `e430513`
 - GitHub synced
 
 **Nicht mehr reagieren bis Marvin direkt antwortet.**
+
+### Update um 20:39 UTC:
+- Marvin sagt "mach selbst Gedanken"
+- Decision: StreamingText Integration
+- Started but it's complex - requires changes to:
+  - WebSocket callbacks (chunk start/end events)
+  - ChatMessage model
+  - MessageBubble (use StreamingText for assistant messages)
+  
+- Deferred: Full streaming integration (too complex for quick win)
+- Instead: Focus on smaller UI polish tasks
+
+**StreamingText widget exists but full integration is a larger task.**
