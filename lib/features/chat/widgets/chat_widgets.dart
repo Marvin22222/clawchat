@@ -28,6 +28,7 @@ class MessageBubble extends StatelessWidget {
     this.attachments,
     this.status,
     this.onRetry,
+    this.reactions,
   });
 
   @override
@@ -151,6 +152,28 @@ class MessageBubble extends StatelessWidget {
                       color: (isUser ? Colors.white : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)).withOpacity(0.6),
                     ),
                   ),
+                  if (reactions != null && reactions!.isNotEmpty) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    ...reactions!.entries.map((e) => Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(e.key, style: const TextStyle(fontSize: 12)),
+                          if (e.value > 1) ...[
+                            const SizedBox(width: 2),
+                            Text(
+                              '${e.value}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isUser ? Colors.white70 : AppColors.textLightSecondary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    )),
+                  ],
                   if (status == MessageStatus.error) ...[
                     const SizedBox(width: AppSpacing.sm),
                     GestureDetector(
