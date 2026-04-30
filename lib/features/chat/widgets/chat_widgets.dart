@@ -16,6 +16,7 @@ class MessageBubble extends StatelessWidget {
   final List<MessageAttachment>? attachments;
   final MessageStatus? status;
   final VoidCallback? onRetry;
+  final Map<String, int>? reactions;
 
   const MessageBubble({
     super.key,
