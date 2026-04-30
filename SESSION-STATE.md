@@ -82,3 +82,18 @@ Working autonomously. Last push: `e430513`
 - Chat Persistence ✅
 - Connection Status (animated) ✅
 - Long-press Copy ✅
+
+### Update um 16:05 UTC:
+- Neues UI Plan erstellt (CLAWCHAT_UI_PLAN.md)
+- P0 Widgets implementiert:
+  - `4567cd5` - ToolExecutionCard (ChatGPT-like expandable UI)
+  - `ebbe109` - ThinkingIndicator (bounce animation)
+  - `d761907` - StreamingText (char-by-char reveal)
+- Integration in ChatScreen gestartet (neue ThinkingIndicator)
+
+**UI Plan Features:**
+- Phase 1: Tool Execution Card, Streaming, Thinking
+- Phase 2: Progress Indicator, Transitions, Haptics
+- Phase 3: Agent Monitoring
+
+**Total: 44 commits auf dev**
