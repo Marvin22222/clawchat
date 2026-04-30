@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/services/voice_input_service.dart';
@@ -1071,6 +1072,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   void _send() {
     final text = _controller.text.trim();
     if (text.isNotEmpty) {
+      HapticFeedback.lightImpact();
       widget.onSend(text);
       _controller.clear();
     }
