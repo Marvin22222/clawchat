@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
+import '../../core/constants/app_constants.dart';
 import '../../providers/auth_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -313,7 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const ListTile(
             leading: Icon(Icons.info_outline),
             title: Text('Version'),
-            subtitle: Text('1.0.0'),
+            subtitle: Text(AppStrings.appVersion),
           ),
           
           const ListTile(
