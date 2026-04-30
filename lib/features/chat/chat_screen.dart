@@ -636,6 +636,133 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
   }
+
+  void _showSearchSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final searchController = TextEditingController();
+    List<int> searchResults = [];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 40, height: 4,
+                  margin: const EdgeInsets.only(top: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    controller: searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Nachrichten durchsuchen...',
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onChanged: (query) {
+                      final results = <int>[];
+                      if (query.isNotEmpty) {
+                        for (int i = 0; i < _messages.length; i++) {
+                          if (_messages[i].content.toLowerCase().contains(query.toLowerCase())) {
+                            results.add(i);
+                          }
+                        }
+                      }
+                      setModalState(() => searchResults = results);
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: searchResults.isEmpty
+                      ? Center(
+                          child: Text(
+                            searchController.text.isEmpty
+                                ? 'Tippe um zu suchen'
+                                : 'Keine Ergebnisse gefunden',
+                            style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: searchResults.length,
+                          itemBuilder: (context, index) {
+                            final msgIndex = searchResults[index];
+                            final msg = _messages[msgIndex];
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: msg.type == MessageType.user ? AppColors.primary : AppColors.secondary,
+                                radius: 16,
+                                child: Icon(
+                                  msg.type == MessageType.user ? Icons.person : Icons.smart_toy,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                              title: Text(
+                                msg.content,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+                              ),
+                              subtitle: Text(
+                                _formatMessageTime(msg.timestamp),
+                                style: TextStyle(fontSize: 12, color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                // Scroll to message
+                                _scrollToIndex(msgIndex);
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _formatMessageTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 1) return 'Gerade eben';
+    if (diff.inHours < 1) return 'Vor ${diff.inMinutes} Min';
+    if (diff.inDays < 1) return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    if (diff.inDays < 7) return 'Vor ${diff.inDays} Tagen';
+    return '${dt.day}.${dt.month}.${dt.year}';
+  }
+
+  void _scrollToIndex(int index) {
+    // Approximate scroll position
+    final offset = index * 80.0;
+    _scrollController.animateTo(
+      offset.clamp(0, _scrollController.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
 }
 
 // Animated sync icon for connection status
