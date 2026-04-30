@@ -56,3 +56,6 @@
 
 ## Status
 Working autonomously. Last push: `c03a32d`
+### Additional Improvements:
+- `8bb5380` - Add hint chips to empty state (Voice/Image hints)
+- `475ed00` - Add haptic feedback when sending messages
