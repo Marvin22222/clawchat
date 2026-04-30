@@ -108,3 +108,14 @@ Working autonomously. Last push: `e430513`
 - ✅ StaggeredListAnimation für Listen
 
 **48 commits auf dev**
+
+### Update um 16:08 UTC:
+- `9f4fd01` - HapticService.onMessageSent integration
+- `f97f043` - Skeleton loaders (shimmer animation)
+
+**P2 Features (Teil 1):**
+- ✅ Skeleton loaders mit shimmer animation
+- ✅ MessageBubbleSkeleton, ChatLoadingSkeleton
+- ✅ ToolExecutionCardSkeleton, AgentActivityCardSkeleton
+
+**Total: 51 commits auf dev**
