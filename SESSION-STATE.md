@@ -38,3 +38,7 @@
 
 ## Status
 Working autonomously. Last push: `e430513`
+### UI Polish Session 2:
+- `10c2754` - ChatPersistenceService for message history
+- `ed002c2` - Gateway URL dialog with auto-reconnect
+
