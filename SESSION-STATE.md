@@ -181,3 +181,16 @@ Working autonomously. Last push: `e430513`
   - Haptic feedback
 
 **60 commits auf dev**
+
+### Update um 17:10 UTC:
+- 60 commits, working directory clean
+- Alles auf GitHub synced
+
+**Weitermachen mit:** Kleinere UI Verbesserungen
+
+**Empty State ist bereits gut:**
+- Icon + Text + Hint Chips
+- Connect/Disconnected states
+
+**Scroll-to-Bottom FAB implementiert:**
+- `06ba27a`
