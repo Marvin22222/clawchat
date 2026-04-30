@@ -5,7 +5,8 @@ import '../../core/services/websocket_service.dart';
 import '../../core/services/chat_persistence_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/message.dart';
-import 'widgets/chat_widgets.dart';
+import 'widgets/chat_widgets.dart' hide ThinkingIndicator;
+import 'widgets/thinking_indicator.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? initialAgent;
@@ -263,7 +264,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     itemCount: _messages.length + (_isTyping ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == _messages.length && _isTyping) {
-                        return ThinkingIndicator(isDark: isDark);
+                        return const Padding(
+                          padding: EdgeInsets.only(top: AppSpacing.md),
+                          child: ThinkingIndicator(),
+                        );
                       }
                       
                       final msg = _messages[index];
