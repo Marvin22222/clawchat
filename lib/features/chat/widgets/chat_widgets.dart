@@ -771,7 +771,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
         imageQuality: 85,
       );
       if (image != null && mounted) {
-        widget.onImageSelected?.call(image.name);
+        widget.onImageSelected?.call(image.path);
       }
     } catch (e) {
       debugPrint('Camera pick failed: $e');
@@ -785,7 +785,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
         imageQuality: 85,
       );
       if (image != null && mounted) {
-        widget.onImageSelected?.call(image.name);
+        widget.onImageSelected?.call(image.path);
       }
     } catch (e) {
       debugPrint('Gallery pick failed: $e');

@@ -101,13 +101,29 @@ class _ChatScreenState extends State<ChatScreen> {
           'mimeType': a.mimeType,
         }).toList(),
     };
-    auth.ws.sendMessage(text, agent: _currentAgent);
+    
+    // Send with attachments via WebSocket
+    auth.ws.sendMessage(
+      text,
+      agent: _currentAgent,
+      attachments: attachments?.map((a) => {
+        'path': a.path,
+        'fileName': a.fileName,
+        'mimeType': a.mimeType,
+      }).toList(),
+    );
     _scrollToBottom();
   }
 
-  void _onImageSelected(String fileName) {
-    // Send message with image attachment
-    _sendMessage('[Bild: $fileName]');
+  void _onImageSelected(String filePath) {
+    // Create attachment from file path
+    final fileName = filePath.split('/').last;
+    final attachment = MessageAttachment(
+      path: filePath,
+      fileName: fileName,
+      mimeType: 'image/jpeg',
+    );
+    _sendMessage('[Bild]', attachments: [attachment]);
   }
 
   @override
