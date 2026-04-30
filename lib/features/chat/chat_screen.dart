@@ -364,7 +364,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 16, color: textColor),
+          status == ConnectionStatus.connecting ? _AnimatedSyncIcon(color: textColor) : Icon(icon, size: 16, color: textColor),
           const SizedBox(width: AppSpacing.sm),
           Text(
             text,
@@ -570,6 +570,47 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Animated sync icon for connection status
+class _AnimatedSyncIcon extends StatefulWidget {
+  final Color color;
+  const _AnimatedSyncIcon({required this.color});
+  @override
+  State<_AnimatedSyncIcon> createState() => _AnimatedSyncIconState();
+}
+
+class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _controller.value * 2 * 3.14159,
+          child: Icon(Icons.sync, size: 16, color: widget.color),
+        );
+      },
     );
   }
 }
