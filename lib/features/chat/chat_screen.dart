@@ -76,32 +76,30 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _sendMessage(String text, {List<MessageAttachment>? attachments}) {
+  void _sendMessage(String text, {List<MessageAttachment>? attachments, String? retryId}) {
     final auth = context.read<AuthProvider>();
+    final messageId = retryId ?? DateTime.now().millisecondsSinceEpoch.toString();
     
-    // Add user message
+    // Add user message (or update if retry)
     setState(() {
-      _messages.add(ChatMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+      final existingIndex = _messages.indexWhere((m) => m.id == messageId);
+      final newMessage = ChatMessage(
+        id: messageId,
         content: text,
         type: MessageType.user,
         timestamp: DateTime.now(),
+        status: MessageStatus.sending,
         attachments: attachments,
-      ));
+      );
+      
+      if (existingIndex >= 0) {
+        _messages[existingIndex] = newMessage;
+      } else {
+        _messages.add(newMessage);
+      }
       _isTyping = true;
     });
 
-    // Send to WebSocket (text + attachment info)
-    final messageData = {
-      'text': text,
-      if (attachments != null && attachments.isNotEmpty)
-        'attachments': attachments.map((a) => {
-          'path': a.path,
-          'fileName': a.fileName,
-          'mimeType': a.mimeType,
-        }).toList(),
-    };
-    
     // Send with attachments via WebSocket
     auth.ws.sendMessage(
       text,
@@ -111,8 +109,37 @@ class _ChatScreenState extends State<ChatScreen> {
         'fileName': a.fileName,
         'mimeType': a.mimeType,
       }).toList(),
-    );
+    ).then((_) {
+      // Success - update status
+      _updateMessageStatus(messageId, MessageStatus.sent);
+    }).catchError((error) {
+      // Error - mark as error and allow retry
+      _updateMessageStatus(messageId, MessageStatus.error);
+    });
+    
     _scrollToBottom();
+  }
+
+  void _updateMessageStatus(String messageId, MessageStatus status) {
+    if (!mounted) return;
+    setState(() {
+      final index = _messages.indexWhere((m) => m.id == messageId);
+      if (index >= 0) {
+        _messages[index] = _messages[index].copyWith(status: status);
+      }
+    });
+  }
+
+  void _retryMessage(String messageId) {
+    final message = _messages.firstWhere(
+      (m) => m.id == messageId,
+      orElse: () => throw Exception('Message not found'),
+    );
+    _sendMessage(
+      message.content,
+      attachments: message.attachments,
+      retryId: messageId,
+    );
   }
 
   void _onImageSelected(String filePath) {
@@ -209,6 +236,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         agentName: msg.agentName,
                         timestamp: msg.timestamp,
                         attachments: msg.attachments,
+                        status: msg.status,
+                        onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
                       );
                     },
                   ),

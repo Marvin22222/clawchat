@@ -130,7 +130,7 @@ class WebSocketService extends ChangeNotifier {
     _channel?.sink.add(jsonEncode(data));
   }
 
-  void sendMessage(String content, {String agent = 'main', List<Map<String, dynamic>>? attachments}) {
+  Future<void> sendMessage(String content, {String agent = 'main', List<Map<String, dynamic>>? attachments}) async {
     _send({
       'type': 'message',
       'content': content,

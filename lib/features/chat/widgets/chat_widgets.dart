@@ -14,6 +14,8 @@ class MessageBubble extends StatelessWidget {
   final DateTime timestamp;
   final bool showAgentName;
   final List<MessageAttachment>? attachments;
+  final MessageStatus? status;
+  final VoidCallback? onRetry;
 
   const MessageBubble({
     super.key,
@@ -24,6 +26,8 @@ class MessageBubble extends StatelessWidget {
     required this.timestamp,
     this.showAgentName = true,
     this.attachments,
+    this.status,
+    this.onRetry,
   });
 
   @override
@@ -138,12 +142,53 @@ class MessageBubble extends StatelessWidget {
                 right: AppSpacing.md,
                 bottom: AppSpacing.xs,
               ),
-              child: Text(
-                _formatTime(timestamp),
-                style: TextStyle(
-                  fontSize: 10,
-                  color: (isUser ? Colors.white : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)).withOpacity(0.6),
-                ),
+              child: Row(
+                children: [
+                  Text(
+                    _formatTime(timestamp),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: (isUser ? Colors.white : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)).withOpacity(0.6),
+                    ),
+                  ),
+                  if (status == MessageStatus.error) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    GestureDetector(
+                      onTap: onRetry,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.refresh,
+                            size: 12,
+                            color: isUser ? Colors.white70 : AppColors.error,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            'Retry',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isUser ? Colors.white70 : AppColors.error,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (status == MessageStatus.sending) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isUser ? Colors.white70 : AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
