@@ -1055,60 +1055,218 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
         ),
       ),
       child: SafeArea(
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (widget.showVoiceInput)
-              IconButton(
-                icon: Icon(
-                  _isRecording ? Icons.stop : Icons.mic,
-                  color: _isRecording ? AppColors.error : AppColors.primary,
+            // Recording indicator
+            if (_isRecording)
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
                 ),
-                onPressed: widget.enabled ? _toggleRecording : null,
-                tooltip: _isRecording ? 'Stop recording' : 'Voice input',
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _PulsingDot(),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      'Recording...',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Flexible(
+                      child: Text(
+                        _voiceService?.transcribedText ?? '',
+                        style: TextStyle(
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            IconButton(
-              icon: const Icon(Icons.attach_file, color: AppColors.primary),
-              onPressed: widget.enabled ? _showAttachmentOptions : null,
-              tooltip: 'Add attachment',
-            ),
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                enabled: widget.enabled && !_isRecording,
-                maxLines: 5,
-                minLines: 1,
-                decoration: InputDecoration(
-                  hintText: _isRecording 
-                      ? 'Listening...' 
-                      : 'Nachricht eingeben...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.large),
-                    borderSide: BorderSide.none,
+            // Main input row
+            Row(
+              children: [
+                if (widget.showVoiceInput)
+                  _AnimatedVoiceButton(
+                    isRecording: _isRecording,
+                    enabled: widget.enabled,
+                    onPressed: _toggleRecording,
                   ),
-                  filled: true,
-                  fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
+                IconButton(
+                  icon: const Icon(Icons.attach_file, color: AppColors.primary),
+                  onPressed: widget.enabled ? _showAttachmentOptions : null,
+                  tooltip: 'Add attachment',
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    enabled: widget.enabled && !_isRecording,
+                    maxLines: 5,
+                    minLines: 1,
+                    decoration: InputDecoration(
+                      hintText: _isRecording 
+                          ? 'Listening...' 
+                          : 'Nachricht eingeben...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                    ),
+                    onSubmitted: (_) => _send(),
                   ),
                 ),
-                onSubmitted: (_) => _send(),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              decoration: BoxDecoration(
-                color: widget.enabled ? AppColors.primary : Colors.grey,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.send, color: Colors.white, size: 20),
-                onPressed: widget.enabled ? _send : null,
-              ),
+                const SizedBox(width: AppSpacing.sm),
+                Container(
+                  decoration: BoxDecoration(
+                    color: widget.enabled ? AppColors.primary : Colors.grey,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                    onPressed: widget.enabled ? _send : null,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PulsingDot extends StatefulWidget {
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.5, end: 1.0).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: AppColors.error.withOpacity(_animation.value),
+            shape: BoxShape.circle,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AnimatedVoiceButton extends StatefulWidget {
+  final bool isRecording;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  const _AnimatedVoiceButton({
+    required this.isRecording,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  State<_AnimatedVoiceButton> createState() => _AnimatedVoiceButtonState();
+}
+
+class _AnimatedVoiceButtonState extends State<_AnimatedVoiceButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedVoiceButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isRecording && !oldWidget.isRecording) {
+      _controller.repeat(reverse: true);
+    } else if (!widget.isRecording && oldWidget.isRecording) {
+      _controller.stop();
+      _controller.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) {
+        final scale = widget.isRecording ? _scaleAnimation.value : 1.0;
+        return Transform.scale(
+          scale: scale,
+          child: IconButton(
+            icon: Icon(
+              widget.isRecording ? Icons.stop : Icons.mic,
+              color: widget.isRecording ? AppColors.error : AppColors.primary,
+            ),
+            onPressed: widget.enabled ? widget.onPressed : null,
+            tooltip: widget.isRecording ? 'Stop recording' : 'Voice input',
+          ),
+        );
+      },
     );
   }
 }
