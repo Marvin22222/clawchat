@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/atom-one-dark.dart';
+import 'package:flutter_highlight/themes/atom-one-light.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/services/voice_input_service.dart';
@@ -504,26 +508,68 @@ class _CodeBlock extends StatelessWidget {
       }
     }
 
+    // Detect language for syntax highlighting
+    String language = 'plaintext';
+    if (isJson) {
+      language = 'json';
+    } else if (content.contains('function') || content.contains('const ') || content.contains('let ')) {
+      language = 'javascript';
+    } else if (content.contains('def ') || content.contains('import ') && content.contains(':')) {
+      language = 'python';
+    } else if (content.contains('class ') && content.contains('extends')) {
+      language = 'dart';
+    }
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: isDark 
             ? Colors.black.withOpacity(0.3)
-            : Colors.grey.withOpacity(0.1),
+            : Colors.grey.withOpacity(0.05),
         borderRadius: BorderRadius.circular(AppRadius.small),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: SelectableText(
-          displayContent,
-          style: TextStyle(
-            fontFamily: 'monospace',
-            fontSize: 12,
-            color: isDark ? AppColors.success : AppColors.primaryDark,
-            height: 1.4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Language badge
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppSpacing.sm,
+              top: AppSpacing.xs,
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                language.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
           ),
-        ),
+          // Code content
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            child: HighlightView(
+              displayContent,
+              language: language,
+              theme: isDark ? atomOneDarkTheme : atomOneLightTheme,
+              padding: EdgeInsets.zero,
+              textStyle: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
