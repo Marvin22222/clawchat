@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/websocket_service.dart';
 import '../../core/services/chat_persistence_service.dart';
+import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/message.dart';
 import 'widgets/chat_widgets.dart' hide ThinkingIndicator;
@@ -128,6 +129,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
       _isTyping = true;
     });
+
+    // Haptic feedback on message send
+    HapticService.onMessageSent();
 
     // Send with attachments via WebSocket
     auth.ws.sendMessage(
