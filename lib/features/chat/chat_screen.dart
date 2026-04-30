@@ -233,6 +233,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => _showSearchSheet(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.smart_toy_outlined),
             onPressed: () {
               // Show agent picker
