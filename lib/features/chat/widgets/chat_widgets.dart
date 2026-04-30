@@ -106,21 +106,32 @@ class MessageBubble extends StatelessWidget {
             // Message Content
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
-              child: isCode || isJson
-                  ? _CodeBlock(
-                      content: content,
-                      isDark: isDark,
-                      isJson: isJson,
-                    )
-                  : SelectableText(
-                      content,
-                      style: TextStyle(
-                        color: isUser 
-                            ? Colors.white 
-                            : (isDark ? AppColors.textDark : AppColors.textLight),
-                        height: 1.4,
-                      ),
+              child: GestureDetector(
+                onLongPress: () {
+                  Clipboard.setData(ClipboardData(text: content));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Message copied to clipboard'),
+                      duration: Duration(seconds: 2),
                     ),
+                  );
+                },
+                child: isCode || isJson
+                    ? _CodeBlock(
+                        content: content,
+                        isDark: isDark,
+                        isJson: isJson,
+                      )
+                    : SelectableText(
+                        content,
+                        style: TextStyle(
+                          color: isUser 
+                              ? Colors.white 
+                              : (isDark ? AppColors.textDark : AppColors.textLight),
+                          height: 1.4,
+                        ),
+                      ),
+              ),
             ),
             
             // Attachment Preview
