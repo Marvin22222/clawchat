@@ -14,7 +14,9 @@ class AuthProvider extends ChangeNotifier {
   String? _token;
   bool _isLoading = false;
   bool _useBiometrics = false;
+  bool? _useAutoLock;
   String? _selectedAgent;
+  DateTime? _backgroundedAt;
 
   WebSocketService get ws => _ws;
   String? get gatewayUrl => _gatewayUrl;
@@ -22,6 +24,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _token != null && _gatewayUrl != null;
   bool get useBiometrics => _useBiometrics;
+  bool? get useAutoLock => _useAutoLock;
   String? get selectedAgent => _selectedAgent;
   bool get isConnected => _ws.isConnected;
 
@@ -37,6 +40,7 @@ class AuthProvider extends ChangeNotifier {
       _gatewayUrl = await _secureStorage.read(key: 'gateway_url');
       _token = await _secureStorage.read(key: 'gateway_token');
       _useBiometrics = await _getBiometricPreference();
+      _useAutoLock = await _getAutoLockPreference();
       
       // Auto-login if credentials exist
       if (_gatewayUrl != null && _token != null) {
@@ -55,6 +59,11 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> _getBiometricPreference() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('use_biometrics') ?? false;
+  }
+
+  Future<bool> _getAutoLockPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('use_auto_lock') ?? false;
   }
 
   Future<bool> login(String gatewayUrl, String token, {bool saveCredentials = true}) async {
@@ -96,6 +105,13 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setUseAutoLock(bool value) async {
+    _useAutoLock = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('use_auto_lock', value);
+    notifyListeners();
+  }
+
   Future<void> setGatewayUrl(String url) async {
     _gatewayUrl = url;
     await _secureStorage.write(key: 'gateway_url', value: url);
@@ -129,6 +145,31 @@ class AuthProvider extends ChangeNotifier {
   Future<void> disconnect() async {
     _ws.disconnect();
     notifyListeners();
+  }
+
+  // Auto-lock feature
+  static const Duration _autoLockDuration = Duration(minutes: 5);
+
+  void startAutoLockTimer() {
+    _backgroundedAt = DateTime.now();
+  }
+
+  void cancelAutoLockTimer() {
+    if (_backgroundedAt != null) {
+      final elapsed = DateTime.now().difference(_backgroundedAt!);
+      if (elapsed < _autoLockDuration) {
+        // Not expired yet, just cancel
+        _backgroundedAt = null;
+        return;
+      }
+    }
+    _backgroundedAt = null;
+  }
+
+  bool shouldAutoLock() {
+    if (_backgroundedAt == null) return false;
+    final elapsed = DateTime.now().difference(_backgroundedAt!);
+    return elapsed >= _autoLockDuration;
   }
 
   // Reconnection

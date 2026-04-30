@@ -15,7 +15,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isTyping = false;
@@ -24,10 +24,25 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.initialAgent != null) {
       _currentAgent = widget.initialAgent!;
     }
     _setupWebSocket();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    final auth = context.read<AuthProvider>();
+    
+    if (state == AppLifecycleState.paused) {
+      // App going to background - start auto-lock timer
+      auth.startAutoLockTimer();
+    } else if (state == AppLifecycleState.resumed) {
+      // App coming to foreground - cancel auto-lock if not expired
+      auth.cancelAutoLockTimer();
+    }
   }
 
   void _setupWebSocket() {

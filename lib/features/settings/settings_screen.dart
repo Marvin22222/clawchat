@@ -245,11 +245,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             title: const Text('Auto-Sperre'),
             subtitle: const Text('App nach 5 Min. Inaktivität sperren'),
-            value: false,
-            onChanged: (value) {
-              // TODO: Implement auto-lock
-            },
-          ),
+            value: auth.useAutoLock ?? false,
+            onChanged: (value) => auth.setUseAutoLock(value),
+          },,
 
           const Divider(),
 
