@@ -436,8 +436,47 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
               textAlign: TextAlign.center,
             ),
+            if (isConnected) ...[
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _HintChip(icon: Icons.mic, label: 'Voice', isDark: isDark),
+                  const SizedBox(width: AppSpacing.sm),
+                  _HintChip(icon: Icons.attach_file, label: 'Image', isDark: isDark),
+                ],
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _HintChip({required IconData icon, required String label, required bool isDark}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: (isDark ? AppColors.primary : AppColors.primary).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.large),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.primary),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
