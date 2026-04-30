@@ -395,14 +395,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Gateway URL ändern'),
-        content: TextField(
-          controller: _gatewayUrlController,
-          decoration: const InputDecoration(
-            labelText: 'Gateway URL',
-            hintText: 'https://gateway.example.com',
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.url,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _gatewayUrlController,
+              decoration: const InputDecoration(
+                labelText: 'Gateway URL',
+                hintText: 'https://gateway.example.com',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Tipp: Nach dem Ändern wird automatisch neu verbunden.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textDarkSecondary
+                    : AppColors.textLightSecondary,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -414,10 +429,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               auth.setGatewayUrl(_gatewayUrlController.text.trim());
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Gateway URL aktualisiert')),
+                const SnackBar(content: Text('Gateway URL aktualisiert - verbinde neu...')),
               );
+              // Auto reconnect with new URL
+              auth.connect();
             },
-            child: const Text('Speichern'),
+            child: const Text('Speichern & Verbinden'),
           ),
         ],
       ),
