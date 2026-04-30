@@ -69,3 +69,16 @@ Working autonomously. Last push: `e430513`
 - `dc43d94` - Long-press to copy message content
 
 **Total: 35 commits on dev**
+
+### Update um 15:45 UTC:
+- Alles auf neue Architektur (core/services, features/chat)
+- 35 Commits auf dev
+- Alle wichtigen Features implementiert
+- Letzter Push: 9d538a2
+
+**Features vollständig:**
+- Voice Input + Recording + Playback ✅
+- Image Picker ✅  
+- Chat Persistence ✅
+- Connection Status (animated) ✅
+- Long-press Copy ✅
