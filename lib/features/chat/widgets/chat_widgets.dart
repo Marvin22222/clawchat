@@ -284,40 +284,116 @@ class _ImageAttachment extends StatelessWidget {
   }
 }
 
-class _AudioAttachment extends StatelessWidget {
+class _AudioAttachment extends StatefulWidget {
   final MessageAttachment attachment;
   final bool isUser;
 
   const _AudioAttachment({required this.attachment, required this.isUser});
 
   @override
+  State<_AudioAttachment> createState() => _AudioAttachmentState();
+}
+
+class _AudioAttachmentState extends State<_AudioAttachment> {
+  late VoiceMessageService _voiceService;
+  bool _isPlaying = false;
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _voiceService = VoiceMessageService();
+    _voiceService.addListener(_onServiceUpdate);
+  }
+
+  void _onServiceUpdate() {
+    if (!mounted) return;
+    setState(() {
+      _isPlaying = _voiceService.isPlaying;
+      _position = _voiceService.playbackPosition;
+      _duration = _voiceService.playbackDuration;
+    });
+  }
+
+  @override
+  void dispose() {
+    _voiceService.removeListener(_onServiceUpdate);
+    _voiceService.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+        color: widget.isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.mic,
-            size: 20,
-            color: isUser ? Colors.white : AppColors.primary,
+          GestureDetector(
+            onTap: () {
+              if (_isPlaying) {
+                _voiceService.pausePlayback();
+              } else {
+                _voiceService.playAudio(widget.attachment.path);
+              }
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: widget.isUser ? Colors.white : AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isPlaying ? Icons.pause : Icons.play_arrow,
+                size: 20,
+                color: widget.isUser ? AppColors.primary : Colors.white,
+              ),
+            ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Flexible(
-            child: Text(
-              attachment.fileName,
-              style: TextStyle(
-                fontSize: 12,
-                color: isUser ? Colors.white : (isDark ? AppColors.textDark : AppColors.textLight),
-              ),
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Voice Message',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: widget.isUser 
+                        ? Colors.white 
+                        : (isDark ? AppColors.textDark : AppColors.textLight),
+                  ),
+                ),
+                if (_duration.inSeconds > 0)
+                  Text(
+                    '${_formatDuration(_position)} / ${_formatDuration(_duration)}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: widget.isUser 
+                          ? Colors.white70 
+                          : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
