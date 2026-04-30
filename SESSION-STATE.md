@@ -194,3 +194,9 @@ Working autonomously. Last push: `e430513`
 
 **Scroll-to-Bottom FAB implementiert:**
 - `06ba27a`
+
+### Update um 17:12 UTC:
+- `8ee5d73` - Message status indicator (clock/checkmark/error)
+- User messages show delivery status
+
+**65 commits auf dev**
