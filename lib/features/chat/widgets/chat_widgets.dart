@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/services/voice_input_service.dart';
+import '../../../core/services/voice_message_service.dart';
 import '../../../models/message.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -913,7 +913,9 @@ class ChatInput extends StatefulWidget {
 class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   final _controller = TextEditingController();
   bool _isRecording = false;
+  bool _isRecordingVoiceMessage = false;
   VoiceInputService? _voiceService;
+  VoiceMessageService? _voiceMessageService;
   final ImagePicker _imagePicker = ImagePicker();
 
   @override
@@ -921,6 +923,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
     super.initState();
     _voiceService = VoiceInputService();
     _voiceService!.addListener(_onVoiceStateChange);
+    _voiceMessageService = VoiceMessageService();
   }
 
   void _onVoiceStateChange() {
@@ -973,6 +976,12 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
     }
   }
 
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   Future<void> _pickFromCamera() async {
     try {
       final XFile? image = await _imagePicker.pickImage(
@@ -1018,6 +1027,14 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: const Icon(Icons.mic, color: AppColors.error),
+                title: const Text('Voice Message'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startVoiceMessageRecording();
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.camera_alt, color: AppColors.primary),
                 title: const Text('Camera'),
                 onTap: () {
@@ -1040,6 +1057,29 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
     );
   }
 
+  Future<void> _startVoiceMessageRecording() async {
+    if (_isRecordingVoiceMessage) {
+      // Stop recording and send
+      final path = await _voiceMessageService?.stopRecording();
+      if (path != null && mounted) {
+        final fileName = path.split('/').last;
+        final attachment = MessageAttachment(
+          path: path,
+          fileName: fileName,
+          mimeType: 'audio/m4a',
+        );
+        widget.onSend('[Voice Message]');
+      }
+      setState(() => _isRecordingVoiceMessage = false);
+    } else {
+      // Start recording
+      final success = await _voiceMessageService?.startRecording();
+      if (success == true) {
+        setState(() => _isRecordingVoiceMessage = true);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1058,8 +1098,45 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Recording indicator
-            if (_isRecording)
+            // Voice Message Recording indicator
+            if (_isRecordingVoiceMessage)
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _PulsingDot(),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      'Voice Message recording...',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Text(
+                      _formatDuration(_voiceMessageService?.recordingDuration ?? Duration.zero),
+                      style: TextStyle(
+                        color: isDark ? AppColors.textDark : AppColors.textLight,
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // Speech-to-Text Recording indicator
+            if (_isRecording && !_isRecordingVoiceMessage)
               Container(
                 margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                 padding: const EdgeInsets.symmetric(
