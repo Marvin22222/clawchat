@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/services/voice_input_service.dart';
+import '../../../models/message.dart';
 
 class MessageBubble extends StatelessWidget {
   final String content;
@@ -11,6 +13,7 @@ class MessageBubble extends StatelessWidget {
   final String? agentName;
   final DateTime timestamp;
   final bool showAgentName;
+  final List<MessageAttachment>? attachments;
 
   const MessageBubble({
     super.key,
@@ -20,6 +23,7 @@ class MessageBubble extends StatelessWidget {
     this.agentName,
     required this.timestamp,
     this.showAgentName = true,
+    this.attachments,
   });
 
   @override
@@ -112,6 +116,21 @@ class MessageBubble extends StatelessWidget {
                     ),
             ),
             
+            // Attachment Preview
+            if (attachments != null && attachments!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  bottom: AppSpacing.sm,
+                ),
+                child: _AttachmentRow(
+                  attachments: attachments!,
+                  isUser: isUser,
+                  isDark: isDark,
+                ),
+              ),
+            
             // Timestamp
             Padding(
               padding: const EdgeInsets.only(
@@ -156,6 +175,151 @@ class MessageBubble extends StatelessWidget {
 
   String _formatTime(DateTime time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+class _AttachmentRow extends StatelessWidget {
+  final List<MessageAttachment> attachments;
+  final bool isUser;
+  final bool isDark;
+
+  const _AttachmentRow({
+    required this.attachments,
+    required this.isUser,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: attachments.map((attachment) {
+        if (attachment.mimeType.startsWith('image/')) {
+          return _ImageAttachment(attachment: attachment, isUser: isUser);
+        } else if (attachment.mimeType.startsWith('audio/')) {
+          return _AudioAttachment(attachment: attachment, isUser: isUser);
+        } else {
+          return _FileAttachment(attachment: attachment, isUser: isUser);
+        }
+      }).toList(),
+    );
+  }
+}
+
+class _ImageAttachment extends StatelessWidget {
+  final MessageAttachment attachment;
+  final bool isUser;
+
+  const _ImageAttachment({required this.attachment, required this.isUser});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.medium),
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: 200,
+          maxHeight: 200,
+        ),
+        child: Image.file(
+          File(attachment.path),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: 100,
+              height: 100,
+              color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+              child: const Icon(Icons.broken_image, color: Colors.grey),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _AudioAttachment extends StatelessWidget {
+  final MessageAttachment attachment;
+  final bool isUser;
+
+  const _AudioAttachment({required this.attachment, required this.isUser});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.mic,
+            size: 20,
+            color: isUser ? Colors.white : AppColors.primary,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Flexible(
+            child: Text(
+              attachment.fileName,
+              style: TextStyle(
+                fontSize: 12,
+                color: isUser ? Colors.white : (isDark ? AppColors.textDark : AppColors.textLight),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FileAttachment extends StatelessWidget {
+  final MessageAttachment attachment;
+  final bool isUser;
+
+  const _FileAttachment({required this.attachment, required this.isUser});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.attach_file,
+            size: 20,
+            color: isUser ? Colors.white : AppColors.primary,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Flexible(
+            child: Text(
+              attachment.fileName,
+              style: TextStyle(
+                fontSize: 12,
+                color: isUser ? Colors.white : (isDark ? AppColors.textDark : AppColors.textLight),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

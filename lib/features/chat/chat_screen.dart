@@ -208,6 +208,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         isDark: isDark,
                         agentName: msg.agentName,
                         timestamp: msg.timestamp,
+                        attachments: msg.attachments,
                       );
                     },
                   ),
