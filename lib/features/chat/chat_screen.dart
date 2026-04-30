@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
+import '../../core/services/websocket_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/message.dart';
 import 'widgets/chat_widgets.dart';
@@ -179,6 +180,12 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
+          // Connection Status Bar
+          _buildConnectionStatusBar(
+            isConnected: auth.ws.isConnected,
+            status: auth.ws.status,
+            isDark: isDark,
+          ),
           // Connection Error Banner
           if (!auth.ws.isConnected && _messages.isEmpty)
             Container(
@@ -248,6 +255,69 @@ class _ChatScreenState extends State<ChatScreen> {
             onSend: _sendMessage,
             onImageSelected: _onImageSelected,
             enabled: auth.ws.isConnected,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConnectionStatusBar({
+    required bool isConnected,
+    required ConnectionStatus status,
+    required bool isDark,
+  }) {
+    Color bgColor;
+    Color textColor;
+    IconData icon;
+    String text;
+
+    switch (status) {
+      case ConnectionStatus.connected:
+        bgColor = AppColors.primary.withOpacity(0.1);
+        textColor = AppColors.primary;
+        icon = Icons.check_circle;
+        text = 'Connected';
+        break;
+      case ConnectionStatus.connecting:
+        bgColor = Colors.orange.withOpacity(0.1);
+        textColor = Colors.orange;
+        icon = Icons.sync;
+        text = 'Connecting...';
+        break;
+      case ConnectionStatus.error:
+        bgColor = AppColors.error.withOpacity(0.1);
+        textColor = AppColors.error;
+        icon = Icons.error_outline;
+        text = 'Connection error';
+        break;
+      case ConnectionStatus.disconnected:
+      default:
+        bgColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
+        textColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
+        icon = Icons.wifi_off;
+        text = 'Disconnected';
+        break;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      color: bgColor,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: textColor,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
