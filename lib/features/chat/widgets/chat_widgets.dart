@@ -520,56 +520,67 @@ class _CodeBlock extends StatelessWidget {
       language = 'dart';
     }
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isDark 
-            ? Colors.black.withOpacity(0.3)
-            : Colors.grey.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(AppRadius.small),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Language badge
-          Padding(
-            padding: const EdgeInsets.only(
-              left: AppSpacing.sm,
-              top: AppSpacing.xs,
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(4),
+    return GestureDetector(
+      onLongPress: () {
+        Clipboard.setData(ClipboardData(text: content));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Code copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: isDark 
+              ? Colors.black.withOpacity(0.3)
+              : Colors.grey.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(AppRadius.small),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Language badge
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppSpacing.sm,
+                top: AppSpacing.xs,
               ),
-              child: Text(
-                language.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  language.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ),
-          ),
-          // Code content
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            child: HighlightView(
-              displayContent,
-              language: language,
-              theme: isDark ? atomOneDarkTheme : atomOneLightTheme,
-              padding: EdgeInsets.zero,
-              textStyle: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 12,
-                height: 1.4,
+            // Code content
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: HighlightView(
+                displayContent,
+                language: language,
+                theme: isDark ? atomOneDarkTheme : atomOneLightTheme,
+                padding: EdgeInsets.zero,
+                textStyle: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  height: 1.4,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
