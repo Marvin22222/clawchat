@@ -236,32 +236,39 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (index == _messages.length && _isTyping) {
                         return ThinkingIndicator(isDark: isDark);
                       }
+                      
                       final msg = _messages[index];
+                      final showDateHeader = index == 0 ||
+                          !_isSameDay(msg.timestamp, _messages[index - 1].timestamp);
                       
-                      // Render ToolCallCard for tool call messages
-                      if (msg.type == MessageType.toolCall && msg.toolData != null) {
-                        return ToolCallCard(
-                          toolName: msg.toolData!['tool'] ?? 'Unknown',
-                          status: msg.toolData!['status'] ?? 'running',
-                          progress: (msg.toolData!['progress'] ?? 0).toDouble(),
-                          parameters: msg.toolData!['parameters'],
-                          response: msg.toolData!['response'],
-                          isDark: isDark,
-                        );
-                      }
-                      
-                      return MessageBubble(
-                        content: msg.content,
-                        isUser: msg.type == MessageType.user,
-                        isDark: isDark,
-                        agentName: msg.agentName,
-                        timestamp: msg.timestamp,
-                        attachments: msg.attachments,
-                        status: msg.status,
-                        reactions: msg.reactions,
-                        onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
+                      return Column(
+                        children: [
+                          if (showDateHeader)
+                            _DateSeparator(timestamp: msg.timestamp, isDark: isDark),
+                          // Render ToolCallCard for tool call messages
+                          if (msg.type == MessageType.toolCall && msg.toolData != null)
+                            ToolCallCard(
+                              toolName: msg.toolData!['tool'] ?? 'Unknown',
+                              status: msg.toolData!['status'] ?? 'running',
+                              progress: (msg.toolData!['progress'] ?? 0).toDouble(),
+                              parameters: msg.toolData!['parameters'],
+                              response: msg.toolData!['response'],
+                              isDark: isDark,
+                            )
+                          else
+                            MessageBubble(
+                              content: msg.content,
+                              isUser: msg.type == MessageType.user,
+                              isDark: isDark,
+                              agentName: msg.agentName,
+                              timestamp: msg.timestamp,
+                              attachments: msg.attachments,
+                              status: msg.status,
+                              reactions: msg.reactions,
+                              onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
+                            ),
+                        ],
                       );
-                    },
                   ),
           ),
           
@@ -274,6 +281,10 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   Widget _buildConnectionStatusBar({
@@ -334,6 +345,42 @@ class _ChatScreenState extends State<ChatScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _DateSeparator({required DateTime timestamp, required bool isDark}) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final messageDate = DateTime(timestamp.year, timestamp.month, timestamp.day);
+
+    String text;
+    if (messageDate == today) {
+      text = 'Heute';
+    } else if (messageDate == yesterday) {
+      text = 'Gestern';
+    } else {
+      text = '${timestamp.day}.${timestamp.month}.${timestamp.year}';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: isDark ? Colors.grey[700] : Colors.grey[300])),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+          ),
+          Expanded(child: Divider(color: isDark ? Colors.grey[700] : Colors.grey[300])),
         ],
       ),
     );
