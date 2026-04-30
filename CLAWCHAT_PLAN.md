@@ -15,7 +15,7 @@ _Letztes Update: 2026-04-30 20:43 UTC_
 ### P1 - Should Have (Wichtig)
 | Task | Beschreibung | Status |
 |------|--------------|--------|
-| `code_copy_button` | Copy Button für Code Blocks | 📝 Nice-to-have |
+| `code_copy_button` | Copy Button für Code Blocks | ✅ **Fertig!** (74666f2) |
 | `message_edit` | Nachrichten nachträglich editieren | ⏳ Offen |
 | `agent_presets` | Preset Agents speichern/laden | ⏳ Offen |
 | `chat_export` | Chat als JSON/Text exportieren | ⏳ Offen |
