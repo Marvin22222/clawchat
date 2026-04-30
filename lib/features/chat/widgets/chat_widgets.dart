@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/services/voice_input_service.dart';
 
 class MessageBubble extends StatelessWidget {
   final String content;
@@ -699,14 +701,59 @@ class ChatInput extends StatefulWidget {
   State<ChatInput> createState() => _ChatInputState();
 }
 
-class _ChatInputState extends State<ChatInput> {
+class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   final _controller = TextEditingController();
   bool _isRecording = false;
+  VoiceInputService? _voiceService;
+  final ImagePicker _imagePicker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _voiceService = VoiceInputService();
+    _voiceService!.addListener(_onVoiceStateChange);
+  }
+
+  void _onVoiceStateChange() {
+    if (!mounted) return;
+    
+    final isListening = _voiceService?.isListening ?? false;
+    final text = _voiceService?.transcribedText ?? '';
+    
+    setState(() {
+      _isRecording = isListening;
+      // Update text field with transcribed text
+      if (text.isNotEmpty && isListening) {
+        _controller.text = text;
+        _controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: text.length),
+        );
+      }
+    });
+
+    // If listening stopped and we have text, auto-send
+    if (!isListening && text.isNotEmpty) {
+      final textToSend = text;
+      _controller.clear();
+      _voiceService?.clearText();
+      widget.onSend(textToSend);
+    }
+  }
 
   @override
   void dispose() {
+    _voiceService?.removeListener(_onVoiceStateChange);
+    _voiceService?.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _toggleRecording() {
+    if (_isRecording) {
+      _voiceService?.stopListening();
+    } else {
+      _voiceService?.startListening();
+    }
   }
 
   void _send() {
@@ -715,6 +762,73 @@ class _ChatInputState extends State<ChatInput> {
       widget.onSend(text);
       _controller.clear();
     }
+  }
+
+  Future<void> _pickFromCamera() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+      if (image != null && mounted) {
+        widget.onImageSelected?.call(image.name);
+      }
+    } catch (e) {
+      debugPrint('Camera pick failed: $e');
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (image != null && mounted) {
+        widget.onImageSelected?.call(image.name);
+      }
+    } catch (e) {
+      debugPrint('Gallery pick failed: $e');
+    }
+  }
+
+  void _showAttachmentOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.bgDarkSecondary
+              : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: AppColors.primary),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickFromCamera();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: AppColors.secondary),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickFromGallery();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -740,15 +854,14 @@ class _ChatInputState extends State<ChatInput> {
                   _isRecording ? Icons.stop : Icons.mic,
                   color: _isRecording ? AppColors.error : AppColors.primary,
                 ),
-                onPressed: widget.enabled
-                    ? () {
-                        setState(() {
-                          _isRecording = !_isRecording;
-                        });
-                      }
-                    : null,
+                onPressed: widget.enabled ? _toggleRecording : null,
                 tooltip: _isRecording ? 'Stop recording' : 'Voice input',
               ),
+            IconButton(
+              icon: const Icon(Icons.attach_file, color: AppColors.primary),
+              onPressed: widget.enabled ? _showAttachmentOptions : null,
+              tooltip: 'Add attachment',
+            ),
             Expanded(
               child: TextField(
                 controller: _controller,
