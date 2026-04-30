@@ -153,7 +153,7 @@ class MessageBubble extends StatelessWidget {
                 ),
               ),
             
-            // Timestamp
+            // Timestamp + Status
             Padding(
               padding: const EdgeInsets.only(
                 left: AppSpacing.md,
@@ -161,7 +161,9 @@ class MessageBubble extends StatelessWidget {
                 bottom: AppSpacing.xs,
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Time
                   Text(
                     _formatTime(timestamp),
                     style: TextStyle(
@@ -169,6 +171,23 @@ class MessageBubble extends StatelessWidget {
                       color: (isUser ? Colors.white : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)).withOpacity(0.6),
                     ),
                   ),
+                  // Status indicator for user messages
+                  if (isUser) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      status == MessageStatus.error
+                          ? Icons.error_outline
+                          : status == MessageStatus.sending
+                              ? Icons.access_time
+                              : Icons.done,
+                      size: 12,
+                      color: status == MessageStatus.error
+                          ? Colors.white70
+                          : (status == MessageStatus.sending
+                              ? Colors.white54
+                              : Colors.white70),
+                    ),
+                  ],
                   if (reactions != null && reactions!.isNotEmpty) ...[
                     const SizedBox(width: AppSpacing.sm),
                     ...reactions!.entries.map((e) => Padding(
