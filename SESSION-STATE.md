@@ -173,3 +173,11 @@ Working autonomously. Last push: `e430513`
 - 60 commits auf dev
 
 **Weitermachen mit:** Kleinigkeiten die auffallen
+
+### Update um 17:08 UTC:
+- `06ba27a` - Scroll-to-bottom FAB
+  - Shows when scrolled up
+  - Hides when at bottom
+  - Haptic feedback
+
+**60 commits auf dev**
