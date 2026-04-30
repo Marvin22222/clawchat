@@ -138,3 +138,16 @@ Working autonomously. Last push: `e430513`
 - Alle Features sind implementiert
 
 **Frage an Marvin gestellt:** Weiter, Pause, oder testen?
+
+### Update um 17:00 UTC:
+- Marvin sagt "mach weiter"
+- Alle genannten TODOs sind bereits implementiert
+- Ich mache UI Polish weiter
+
+**Tatsächlicher Stand:**
+- 55 Commits (nicht 33)
+- Long-press menu → ✅ (`dc43d94`)
+- Connecting animation → ✅ (`1762b7e`)
+- Notification Service → ✅ (FCM Backend fehlt noch)
+
+**Weitermachen mit:** Kleinere UI Verbesserungen
