@@ -132,6 +132,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: const Text('Verbinden'),
                   ),
           ),
+          
+          // Notifications
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Icons.notifications, color: AppColors.primary, size: 20),
+            ),
+            title: const Text('Push-Benachrichtigungen'),
+            subtitle: const Text('Neue Nachrichten melden'),
+            trailing: Switch(
+              value: true,
+              onChanged: (value) {
+                // TODO: Implement notification toggle
+                debugPrint('Notification toggle: $value');
+              },
+            ),
+          ),
 
           const Divider(),
 
