@@ -22,7 +22,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isTyping = false;
+  bool _showScrollToBottom = false;
   String _currentAgent = 'main';
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final atBottom = _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100;
+    if (atBottom != !_showScrollToBottom) {
+      setState(() => _showScrollToBottom = !atBottom);
+    }
+  }
 
   @override
   void initState() {
@@ -260,19 +274,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           
           // Messages
           Expanded(
-            child: _messages.isEmpty
-                ? _buildEmptyState(isDark, auth.ws.isConnected)
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    itemCount: _messages.length + (_isTyping ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == _messages.length && _isTyping) {
-                        return const Padding(
-                          padding: EdgeInsets.only(top: AppSpacing.md),
-                          child: ThinkingIndicator(),
-                        );
-                      }
+            child: Stack(
+              children: [
+                _messages.isEmpty
+                    ? _buildEmptyState(isDark, auth.ws.isConnected)
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        itemCount: _messages.length + (_isTyping ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == _messages.length && _isTyping) {
+                            return const Padding(
+                              padding: EdgeInsets.only(top: AppSpacing.md),
+                              child: ThinkingIndicator(),
+                            );
+                          }
                       
                       final msg = _messages[index];
                       final showDateHeader = index == 0 ||
@@ -308,6 +324,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       );
                   ),
           ),
+          
+          // Scroll to bottom FAB
+          if (_showScrollToBottom)
+            Positioned(
+              bottom: 80,
+              right: AppSpacing.md,
+              child: FloatingActionButton.small(
+                onPressed: () {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
+                  HapticService.lightImpact();
+                },
+                backgroundColor: isDark ? AppColors.bgDarkTertiary : AppColors.primary,
+                child: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+              ),
+            ),
+        ],
+      ),
           
           // Input
           ChatInput(
