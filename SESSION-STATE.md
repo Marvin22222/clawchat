@@ -151,3 +151,11 @@ Working autonomously. Last push: `e430513`
 - Notification Service → ✅ (FCM Backend fehlt noch)
 
 **Weitermachen mit:** Kleinere UI Verbesserungen
+
+### Update um 17:02 UTC:
+- `ddd2a73` - Syntax Highlighting mit flutter_highlight
+  - Language detection (json, js, python, dart)
+  - Language badge
+  - Atom-one themes für dark/light
+
+**56 commits auf dev**
