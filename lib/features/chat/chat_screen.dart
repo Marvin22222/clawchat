@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/websocket_service.dart';
+import '../../core/services/chat_persistence_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/message.dart';
 import 'widgets/chat_widgets.dart';
@@ -28,7 +29,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (widget.initialAgent != null) {
       _currentAgent = widget.initialAgent!;
     }
+    _loadSavedMessages();
     _setupWebSocket();
+  }
+
+  Future<void> _loadSavedMessages() async {
+    final savedMessages = await ChatPersistenceService.loadMessages();
+    if (mounted && savedMessages.isNotEmpty) {
+      setState(() {
+        _messages.addAll(savedMessages);
+      });
+    }
   }
 
   @override
@@ -37,8 +48,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final auth = context.read<AuthProvider>();
     
     if (state == AppLifecycleState.paused) {
-      // App going to background - start auto-lock timer
+      // App going to background - save messages and start auto-lock timer
       auth.startAutoLockTimer();
+      ChatPersistenceService.saveMessages(_messages);
     } else if (state == AppLifecycleState.resumed) {
       // App coming to foreground - cancel auto-lock if not expired
       auth.cancelAutoLockTimer();
@@ -128,6 +140,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     ).then((_) {
       // Success - update status
       _updateMessageStatus(messageId, MessageStatus.sent);
+      // Persist messages after successful send
+      ChatPersistenceService.saveMessages(_messages);
     }).catchError((error) {
       // Error - mark as error and allow retry
       _updateMessageStatus(messageId, MessageStatus.error);

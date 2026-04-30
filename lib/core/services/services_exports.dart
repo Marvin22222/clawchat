@@ -6,3 +6,4 @@ export 'image_upload_service.dart';
 export 'notification_service.dart';
 export 'local_storage.dart';
 export 'biometric_service.dart';
+export 'chat_persistence_service.dart';
