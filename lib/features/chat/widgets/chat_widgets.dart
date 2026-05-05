@@ -11,6 +11,7 @@ import '../../../core/services/voice_input_service.dart';
 import '../../../core/services/voice_message_service.dart';
 import '../../../models/message.dart';
 import 'streaming_text.dart';
+import 'fullscreen_image_viewer.dart';
 import 'package:flutter/gestures.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -457,26 +458,34 @@ class _ImageAttachment extends StatelessWidget {
 
   const _ImageAttachment({required this.attachment, required this.isUser});
 
+
+  void _showFullscreenImage(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FullscreenImageViewer(imagePath: attachment.path),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.medium),
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: 200,
-          maxHeight: 200,
-        ),
-        child: Image.file(
-          File(attachment.path),
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              width: 100,
-              height: 100,
-              color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
-              child: const Icon(Icons.broken_image, color: Colors.grey),
-            );
-          },
+    return GestureDetector(
+      onTap: () => _showFullscreenImage(context),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 200, maxHeight: 200),
+          child: Image.file(
+            File(attachment.path),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 100, height: 100,
+                color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+                child: const Icon(Icons.broken_image, color: Colors.grey),
+              );
+            },
+          ),
         ),
       ),
     );
