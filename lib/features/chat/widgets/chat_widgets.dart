@@ -446,7 +446,7 @@ class _AttachmentRow extends StatelessWidget {
         } else if (attachment.mimeType.startsWith('audio/')) {
           return _AudioAttachment(attachment: attachment, isUser: isUser);
         } else {
-          return _FileAttachment(attachment: attachment, isUser: isUser);
+          return _FileAttachment(attachment: attachment, isUser: isUser, isDark: isDark);
         }
       }).toList(),
     );
@@ -614,8 +614,9 @@ class _AudioAttachmentState extends State<_AudioAttachment> {
 class _FileAttachment extends StatelessWidget {
   final MessageAttachment attachment;
   final bool isUser;
+  final bool isDark;
 
-  const _FileAttachment({required this.attachment, required this.isUser});
+  const _FileAttachment({required this.attachment, required this.isUser, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
