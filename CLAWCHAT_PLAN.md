@@ -9,7 +9,7 @@ _Letztes Update: 2026-04-30 20:43 UTC_
 ### P0 - Must Have (Critical)
 | Task | Beschreibung | Status |
 |------|--------------|--------|
-| `streaming_integration` | WebSocket streaming end event + UI integration | ⏳ Offen |
+| `streaming_integration` | WebSocket streaming end event + UI integration | ✅ **Fertig!** (a1acc1a) |
 | `fcm_notifications` | Firebase Cloud Messaging Backend | ⏳ Offen |
 
 ### P1 - Should Have (Wichtig)
