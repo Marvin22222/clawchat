@@ -21,7 +21,10 @@ class MessageBubble extends StatelessWidget {
   final List<MessageAttachment>? attachments;
   final MessageStatus? status;
   final VoidCallback? onRetry;
+  final VoidCallback? onEdit;
   final Map<String, int>? reactions;
+  final bool isEdited;
+
 
   const MessageBubble({
     super.key,
@@ -34,7 +37,9 @@ class MessageBubble extends StatelessWidget {
     this.attachments,
     this.status,
     this.onRetry,
+    this.onEdit,
     this.reactions,
+    this.isEdited = false,
   });
 
   @override
@@ -112,13 +117,7 @@ class MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.md),
               child: GestureDetector(
                 onLongPress: () {
-                  Clipboard.setData(ClipboardData(text: content));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Message copied to clipboard'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                  _showContextMenu(context);
                 },
                 child: isCode || isJson
                     ? _CodeBlock(
@@ -234,6 +233,18 @@ class MessageBubble extends StatelessWidget {
                       ),
                     ),
                   ],
+                  // Edited indicator for user messages
+                  if (isEdited) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      '(bearbeitet)',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontStyle: FontStyle.italic,
+                        color: isUser ? Colors.white54 : AppColors.textLightSecondary,
+                      ),
+                    ),
+                  ],
                   if (status == MessageStatus.sending) ...[
                     const SizedBox(width: AppSpacing.sm),
                     SizedBox(
@@ -279,6 +290,121 @@ class MessageBubble extends StatelessWidget {
 
   String _formatTime(DateTime time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _showContextMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(top: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              // Copy option (always available)
+              ListTile(
+                leading: Icon(Icons.copy, color: isDark ? AppColors.textDark : AppColors.textLight),
+                title: Text(
+                  'Kopieren',
+                  style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+                ),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: content));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Nachricht kopiert'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                  HapticService.lightImpact();
+                },
+              ),
+              // Edit option (only for user messages)
+              if (isUser && onEdit != null) ...[
+                ListTile(
+                  leading: Icon(Icons.edit, color: AppColors.primary),
+                  title: Text(
+                    'Bearbeiten',
+                    style: TextStyle(color: AppColors.primary),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showEditDialog(context);
+                  },
+                ),
+              ],
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context) {
+    final editController = TextEditingController(text: content);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        title: Text(
+          'Nachricht bearbeiten',
+          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+        ),
+        content: TextField(
+          controller: editController,
+          maxLines: 5,
+          autofocus: true,
+          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+          decoration: InputDecoration(
+            hintText: 'Nachricht eingeben...',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+            ),
+            filled: true,
+            fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Abbrechen',
+              style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newText = editController.text.trim();
+              if (newText.isNotEmpty && newText != content) {
+                onEdit?.call();
+              }
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+            child: const Text('Speichern', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 }
 

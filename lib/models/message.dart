@@ -26,6 +26,7 @@ class ChatMessage {
   final Map<String, dynamic>? toolData;
   final List<MessageAttachment>? attachments;
   final Map<String, int>? reactions; // emoji -> count
+  final bool isEdited;
 
   ChatMessage({
     required this.id,
@@ -37,6 +38,7 @@ class ChatMessage {
     this.toolData,
     this.attachments,
     this.reactions,
+    this.isEdited = false,
   });
 
   ChatMessage copyWith({
@@ -45,6 +47,7 @@ class ChatMessage {
     Map<String, dynamic>? toolData,
     List<MessageAttachment>? attachments,
     Map<String, int>? reactions,
+    bool? isEdited,
   }) {
     return ChatMessage(
       id: id,
@@ -56,6 +59,7 @@ class ChatMessage {
       toolData: toolData ?? this.toolData,
       attachments: attachments ?? this.attachments,
       reactions: reactions ?? this.reactions,
+      isEdited: isEdited ?? this.isEdited,
     );
   }
 }

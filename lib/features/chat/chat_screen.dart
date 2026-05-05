@@ -192,6 +192,78 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
+  void _editMessage(String messageId) {
+    // Find the message to edit
+    final messageIndex = _messages.indexWhere((m) => m.id == messageId);
+    if (messageIndex < 0) return;
+
+    final message = _messages[messageIndex];
+    if (message.type != MessageType.user) return;
+
+    final editController = TextEditingController(text: message.content);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        title: Text(
+          'Nachricht bearbeiten',
+          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+        ),
+        content: TextField(
+          controller: editController,
+          maxLines: 5,
+          autofocus: true,
+          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+          decoration: InputDecoration(
+            hintText: 'Nachricht eingeben...',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+            ),
+            filled: true,
+            fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Abbrechen',
+              style: TextStyle(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newText = editController.text.trim();
+              if (newText.isNotEmpty && newText != message.content) {
+                setState(() {
+                  _messages[messageIndex] = message.copyWith(
+                    content: newText,
+                    isEdited: true,
+                  );
+                });
+                // Persist after edit
+                ChatPersistenceService.saveMessages(_messages);
+                HapticService.lightImpact();
+              }
+              Navigator.pop(dialogContext);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+            child: const Text(
+              'Speichern',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _onImageSelected(String filePath) {
     // Create attachment from file path
     final fileName = filePath.split('/').last;
@@ -322,7 +394,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               attachments: msg.attachments,
                               status: msg.status,
                               reactions: msg.reactions,
+                              isEdited: msg.isEdited,
                               onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
+                              onEdit: msg.type == MessageType.user ? () => _editMessage(msg.id) : null,
                             ),
                         ],
                       );
