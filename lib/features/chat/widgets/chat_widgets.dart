@@ -11,6 +11,7 @@ import '../../../core/services/voice_input_service.dart';
 import '../../../core/services/voice_message_service.dart';
 import '../../../models/message.dart';
 import 'streaming_text.dart';
+import 'package:flutter/gestures.dart';
 
 class MessageBubble extends StatelessWidget {
   final String content;
@@ -1565,27 +1566,32 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                   tooltip: 'Add attachment',
                 ),
                 Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    enabled: widget.enabled && !_isRecording,
-                    maxLines: 5,
-                    minLines: 1,
-                    decoration: InputDecoration(
-                      hintText: _isRecording 
-                          ? 'Listening...' 
-                          : 'Nachricht eingeben...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.large),
-                        borderSide: BorderSide.none,
+                  child: CallbackShortcuts(
+                    bindings: {
+                      const SingleActivator(LogicalKeyboardKey.enter, controlPressed: true): _send,
+                    },
+                    child: TextField(
+                      controller: _controller,
+                      enabled: widget.enabled && !_isRecording,
+                      maxLines: 5,
+                      minLines: 1,
+                      decoration: InputDecoration(
+                        hintText: _isRecording 
+                            ? 'Listening...' 
+                            : 'Nachricht eingeben... (Ctrl+Enter zum Senden)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.large),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
                       ),
-                      filled: true,
-                      fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
-                      ),
+                      onSubmitted: (_) => _send(),
                     ),
-                    onSubmitted: (_) => _send(),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
