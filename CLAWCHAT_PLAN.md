@@ -24,7 +24,7 @@ _Letztes Update: 2026-04-30 20:43 UTC_
 ### P2 - Nice to Have
 | Task | Beschreibung | Status |
 |------|--------------|--------|
-| `keyboard_shortcuts` | Tastaturkürzel ( Ctrl+Enter to send) | ⏳ Offen |
+| `keyboard_shortcuts` | Tastaturkürzel ( Ctrl+Enter to send) | ✅ **Fertig!** (3d58153) |
 | `dark_mode_toggle` | Manueller Dark/Light Mode Toggle | ✅ Existiert (Auto) |
 | `image_fullscreen` | Bilder im Fullscreen anschauen | ⏳ Offen |
 | `voice_settings` | Voice Input Sensitivity einstellen | ⏳ Offen |
