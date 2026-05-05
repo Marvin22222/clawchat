@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../../core/constants/colors.dart';
 import '../../core/services/websocket_service.dart';
 import '../../core/services/chat_persistence_service.dart';
@@ -972,7 +976,7 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
                 onTap: () {
                   Navigator.pop(context);
                   final json = ChatPersistenceService.exportAsJson(_messages);
-                  _showExportResult('JSON exportiert', '\${_messages.length} Nachrichten');
+                  _shareExport('Chat als JSON exportiert', json, 'clawchat_export.json');
                 },
               ),
               ListTile(
@@ -989,7 +993,7 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
                 onTap: () {
                   Navigator.pop(context);
                   final text = ChatPersistenceService.exportAsText(_messages);
-                  _showExportResult('Text exportiert', '\${_messages.length} Nachrichten');
+                  _shareExport('Chat als Text exportiert', text, 'clawchat_export.txt');
                 },
               ),
               const SizedBox(height: AppSpacing.md),
@@ -1000,19 +1004,60 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
     );
   }
 
-  void _showExportResult(String title, String subtitle) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text('$subtitle wurden für den Export vorbereitet.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+  void _shareExport(String title, String content, String filename) {
+    // Save to temporary file and share
+    _exportAndShare(content, filename).then((success) {
+      if (success) {
+        HapticService.mediumImpact();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export fehlgeschlagen'),
+            backgroundColor: AppColors.error,
           ),
-        ],
-      ),
-    );
+        );
+      }
+    });
+  }
+
+  Future<bool> _exportAndShare(String content, String filename) async {
+    try {
+      // Get temporary directory and write file
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/$filename');
+      await file.writeAsString(content);
+      
+      // Share the file using share_plus
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: 'ClawChat Export',
+        text: 'ClawChat Chat-Export',
+      );
+      return true;
+    } catch (e) {
+      print('Export failed: $e');
+      // Fallback to clipboard
+      try {
+        await Clipboard.setData(ClipboardData(text: content));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(Text('$filename wurde in die Zwischenablage kopiert')),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
   }
 }
