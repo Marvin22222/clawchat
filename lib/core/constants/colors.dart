@@ -67,16 +67,20 @@ class AppColors {
     end: Alignment(1.0, 0.3),
   );
 
-  static const Color bgLight = bgPrimary;
-  static const Color bgLightSecondary = bgSecondary;
-  static const Color bgLightTertiary = bgTertiary;
-  static const Color bgDark = bgPrimary;
-  static const Color bgDarkSecondary = bgSecondary;
-  static const Color bgDarkTertiary = bgTertiary;
-  static const Color textDark = textPrimary;
-  static const Color textDarkSecondary = textSecondary;
-  static const Color textLight = textPrimary;
-  static const Color textLightSecondary = textSecondary;
+  // Light theme colors
+  static const Color bgLight = Color(0xFFFFFFFF);
+  static const Color bgLightSecondary = Color(0xFFF4F4F5);
+  static const Color bgLightTertiary = Color(0xFFE4E4E7);
+  // Dark theme colors
+  static const Color bgDark = Color(0xFF0D0D0D);
+  static const Color bgDarkSecondary = Color(0xFF171717);
+  static const Color bgDarkTertiary = Color(0xFF1F1F1F);
+  // Text colors
+  static const Color textDark = Color(0xFFFFFFFF);
+  static const Color textDarkSecondary = Color(0xFF8B8B8B);
+  static const Color textLight = Color(0xFF18181B);
+  static const Color textLightSecondary = Color(0xFF71717A);
+  // Bubble colors
   static const Color assistantBubbleDark = assistantBubble;
-  static const Color assistantBubbleLight = assistantBubble;
+  static const Color assistantBubbleLight = Color(0xFFF4F4F5);
 }
