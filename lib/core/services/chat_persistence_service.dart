@@ -82,7 +82,7 @@ class ChatPersistenceService {
   }
 
 
-  String _formatTimestamp(DateTime dt) {
+  static String _formatTimestamp(DateTime dt) {
     final month = dt.month.toString().padLeft(2, '0');
     final day = dt.day.toString().padLeft(2, '0');
     final hour = dt.hour.toString().padLeft(2, '0');
