@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/services/notification_service.dart';
+import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -147,12 +149,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             title: const Text('Push-Benachrichtigungen'),
             subtitle: const Text('Neue Nachrichten melden'),
-            trailing: Switch(
-              value: true,
-              onChanged: (value) {
-                // TODO: Implement notification toggle
-                debugPrint('Notification toggle: $value');
-              },
+            trailing: Consumer<NotificationService>(
+              builder: (context, notif, _) => Switch(
+                value: notif.isEnabled,
+                onChanged: (value) {
+                  notif.setEnabled(value);
+                  HapticService.lightImpact();
+                },
+              ),
             ),
           ),
 
