@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/websocket_service.dart';
+import '../../core/utils/logger.dart';
 import '../../models/message.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -44,12 +45,12 @@ class AuthProvider extends ChangeNotifier {
       
       // Auto-login if credentials exist
       if (_gatewayUrl != null && _token != null) {
-        debugPrint('Auto-login with saved credentials...');
+        AppLogger.debug('Auto-login with saved credentials...', tag: 'AUTH');
         await _ws.connect(_gatewayUrl!, _token!);
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error loading credentials: $e');
+      AppLogger.warning('Error loading credentials: $e', tag: 'AUTH');
     }
 
     _isLoading = false;
@@ -84,7 +85,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return success;
     } catch (e) {
-      debugPrint('Login error: $e');
+      AppLogger.error('Login error: $e', tag: 'AUTH');
       _isLoading = false;
       notifyListeners();
       return false;
