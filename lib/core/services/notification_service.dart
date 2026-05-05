@@ -102,7 +102,7 @@ class NotificationService extends ChangeNotifier {
         sound: true,
       );
 
-      debugPrint('📱 iOS Notification Permission: ${settings.authorizationStatus.name}');
+      AppLogger.debug('iOS Notification Permission: ${settings.authorizationStatus.name}', tag: 'NOTIF');
 
     } else if (Platform.isAndroid) {
       // Android permissions are handled automatically
