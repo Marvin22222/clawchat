@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../../../core/utils/logger.dart';
 import '../models/task_model.dart';
 
 enum TaskEventType {
@@ -136,7 +136,7 @@ class TaskProvider extends ChangeNotifier {
       
       notifyListeners();
     } catch (e) {
-      debugPrint('Task WebSocket error: $e');
+      AppLogger.error('Task WebSocket error: $e', tag: 'TASK_PROVIDER');
     }
   }
 
