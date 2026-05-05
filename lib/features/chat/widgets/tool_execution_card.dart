@@ -327,9 +327,13 @@ class _ToolExecutionCardState extends State<ToolExecutionCard>
 
   String _formatJson(Map<String, dynamic> json) {
     final buffer = StringBuffer();
-    json.forEach((key, value) {
-      buffer.writeln('  "$key": ${_formatValue(value)},');
-    });
+    final entries = json.entries.toList();
+    for (int i = 0; i < entries.length; i++) {
+      final key = entries[i].key;
+      final value = entries[i].value;
+      final comma = i < entries.length - 1 ? ',' : '';
+      buffer.writeln('  "$key": ${_formatValue(value)}$comma');
+    }
     return '{\n${buffer.toString().trimRight()}\n}';
   }
 
