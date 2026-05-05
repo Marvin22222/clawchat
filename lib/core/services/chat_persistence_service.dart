@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/message.dart';
+import '../utils/logger.dart';
 
 /// Service for persisting chat messages locally
 class ChatPersistenceService {
@@ -21,7 +22,7 @@ class ChatPersistenceService {
       await prefs.setString(_messagesKey, jsonEncode(jsonList));
     } catch (e) {
       // Silently fail - chat persistence is not critical
-      print('Failed to save messages: $e');
+      AppLogger.error('Failed to save messages: $e', tag: 'PERSIST');
     }
   }
 
@@ -38,7 +39,7 @@ class ChatPersistenceService {
       final jsonList = jsonDecode(jsonString) as List;
       return jsonList.map((json) => _messageFromJson(json)).toList();
     } catch (e) {
-      print('Failed to load messages: $e');
+      AppLogger.error('Failed to load messages: $e', tag: 'PERSIST');
       return [];
     }
   }
@@ -49,7 +50,7 @@ class ChatPersistenceService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_messagesKey);
     } catch (e) {
-      print('Failed to clear messages: $e');
+      AppLogger.error('Failed to clear messages: $e', tag: 'PERSIST');
     }
   }
 

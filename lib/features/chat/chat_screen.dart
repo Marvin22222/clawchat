@@ -1037,7 +1037,7 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
       );
       return true;
     } catch (e) {
-      print('Export failed: $e');
+      AppLogger.error('Export failed: $e', tag: 'EXPORT');
       // Fallback to clipboard
       try {
         await Clipboard.setData(ClipboardData(text: content));
