@@ -1,11 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
+import '../../core/services/agent_preset_service.dart';
+import '../../models/message.dart';
 import '../../providers/auth_provider.dart';
 import '../chat/chat_screen.dart';
 
-class AgentsScreen extends StatelessWidget {
+class AgentsScreen extends StatefulWidget {
   const AgentsScreen({super.key});
+
+  @override
+  State<AgentsScreen> createState() => _AgentsScreenState();
+}
+
+class _AgentsScreenState extends State<AgentsScreen> {
+  final AgentPresetService _presetService = AgentPresetService();
+  List<AgentPreset> _presets = [];
+  bool _showPresets = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPresets();
+  }
+
+  Future<void> _loadPresets() async {
+    final presets = await _presetService.loadPresets();
+    if (mounted) {
+      setState(() => _presets = presets);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,16 +42,29 @@ class AgentsScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: Icon(_showPresets ? Icons.smart_toy : Icons.bookmark),
+            onPressed: () {
+              setState(() => _showPresets = !_showPresets);
+            },
+            tooltip: _showPresets ? 'Agents' : 'Presets',
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              // Refresh agents list
               auth.connect();
             },
           ),
         ],
       ),
-      body: auth.ws.availableAgents.isEmpty
-          ? _EmptyState(isDark: isDark)
+      body: _showPresets ? _PresetsList(
+        presets: _presets,
+        isDark: isDark,
+        onLoadPreset: _loadPreset,
+        onDeletePreset: _deletePreset,
+        onAddPreset: _addPreset,
+        availableAgents: auth.ws.availableAgents,
+      ) : (auth.ws.availableAgents.isEmpty
+          ? _EmptyState(isDark: isDark, onRefresh: () => auth.connect())
           : _AgentsList(
               agents: auth.ws.availableAgents,
               selectedAgent: auth.selectedAgent,
@@ -43,15 +80,306 @@ class AgentsScreen extends StatelessWidget {
               onAgentSelect: (agent) {
                 auth.setSelectedAgent(agent);
               },
+              onAgentLongPress: (agent) => _showSavePresetDialog(context, agent),
+            )),
+    );
+  }
+
+  Future<void> _showSavePresetDialog(BuildContext context, String agent) async {
+    final nameController = TextEditingController();
+    final systemPromptController = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        title: Text(
+          'Preset speichern',
+          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Name',
+                hintText: 'z.B. "Mein Coding Agent"',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.medium)),
+              ),
             ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: systemPromptController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'System Prompt (optional)',
+                hintText: 'Zusätzliche Anweisungen...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.medium)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.trim().isEmpty) return;
+              final preset = AgentPreset(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                name: nameController.text.trim(),
+                agentId: agent,
+                systemPrompt: systemPromptController.text.trim().isEmpty ? null : systemPromptController.text.trim(),
+                createdAt: DateTime.now(),
+              );
+              await _presetService.addPreset(preset);
+              await _loadPresets();
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Speichern'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _loadPreset(AgentPreset preset) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(initialAgent: preset.agentId),
+      ),
+    );
+  }
+
+  Future<void> _deletePreset(String id) async {
+    await _presetService.deletePreset(id);
+    await _loadPresets();
+  }
+
+  Future<void> _addPreset() async {
+    // Do nothing - handled by long press on agent
+  }
+}
+
+class _PresetsList extends StatelessWidget {
+  final List<AgentPreset> presets;
+  final bool isDark;
+  final Function(AgentPreset) onLoadPreset;
+  final Function(String) onDeletePreset;
+  final Function(String) onAddPreset;
+  final List<String> availableAgents;
+
+  const _PresetsList({
+    required this.presets,
+    required this.isDark,
+    required this.onLoadPreset,
+    required this.onDeletePreset,
+    required this.onAddPreset,
+    required this.availableAgents,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (presets.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.bookmark_border,
+                  size: 48,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Keine Presets gespeichert',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.textDark : AppColors.textLight,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Lange auf einen Agenten drücken\num ein Preset zu speichern',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark
+                      ? AppColors.textDarkSecondary
+                      : AppColors.textLightSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      itemCount: presets.length,
+      itemBuilder: (context, index) {
+        final preset = presets[index];
+        return _PresetCard(
+          preset: preset,
+          isDark: isDark,
+          onTap: () => onLoadPreset(preset),
+          onDelete: () => onDeletePreset(preset.id),
+        );
+      },
+    );
+  }
+}
+
+class _PresetCard extends StatelessWidget {
+  final AgentPreset preset;
+  final bool isDark;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const _PresetCard({
+    required this.preset,
+    required this.isDark,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                  ),
+                  child: const Icon(
+                    Icons.bookmark,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        preset.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Agent: ${preset.agentId}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textDarkSecondary
+                              : AppColors.textLightSecondary,
+                        ),
+                      ),
+                      if (preset.systemPrompt != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          preset.systemPrompt!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                            color: isDark
+                                ? AppColors.textDarkSecondary
+                                : AppColors.textLightSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Preset löschen?'),
+                        content: Text('"${preset.name}" wirklich löschen?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Abbrechen'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              onDelete();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.error,
+                            ),
+                            child: const Text('Löschen', style: TextStyle(color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
 
 class _EmptyState extends StatelessWidget {
   final bool isDark;
+  final VoidCallback onRefresh;
 
-  const _EmptyState({required this.isDark});
+
+  const _EmptyState({required this.isDark, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +426,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
-              onPressed: () {
+              onPressed: onRefresh,
                 final auth = context.read<AuthProvider>();
                 auth.connect();
               },
@@ -118,6 +446,7 @@ class _AgentsList extends StatelessWidget {
   final bool isDark;
   final Function(String) onAgentTap;
   final Function(String) onAgentSelect;
+  final Function(String)? onAgentLongPress;
 
   const _AgentsList({
     required this.agents,
@@ -125,6 +454,7 @@ class _AgentsList extends StatelessWidget {
     required this.isDark,
     required this.onAgentTap,
     required this.onAgentSelect,
+    this.onAgentLongPress,
   });
 
   @override
@@ -145,6 +475,7 @@ class _AgentsList extends StatelessWidget {
           isSelected: isSelected,
           onTap: () => onAgentTap(agent),
           onSelect: () => onAgentSelect(agent),
+          onLongPress: onAgentLongPress != null ? () => onAgentLongPress!(agent) : null,
         );
       },
     );
@@ -226,6 +557,7 @@ class _AgentCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onSelect;
+  final VoidCallback? onLongPress;
 
   const _AgentCard({
     required this.name,
@@ -236,11 +568,15 @@ class _AgentCard extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     required this.onSelect,
+    this.onLongPress,
   });
+
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onLongPress: onLongPress,
+      child: Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
         color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
@@ -261,16 +597,18 @@ class _AgentCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.medium),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                // Agent Icon
+      child: GestureDetector(
+        onLongPress: onLongPress,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  // Agent Icon
                 Container(
                   width: 56,
                   height: 56,
@@ -384,6 +722,7 @@ class _AgentCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

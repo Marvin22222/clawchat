@@ -24,7 +24,6 @@ _Letztes Update: 2026-04-30 20:43 UTC_
 ### P2 - Nice to Have
 | Task | Beschreibung | Status |
 |------|--------------|--------|
-| `message_search` | Chat durchsuchen | ⏳ Offen |
 | `keyboard_shortcuts` | Tastaturkürzel ( Ctrl+Enter to send) | ⏳ Offen |
 | `dark_mode_toggle` | Manueller Dark/Light Mode Toggle | ✅ Existiert (Auto) |
 | `image_fullscreen` | Bilder im Fullscreen anschauen | ⏳ Offen |

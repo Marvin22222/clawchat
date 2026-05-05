@@ -94,6 +94,58 @@ class Agent {
   }
 }
 
+class AgentPreset {
+  final String id;
+  final String name;
+  final String agentId;
+  final String? systemPrompt;
+  final Map<String, dynamic>? customParams;
+  final DateTime createdAt;
+
+  AgentPreset({
+    required this.id,
+    required this.name,
+    required this.agentId,
+    this.systemPrompt,
+    this.customParams,
+    required this.createdAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'agentId': agentId,
+    'systemPrompt': systemPrompt,
+    'customParams': customParams,
+    'createdAt': createdAt.toIso8601String(),
+  };
+
+  factory AgentPreset.fromJson(Map<String, dynamic> json) => AgentPreset(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    agentId: json['agentId'] as String,
+    systemPrompt: json['systemPrompt'] as String?,
+    customParams: json['customParams'] as Map<String, dynamic>?,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+  );
+
+  AgentPreset copyWith({
+    String? name,
+    String? agentId,
+    String? systemPrompt,
+    Map<String, dynamic>? customParams,
+  }) {
+    return AgentPreset(
+      id: id,
+      name: name ?? this.name,
+      agentId: agentId ?? this.agentId,
+      systemPrompt: systemPrompt ?? this.systemPrompt,
+      customParams: customParams ?? this.customParams,
+      createdAt: createdAt,
+    );
+  }
+}
+
 class ToolCall {
   final String id;
   final String toolName;
