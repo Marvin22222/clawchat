@@ -450,38 +450,38 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             ),
                         ],
                       );
+                    },
                   ),
-          ),
-          
-          // Scroll to bottom FAB
-          if (_showScrollToBottom)
-            Positioned(
-              bottom: 80,
-              right: AppSpacing.md,
-              child: FloatingActionButton.small(
-                onPressed: () {
-                  _scrollController.animateTo(
-                    _scrollController.position.maxScrollExtent,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                  HapticService.lightImpact();
-                },
-                backgroundColor: isDark ? AppColors.bgDarkTertiary : AppColors.primary,
-                child: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-              ),
+                ),
+              ],
             ),
-        ],
-      ),
-          
-          // Input
-          ChatInput(
-            onSend: _sendMessage,
-            onImageSelected: _onImageSelected,
-            enabled: auth.ws.isConnected,
-          ),
-        ],
-      ),
+            // Scroll to bottom FAB
+            if (_showScrollToBottom)
+              Positioned(
+                bottom: 80,
+                right: AppSpacing.md,
+                child: FloatingActionButton.small(
+                  onPressed: () {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                    HapticService.lightImpact();
+                  },
+                  backgroundColor: isDark ? AppColors.bgDarkTertiary : AppColors.primary,
+                  child: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                ),
+              ),
+          ],
+        ),
+        // Input
+        ChatInput(
+          onSend: _sendMessage,
+          onImageSelected: _onImageSelected,
+          enabled: auth.ws.isConnected,
+        ),
+      ],
     );
   }
 
