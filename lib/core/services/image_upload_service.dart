@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/colors.dart';
+import '../../core/constants/spacing.dart';
 
 class ImageUploadService {
   final ImagePicker _picker = ImagePicker();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/colors.dart';
+import '../constants/colors.dart';
+import '../constants/spacing.dart';
 
 class ErrorHandler {
   static void showErrorSnackBar(BuildContext context, String message) {
