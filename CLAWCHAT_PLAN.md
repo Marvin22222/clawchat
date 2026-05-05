@@ -27,7 +27,7 @@ _Letztes Update: 2026-04-30 20:43 UTC_
 | `keyboard_shortcuts` | Tastaturkürzel ( Ctrl+Enter to send) | ✅ **Fertig!** (3d58153) |
 | `dark_mode_toggle` | Manueller Dark/Light Mode Toggle | ✅ Existiert (Auto) |
 | `image_fullscreen` | Bilder im Fullscreen anschauen | ✅ **Fertig!** (767dcd4) |
-| `voice_settings` | Voice Input Sensitivity einstellen | ⏳ Offen |
+| `voice_settings` | Voice Input Sensitivity einstellen | ✅ **Fertig!** (ef8484f) |
 
 ### P3 - Future
 | Task | Beschreibung | Status |
