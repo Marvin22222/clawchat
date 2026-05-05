@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/constants/spacing.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -72,15 +74,15 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     // Logo
                     Container(
-                      width: 120,
-                      height: 120,
+                      width: AppDimensions.avatarXLarge,
+                      height: AppDimensions.avatarXLarge,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [AppColors.primary, AppColors.secondary],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(AppSpacing.lg),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primary.withOpacity(0.4),
@@ -91,12 +93,12 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       child: const Icon(
                         Icons.chat_bubble_rounded,
-                        size: 60,
+                        size: AppDimensions.iconXLarge,
                         color: Colors.white,
                       ),
                     ),
                     
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.xl),
                     
                     // App name
                     const Text(
@@ -109,24 +111,24 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     
                     // Tagline
                     Text(
                       'Your AI Assistant',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: AppDimensions.iconMedium,
                         color: Colors.white.withOpacity(0.7),
                         letterSpacing: 1,
                       ),
                     ),
                     
-                    const SizedBox(height: 48),
+                    const SizedBox(height: AppSpacing.xxl),
                     
                     // Loading indicator
                     SizedBox(
-                      width: 24,
-                      height: 24,
+                      width: AppDimensions.iconSmall + 8,
+                      height: AppDimensions.iconSmall + 8,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(
