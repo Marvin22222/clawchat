@@ -427,9 +427,6 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
               onPressed: onRefresh,
-                final auth = context.read<AuthProvider>();
-                auth.connect();
-              },
               icon: const Icon(Icons.refresh),
               label: const Text('Erneut versuchen'),
             ),
@@ -574,9 +571,7 @@ class _AgentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onLongPress: onLongPress,
-      child: Container(
+    return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
         color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
@@ -597,18 +592,17 @@ class _AgentCard extends StatelessWidget {
           ),
         ],
       ),
-      child: GestureDetector(
-        onLongPress: onLongPress,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(AppRadius.medium),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  // Agent Icon
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                // Agent Icon
                 Container(
                   width: 56,
                   height: 56,
@@ -722,7 +716,6 @@ class _AgentCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
       ),
     );
   }
