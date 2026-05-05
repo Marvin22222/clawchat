@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:convert';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
-import '../../core/services/file_storage_service.dart';
 import '../../models/message.dart';
 
 class FilesScreen extends StatefulWidget {
