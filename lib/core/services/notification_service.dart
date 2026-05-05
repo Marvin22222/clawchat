@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_config.dart';
+import '../utils/logger.dart';
 
 /// Firebase Cloud Messaging Notification Service
 /// Handles push notifications for both iOS and Android
@@ -41,7 +42,7 @@ class NotificationService extends ChangeNotifier {
     try {
       // Initialize Firebase
       await Firebase.initializeApp();
-      debugPrint('✅ Firebase initialized');
+      AppLogger.info('Firebase initialized', tag: 'NOTIF');
 
       // Initialize local notifications
       await _initializeLocalNotifications();
@@ -56,10 +57,10 @@ class NotificationService extends ChangeNotifier {
       await _getFcmToken();
 
       _isInitialized = true;
-      debugPrint('✅ NotificationService initialized');
+      AppLogger.info('NotificationService initialized', tag: 'NOTIF');
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ NotificationService initialization failed: $e');
+      AppLogger.error('NotificationService initialization failed: $e', tag: 'NOTIF');
       // Don't crash - notifications are optional
       _isInitialized = false;
     }
@@ -84,7 +85,7 @@ class NotificationService extends ChangeNotifier {
       onDidReceiveNotificationResponse: _onNotificationResponse,
     );
 
-    debugPrint('✅ Local notifications initialized');
+    AppLogger.info('Local notifications initialized', tag: 'NOTIF');
   }
 
   /// Request notification permissions
@@ -106,7 +107,7 @@ class NotificationService extends ChangeNotifier {
     } else if (Platform.isAndroid) {
       // Android permissions are handled automatically
       final android = _firebaseMessaging;
-      debugPrint('📱 Android notification permissions configured');
+      AppLogger.debug('Android notification permissions configured', tag: 'NOTIF');
     }
   }
 
@@ -124,7 +125,7 @@ class NotificationService extends ChangeNotifier {
 
   /// Handle incoming messages when app is in foreground
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    debugPrint('📨 Foreground message received: ${message.notification?.title}');
+    AppLogger.debug('Foreground message received: ${message.notification?.title}', tag: 'NOTIF');
 
     await _showLocalNotification(
       title: message.notification?.title ?? 'ClawChat',
@@ -135,7 +136,7 @@ class NotificationService extends ChangeNotifier {
 
   /// Handle when user taps on a notification
   void _handleMessageOpenedApp(RemoteMessage message) {
-    debugPrint('📱 App opened from notification: ${message.notification?.title}');
+    AppLogger.debug('App opened from notification: ${message.notification?.title}', tag: 'NOTIF');
     _navigateToNotification(message.data);
   }
 
@@ -143,7 +144,7 @@ class NotificationService extends ChangeNotifier {
   Future<void> _checkInitialMessage() async {
     final message = await _firebaseMessaging.getInitialMessage();
     if (message != null) {
-      debugPrint('📱 Cold start from notification: ${message.notification?.title}');
+      AppLogger.debug('Cold start from notification: ${message.notification?.title}', tag: 'NOTIF');
       _navigateToNotification(message.data);
     }
   }
@@ -189,7 +190,7 @@ class NotificationService extends ChangeNotifier {
 
   /// Handle notification tap - navigate to relevant screen
   void _onNotificationResponse(NotificationResponse response) {
-    debugPrint('🔔 Notification tapped: ${response.payload}');
+    AppLogger.debug('Notification tapped: ${response.payload}', tag: 'NOTIF');
     // Parse payload and navigate to appropriate screen
     // This would integrate with the app's navigation
   }
@@ -200,15 +201,15 @@ class NotificationService extends ChangeNotifier {
     switch (type) {
       case 'message':
         // Navigate to chat
-        debugPrint('Navigate to chat screen');
+        AppLogger.debug('Navigate to chat screen', tag: 'NOTIF');
         break;
       case 'task':
         // Navigate to tasks
-        debugPrint('Navigate to tasks screen');
+        AppLogger.debug('Navigate to tasks screen', tag: 'NOTIF');
         break;
       default:
         // Navigate to home
-        debugPrint('Navigate to home screen');
+        AppLogger.debug('Navigate to home screen', tag: 'NOTIF');
     }
   }
 
@@ -221,22 +222,22 @@ class NotificationService extends ChangeNotifier {
 
       if (storedToken != null) {
         _fcmToken = storedToken;
-        debugPrint('📱 Using stored FCM token');
+        AppLogger.debug('Using stored FCM token', tag: 'FCM');
       } else {
         // Get fresh token
         _fcmToken = await _firebaseMessaging.getToken();
         if (_fcmToken != null) {
           await prefs.setString('fcm_token', _fcmToken!);
-          debugPrint('📱 New FCM token received');
+          AppLogger.debug('New FCM token received', tag: 'FCM');
           
           // Send token to gateway
           await _sendTokenToGateway(_fcmToken!);
         }
       }
 
-      debugPrint('📱 FCM Token: ${_fcmToken?.substring(0, 20)}...');
+      AppLogger.debug('FCM Token: ${_fcmToken?.substring(0, 20)}...', tag: 'FCM');
     } catch (e) {
-      debugPrint('❌ Failed to get FCM token: $e');
+      AppLogger.error('Failed to get FCM token: $e', tag: 'FCM');
     }
   }
 
@@ -264,12 +265,12 @@ class NotificationService extends ChangeNotifier {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        debugPrint('✅ FCM token sent to gateway successfully');
+        AppLogger.info('FCM token sent to gateway successfully', tag: 'FCM');
       } else {
-        debugPrint('⚠️ Gateway rejected token: ${response.statusCode}');
+        AppLogger.warning('Gateway rejected token: ${response.statusCode}', tag: 'FCM');
       }
     } catch (e) {
-      debugPrint('⚠️ Failed to send token to gateway: $e');
+      AppLogger.warning('Failed to send token to gateway: $e', tag: 'FCM');
       // Don't crash - token registration is optional
     }
   }
@@ -282,7 +283,7 @@ class NotificationService extends ChangeNotifier {
   /// Send token to gateway on demand
   Future<void> registerDeviceWithGateway(String gatewayUrl, String? authToken) async {
     if (_fcmToken == null) {
-      debugPrint('⚠️ No FCM token available');
+      AppLogger.warning('No FCM token available', tag: 'FCM');
       return;
     }
 
@@ -302,9 +303,9 @@ class NotificationService extends ChangeNotifier {
         }),
       ).timeout(const Duration(seconds: 10));
 
-      debugPrint('📡 Device registration response: ${response.statusCode}');
+      AppLogger.debug('Device registration response: ${response.statusCode}', tag: 'FCM');
     } catch (e) {
-      debugPrint('❌ Failed to register device: $e');
+      AppLogger.error('Failed to register device: $e', tag: 'FCM');
     }
   }
 
