@@ -53,6 +53,40 @@ class ChatPersistenceService {
     }
   }
 
+  /// Export messages as JSON string
+  static String exportAsJson(List<ChatMessage> messages) {
+    final jsonList = messages.map((m) => _messageToJson(m)).toList();
+    return const JsonEncoder.withIndent('  ').convert(jsonList);
+  }
+
+
+  /// Export messages as plain text
+  static String exportAsText(List<ChatMessage> messages) {
+    final buffer = StringBuffer();
+    buffer.writeln('=== ClawChat Export ===');
+    buffer.writeln('Exportiert am: ${DateTime.now().toIso8601String()}');
+    buffer.writeln('Nachrichten: ${messages.length}');
+    buffer.writeln('');
+    buffer.writeln('=' * 50);
+    buffer.writeln('');
+
+    for (final msg in messages) {
+      final typeLabel = msg.type == MessageType.user ? 'Du' : 'Assistant';
+      final agentInfo = msg.agentName != null ? ' [${msg.agentName}]' : '';
+      buffer.writeln('[$typeLabel$agentInfo - ${_formatTimestamp(msg.timestamp)}]');
+      buffer.writeln(msg.content);
+      buffer.writeln('');
+    }
+
+    return buffer.toString();
+  }
+
+
+  static String _formatTimestamp(DateTime dt) {
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
+           '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
   static Map<String, dynamic> _messageToJson(ChatMessage message) {
     return {
       'id': message.id,

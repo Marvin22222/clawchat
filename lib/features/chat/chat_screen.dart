@@ -344,6 +344,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: () => _showExportSheet(context),
+            tooltip: 'Chat exportieren',
+          ),
+          IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => _showSearchSheet(context),
           ),
@@ -916,6 +921,98 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
           child: Icon(Icons.sync, size: 16, color: widget.color),
         );
       },
+    );
+  }
+
+  void _showExportSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                'Chat exportieren',
+                style: TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textDark : AppColors.textLight,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ListTile(
+                leading: Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
+                  ),
+                  child: const Icon(Icons.code, color: AppColors.primary),
+                ),
+                title: const Text('Als JSON'),
+                subtitle: const Text('Export für Backup oder Analyse'),
+                onTap: () {
+                  Navigator.pop(context);
+                  final json = ChatPersistenceService.exportAsJson(_messages);
+                  _showExportResult('JSON exportiert', '\${_messages.length} Nachrichten');
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
+                  ),
+                  child: const Icon(Icons.text_snippet, color: AppColors.secondary),
+                ),
+                title: const Text('Als Text'),
+                subtitle: const Text('Lesbare Formatierung'),
+                onTap: () {
+                  Navigator.pop(context);
+                  final text = ChatPersistenceService.exportAsText(_messages);
+                  _showExportResult('Text exportiert', '\${_messages.length} Nachrichten');
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showExportResult(String title, String subtitle) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text('$subtitle wurden für den Export vorbereitet.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 }
