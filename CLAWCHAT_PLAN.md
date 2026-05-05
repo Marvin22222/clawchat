@@ -17,7 +17,7 @@ _Letztes Update: 2026-04-30 20:43 UTC_
 |------|--------------|--------|
 | `code_copy_button` | Copy Button für Code Blocks | ✅ **Fertig!** (74666f2) |
 | `message_search` | Chat durchsuchen | ✅ **Fertig!** (84e919d) |
-| `message_edit` | Nachrichten nachträglich editieren | ⏳ Offen |
+| `message_edit` | Nachrichten nachträglich editieren | ✅ **Fertig!** (fd148e1) |
 | `agent_presets` | Preset Agents speichern/laden | ⏳ Offen |
 | `chat_export` | Chat als JSON/Text exportieren | ⏳ Offen |
 
