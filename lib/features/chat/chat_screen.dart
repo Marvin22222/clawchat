@@ -930,9 +930,6 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
   }
 }
 
-  // Methods moved to _ChatScreenState
-}
-
   void _showExportSheet(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
