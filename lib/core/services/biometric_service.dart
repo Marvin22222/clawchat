@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
+import '../utils/logger.dart';
 
 /// Service for handling biometric authentication (Face ID / Touch ID)
 class BiometricService {
@@ -57,7 +58,7 @@ class BiometricService {
       );
       return didAuthenticate;
     } on PlatformException catch (e) {
-      print('Biometric authentication error: ${e.message}');
+      AppLogger.error('Biometric authentication error: ${e.message}', tag: 'BIOMETRIC');
       return false;
     }
   }
