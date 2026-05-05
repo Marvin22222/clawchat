@@ -928,7 +928,6 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
       },
     );
   }
-}
 
   void _showExportSheet(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
