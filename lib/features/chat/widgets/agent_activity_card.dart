@@ -277,7 +277,7 @@ class _AgentActivityCardState extends State<AgentActivityCard>
                             ? Colors.grey[800]
                             : Colors.grey[200],
                         valueColor: AlwaysStoppedAnimation<Color>(_statusColor),
-                        minRowHeight: 4,
+                        minHeight: 4,
                       ),
                     ),
                   ],
