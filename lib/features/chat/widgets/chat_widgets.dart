@@ -10,6 +10,7 @@ import '../../../core/constants/colors.dart';
 import '../../../core/services/voice_input_service.dart';
 import '../../../core/services/voice_message_service.dart';
 import '../../../models/message.dart';
+import 'streaming_text.dart';
 
 class MessageBubble extends StatelessWidget {
   final String content;
@@ -24,6 +25,7 @@ class MessageBubble extends StatelessWidget {
   final VoidCallback? onEdit;
   final Map<String, int>? reactions;
   final bool isEdited;
+  final bool isStreaming;
 
 
   const MessageBubble({
@@ -40,6 +42,7 @@ class MessageBubble extends StatelessWidget {
     this.onEdit,
     this.reactions,
     this.isEdited = false,
+    this.isStreaming = false,
   });
 
   @override
@@ -119,21 +122,31 @@ class MessageBubble extends StatelessWidget {
                 onLongPress: () {
                   _showContextMenu(context);
                 },
-                child: isCode || isJson
-                    ? _CodeBlock(
-                        content: content,
-                        isDark: isDark,
-                        isJson: isJson,
-                      )
-                    : SelectableText(
-                        content,
+                child: isStreaming
+                    ? StreamingText(
+                        text: content,
                         style: TextStyle(
                           color: isUser 
                               ? Colors.white 
                               : (isDark ? AppColors.textDark : AppColors.textLight),
                           height: 1.4,
                         ),
-                      ),
+                      )
+                    : (isCode || isJson
+                        ? _CodeBlock(
+                            content: content,
+                            isDark: isDark,
+                            isJson: isJson,
+                          )
+                        : SelectableText(
+                            content,
+                            style: TextStyle(
+                              color: isUser 
+                                  ? Colors.white 
+                                  : (isDark ? AppColors.textDark : AppColors.textLight),
+                              height: 1.4,
+                            ),
+                          )),
               ),
             ),
             

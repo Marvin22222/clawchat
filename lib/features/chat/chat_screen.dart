@@ -30,6 +30,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addObserver(this);
+    if (widget.initialAgent != null) {
+      _currentAgent = widget.initialAgent!;
+    }
+    _loadSavedMessages();
+    _setupWebSocket();
   }
 
   void _onScroll() {
@@ -37,17 +43,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (atBottom != !_showScrollToBottom) {
       setState(() => _showScrollToBottom = !atBottom);
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    if (widget.initialAgent != null) {
-      _currentAgent = widget.initialAgent!;
-    }
-    _loadSavedMessages();
-    _setupWebSocket();
   }
 
   Future<void> _loadSavedMessages() async {
@@ -76,16 +71,45 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _setupWebSocket() {
     final auth = context.read<AuthProvider>();
+    
+    auth.ws.onStreamStart = () {
+      if (mounted) {
+        setState(() {
+          // Add a new streaming assistant message
+          _messages.add(ChatMessage(
+            id: 'stream_${DateTime.now().millisecondsSinceEpoch}',
+            content: '',
+            type: MessageType.assistant,
+            timestamp: DateTime.now(),
+            status: MessageStatus.sending,
+            agentName: _currentAgent,
+            isStreaming: true,
+          ));
+          _isTyping = false;
+        });
+        _scrollToBottom();
+      }
+    };
+
     auth.ws.onMessage = (content) {
       if (mounted) {
         setState(() {
-          if (_messages.isNotEmpty && _messages.last.type == MessageType.assistant) {
-            // Create new message with appended content
+          // Find the current streaming message
+          final streamingIndex = _messages.indexWhere((m) => m.isStreaming);
+          if (streamingIndex >= 0) {
+            // Append to streaming message
+            final streamMsg = _messages[streamingIndex];
+            _messages[streamingIndex] = streamMsg.copyWith(
+              content: streamMsg.content + content,
+            );
+          } else if (_messages.isNotEmpty && _messages.last.type == MessageType.assistant) {
+            // Fallback: append to last assistant message
             final lastMsg = _messages.last;
             _messages[_messages.length - 1] = lastMsg.copyWith(
               content: lastMsg.content + content,
             );
           } else {
+            // Create new message if none exists
             _messages.add(ChatMessage(
               id: DateTime.now().millisecondsSinceEpoch.toString(),
               content: content,
@@ -94,7 +118,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               agentName: _currentAgent,
             ));
           }
-          _isTyping = false;
+        });
+        _scrollToBottom();
+      }
+    };
+
+    auth.ws.onStreamEnd = () {
+      if (mounted) {
+        setState(() {
+          // Mark streaming as complete
+          final streamingIndex = _messages.indexWhere((m) => m.isStreaming);
+          if (streamingIndex >= 0) {
+            _messages[streamingIndex] = _messages[streamingIndex].copyWith(
+              isStreaming: false,
+              status: MessageStatus.sent,
+            );
+          }
         });
         _scrollToBottom();
       }
@@ -395,6 +434,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               status: msg.status,
                               reactions: msg.reactions,
                               isEdited: msg.isEdited,
+                              isStreaming: msg.isStreaming,
                               onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
                               onEdit: msg.type == MessageType.user ? () => _editMessage(msg.id) : null,
                             ),

@@ -23,6 +23,8 @@ class WebSocketService extends ChangeNotifier {
   Function(String)? onError;
   Function()? onConnected;
   Function()? onDisconnected;
+  Function()? onStreamStart;
+  Function()? onStreamEnd;
 
   ConnectionStatus get status => _status;
   List<String> get availableAgents => _availableAgents;
@@ -107,6 +109,12 @@ class WebSocketService extends ChangeNotifier {
           break;
         case 'message_chunk':
           onMessage?.call(message['content'] ?? '');
+          break;
+        case 'message_stream_start':
+          onStreamStart?.call();
+          break;
+        case 'message_stream_end':
+          onStreamEnd?.call();
           break;
         case 'thinking':
           onThinking?.call(message['content'] ?? '');

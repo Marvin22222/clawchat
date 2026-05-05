@@ -27,6 +27,7 @@ class ChatMessage {
   final List<MessageAttachment>? attachments;
   final Map<String, int>? reactions; // emoji -> count
   final bool isEdited;
+  final bool isStreaming;
 
   ChatMessage({
     required this.id,
@@ -39,6 +40,7 @@ class ChatMessage {
     this.attachments,
     this.reactions,
     this.isEdited = false,
+    this.isStreaming = false,
   });
 
   ChatMessage copyWith({
@@ -48,6 +50,7 @@ class ChatMessage {
     List<MessageAttachment>? attachments,
     Map<String, int>? reactions,
     bool? isEdited,
+    bool? isStreaming,
   }) {
     return ChatMessage(
       id: id,
@@ -60,6 +63,7 @@ class ChatMessage {
       attachments: attachments ?? this.attachments,
       reactions: reactions ?? this.reactions,
       isEdited: isEdited ?? this.isEdited,
+      isStreaming: isStreaming ?? this.isStreaming,
     );
   }
 }
