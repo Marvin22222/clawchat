@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/colors.dart';
-import '../../../core/constants/spacing.dart';
-import '../../../core/constants/typography.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../widgets/feedback/skeleton_loader.dart';
+import '../../core/constants/colors.dart';
+import '../../core/constants/spacing.dart';
+import '../../core/constants/typography.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/animations/skeleton_loaders.dart';
 import '../chat/chat_screen.dart';
 import '../tasks/tasks_screen.dart';
 
