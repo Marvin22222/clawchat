@@ -26,6 +26,7 @@ dependencies:
   # Sharing & Export
   share_plus: ^10.0.0
   path_provider: ^2.1.2
+  file_picker: ^8.0.0+1
   # Push Notifications
   firebase_core: ^3.8.1
   firebase_messaging: ^15.2.1
