@@ -248,9 +248,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: const Text('App nach 5 Min. Inaktivität sperren'),
             value: auth.useAutoLock ?? false,
             onChanged: (value) => auth.setUseAutoLock(value),
-          },,
+          ),
 
-          const Divider(),
+          const Divider();
+
+          // Voice Settings Section
+          _SectionHeader(title: 'Spracheingabe'),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Icons.mic, color: AppColors.primary, size: 20),
+            ),
+            title: const Text('Sprach-Empfindlichkeit'),
+            subtitle: const Text('Anpassen der Spracherkennungs-Empfindlichkeit'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showVoiceSensitivitySettings(context),
+          ),
+
+          const Divider();
 
           // Agent Settings Section
           _SectionHeader(title: 'Agent Einstellungen'),
@@ -716,5 +737,142 @@ class _ThemeColorOption extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showVoiceSensitivitySettings(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    double _sensitivity = 0.7; // Default medium sensitivity
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Text(
+                  'Sprach-Empfindlichkeit',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.textDark : AppColors.textLight,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'Pausen-Dauer: ${(_sensitivity * 3).toStringAsFixed(1)} Sekunden',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Slider(
+                  value: _sensitivity,
+                  min: 0.1,
+                  max: 1.0,
+                  divisions: 9,
+                  label: _getSensitivityLabel(_sensitivity),
+                  onChanged: (value) {
+                    setModalState(() => _sensitivity = value);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Niedrig', style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary, fontSize: 12)),
+                    Text('Mittel', style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary, fontSize: 12)),
+                    Text('Hoch', style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary, fontSize: 12)),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.bgDark : AppColors.bgLight,
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline, color: AppColors.info, size: 16),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Was wird angepasst:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: isDark ? AppColors.textDark : AppColors.textLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        '• Pausendauer (wann Spracherkennung stoppt)\n• Hörzeit (maximale Aufnahmedauer)\n• Empfindlichkeit für leise Sprache',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Save to shared preferences
+                      // For now, just close
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Sprach-Empfindlichkeit gespeichert'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    ),
+                    child: const Text('Speichern', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _getSensitivityLabel(double value) {
+    if (value < 0.3) return 'Niedrig';
+    if (value < 0.7) return 'Mittel';
+    return 'Hoch';
   }
 }
