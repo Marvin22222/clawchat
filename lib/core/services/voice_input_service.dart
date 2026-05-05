@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
+import '../utils/logger.dart';
 
 /// VoiceInputService - Echte Speech-to-Text Implementierung
 /// Nutzt das speech_to_text Package für plattformübergreifende Spracherkennung
@@ -34,31 +35,23 @@ class VoiceInputService extends ChangeNotifier {
       
       if (!_isAvailable) {
         _lastError = 'Spracherkennung nicht verfügbar auf diesem Gerät';
-        if (kDebugMode) {
-          debugPrint('VoiceInputService: Nicht verfügbar');
-        }
+        AppLogger.debug('VoiceInputService: Nicht verfügbar', tag: 'STT');
       } else {
-        if (kDebugMode) {
-          debugPrint('VoiceInputService: Initialisiert und bereit');
-        }
+        AppLogger.debug('VoiceInputService: Initialisiert und bereit', tag: 'STT');
       }
       
       notifyListeners();
     } catch (e) {
       _isAvailable = false;
       _lastError = 'Initialisierungsfehler: $e';
-      if (kDebugMode) {
-        debugPrint('VoiceInputService Error: $e');
-      }
+      AppLogger.error('VoiceInputService initialization failed: $e', tag: 'STT');
       notifyListeners();
     }
   }
 
   /// Status Callback vom speech_to_text Package
   void _onStatus(String status) {
-    if (kDebugMode) {
-      debugPrint('VoiceInputService Status: $status');
-    }
+    AppLogger.debug('VoiceInputService Status: $status', tag: 'STT');
     
     // Automatisch stoppen wenn nicht mehr aktiv
     if (status == 'done' || status == 'notListening') {
@@ -71,9 +64,7 @@ class VoiceInputService extends ChangeNotifier {
 
   /// Fehler Callback vom speech_to_text Package
   void _onError(Object error) {
-    if (kDebugMode) {
-      debugPrint('VoiceInputService Error: $error');
-    }
+    AppLogger.error('VoiceInputService Error: $error', tag: 'STT');
     
     _lastError = error.toString();
     _isListening = false;
@@ -99,9 +90,7 @@ class VoiceInputService extends ChangeNotifier {
         listenMode: ListenMode.confirmation,
       );
       
-      if (kDebugMode) {
-        debugPrint('VoiceInputService: Höre zu...');
-      }
+      AppLogger.debug('VoiceInputService: Höre zu...', tag: 'STT');
     } catch (e) {
       _lastError = 'Fehler beim Starten: $e';
       _isListening = false;
@@ -113,9 +102,7 @@ class VoiceInputService extends ChangeNotifier {
   void _onResult(SpeechRecognitionResult result) {
     _transcribedText = result.recognizedWords;
     
-    if (kDebugMode) {
-      debugPrint('VoiceInputService Result: ${result.recognizedWords}');
-    }
+    AppLogger.debug('VoiceInputService Result: ${result.recognizedWords}', tag: 'STT');
     
     // Wenn finales Ergebnis und nicht mehr hören soll
     if (result.finalResult && _isListening) {
@@ -134,9 +121,11 @@ class VoiceInputService extends ChangeNotifier {
       _isListening = false;
       notifyListeners();
       
-      if (kDebugMode) {
-        debugPrint('VoiceInputService: Gestoppt mit Text: $_transcribedText');
-      }
+      await _speech.stop();
+      _isListening = false;
+      notifyListeners();
+      
+      AppLogger.debug('VoiceInputService: Gestoppt mit Text: $_transcribedText', tag: 'STT');
     } catch (e) {
       _lastError = 'Stopp-Fehler: $e';
       notifyListeners();
@@ -153,9 +142,7 @@ class VoiceInputService extends ChangeNotifier {
       _transcribedText = '';
       notifyListeners();
       
-      if (kDebugMode) {
-        debugPrint('VoiceInputService: Abgebrochen');
-      }
+      AppLogger.debug('VoiceInputService: Abgebrochen', tag: 'STT');
     } catch (e) {
       _lastError = 'Cancel-Fehler: $e';
       notifyListeners();
