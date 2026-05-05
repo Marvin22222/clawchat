@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../core/constants/colors.dart';
-import '../../core/constants/spacing.dart';
-import '../../core/utils/logger.dart';
+import '../constants/colors.dart';
+import '../constants/spacing.dart';
+import '../utils/logger.dart';
 
 class ImageUploadService {
   final ImagePicker _picker = ImagePicker();
