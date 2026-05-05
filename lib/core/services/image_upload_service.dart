@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
+import '../../core/utils/logger.dart';
 
 class ImageUploadService {
   final ImagePicker _picker = ImagePicker();
@@ -26,7 +27,7 @@ class ImageUploadService {
       }
       return null;
     } catch (e) {
-      debugPrint('Image picker error: $e');
+      AppLogger.debug('Image picker error: $e', tag: 'UPLOAD');
       return null;
     }
   }
@@ -36,7 +37,7 @@ class ImageUploadService {
       final List<XFile> images = await _picker.pickMultiImage();
       return images.map((xfile) => File(xfile.path)).toList();
     } catch (e) {
-      debugPrint('Multi image picker error: $e');
+      AppLogger.debug('Multi image picker error: $e', tag: 'UPLOAD');
       return [];
     }
   }

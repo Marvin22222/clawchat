@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
+import '../../core/constants/app_constants.dart';
 import '../../providers/auth_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -104,7 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: OutlinedButton(
                         onPressed: () {
                           _pageController.previousPage(
-                            duration: const Duration(milliseconds: 300),
+                            duration: AnimationDurations.normal,
                             curve: Curves.easeInOut,
                           );
                         },
@@ -117,7 +118,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onPressed: () {
                         if (_currentPage < _pages.length - 1) {
                           _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
+                            duration: AnimationDurations.normal,
                             curve: Curves.easeInOut,
                           );
                         } else {
