@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
-import '../tasks/models/task_model.dart';
-import '../tasks/providers/task_provider.dart';
+import '../../core/constants/spacing.dart';
+import 'models/task_model.dart';
+import 'providers/task_provider.dart';
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});

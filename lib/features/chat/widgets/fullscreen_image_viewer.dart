@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/constants/spacing.dart';
 
 class FullscreenImageViewer extends StatefulWidget {
   final String imagePath;

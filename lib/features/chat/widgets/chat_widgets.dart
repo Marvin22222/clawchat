@@ -7,6 +7,7 @@ import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/atom-one-light.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/constants/spacing.dart';
 import '../../../core/services/voice_input_service.dart';
 import '../../../core/services/voice_message_service.dart';
 import '../../../models/message.dart';
