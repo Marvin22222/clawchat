@@ -1,5 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/constants/app_config.dart';
+import '../constants/app_config.dart';
 
 class LocalStorage {
   static SharedPreferences? _prefs;
