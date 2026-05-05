@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
+import '../../../core/utils/logger.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/atom-one-light.dart';
 import 'package:image_picker/image_picker.dart';
@@ -1399,7 +1400,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
         widget.onImageSelected?.call(image.path);
       }
     } catch (e) {
-      debugPrint('Camera pick failed: $e');
+      AppLogger.error('Camera pick failed: $e', tag: 'CHAT_WIDGETS');
     }
   }
 
@@ -1413,7 +1414,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
         widget.onImageSelected?.call(image.path);
       }
     } catch (e) {
-      debugPrint('Gallery pick failed: $e');
+      AppLogger.error('Gallery pick failed: $e', tag: 'CHAT_WIDGETS');
     }
   }
 
