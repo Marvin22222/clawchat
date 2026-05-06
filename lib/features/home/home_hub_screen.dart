@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../core/constants/typography.dart';
+import '../../core/services/mock_agent_data.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animations/skeleton_loaders.dart';
+import '../agents/agent_monitor_screen.dart';
 import '../chat/chat_screen.dart';
 import '../tasks/tasks_screen.dart';
 
@@ -125,6 +127,65 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             icon: const Icon(Icons.refresh, color: AppColors.textSecondary),
             onPressed: _loadAgents,
           ),
+          const SizedBox(width: 8),
+          _buildAgentBadge(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgentBadge() {
+    final mockAgents = MockAgentData.getMockAgents();
+    final activeCount = mockAgents
+        .where((a) => a.status.name == 'live' || a.status.name == 'busy')
+        .length;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AgentMonitorScreen()),
+        );
+      },
+      child: Stack(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: AppColors.accentGradient,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.pets,
+              color: AppColors.textPrimary,
+              size: 24,
+            ),
+          ),
+          if (activeCount > 0)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF22C55E),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.bgPrimary,
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  '$activeCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
