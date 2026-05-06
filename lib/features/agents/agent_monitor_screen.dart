@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/mock_agent_data.dart';
 import '../../models/agent_session.dart';
+import '../../models/agent_status.dart';
 import 'widgets/widgets.dart';
 
-/// Main Agent Control Center screen - placeholder for Phase 2
+/// Main Agent Control Center screen with staggered animations
 class AgentMonitorScreen extends StatefulWidget {
   const AgentMonitorScreen({super.key});
 
@@ -12,15 +13,26 @@ class AgentMonitorScreen extends StatefulWidget {
   State<AgentMonitorScreen> createState() => _AgentMonitorScreenState();
 }
 
-class _AgentMonitorScreenState extends State<AgentMonitorScreen> {
-  // Using mock data for development
+class _AgentMonitorScreenState extends State<AgentMonitorScreen>
+    with TickerProviderStateMixin {
   List<AgentSession> _agents = [];
   bool _isLoading = true;
+  final List<AnimationController> _cardControllers = [];
+  final List<Animation<Offset>> _slideAnimations = [];
+  final List<Animation<double>> _fadeAnimations = [];
 
   @override
   void initState() {
     super.initState();
     _loadAgents();
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _cardControllers) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadAgents() async {
@@ -33,6 +45,55 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen> {
       _agents = MockAgentData.getMockAgents();
       _isLoading = false;
     });
+    
+    // Setup staggered animations after data is loaded
+    _setupCardAnimations();
+  }
+
+  void _setupCardAnimations() {
+    // Dispose old controllers
+    for (var controller in _cardControllers) {
+      controller.dispose();
+    }
+    _cardControllers.clear();
+    _slideAnimations.clear();
+    _fadeAnimations.clear();
+    
+    // Create controllers for each agent
+    for (int i = 0; i < _agents.length; i++) {
+      final controller = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 400),
+      );
+      _cardControllers.add(controller);
+      
+      // Slide from bottom with offset
+      final slideAnimation = Tween<Offset>(
+        begin: const Offset(0, 0.3),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: controller,
+        curve: Curves.easeOutCubic,
+      ));
+      _slideAnimations.add(slideAnimation);
+      
+      // Fade in
+      final fadeAnimation = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(
+        parent: controller,
+        curve: Curves.easeIn,
+      ));
+      _fadeAnimations.add(fadeAnimation);
+      
+      // Staggered start - 50ms delay between cards
+      Future.delayed(Duration(milliseconds: 50 * i), () {
+        if (mounted) {
+          controller.forward();
+        }
+      });
+    }
   }
 
   @override
@@ -84,42 +145,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             )
-          : RefreshIndicator(
-              onRefresh: _loadAgents,
-              color: AppColors.primary,
-              child: CustomScrollView(
-                slivers: [
-                  // Stats summary bar
-                  SliverToBoxAdapter(
-                    child: StatsSummaryBar(
-                      agents: _agents,
-                      onTap: () {
-                        // TODO: Show detailed stats
-                      },
-                    ),
-                  ),
-                  
-                  // Agent cards
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final agent = _agents[index];
-                        return AgentCard(
-                          agent: agent,
-                          onTap: () => _showAgentDetail(agent),
-                          onLongPress: () => _showQuickActions(agent),
-                        );
-                      },
-                      childCount: _agents.length,
-                    ),
-                  ),
-                  
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
-                  ),
-                ],
-              ),
-            ),
+          : _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _showNewTaskModal,
         backgroundColor: AppColors.primary,
@@ -128,8 +154,122 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen> {
     );
   }
 
+  Widget _buildBody() {
+    // Empty state when no agents or all idle
+    if (_agents.isEmpty || _agents.every((a) => a.status == AgentStatus.idle)) {
+      return _buildEmptyState();
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadAgents,
+      color: AppColors.primary,
+      child: CustomScrollView(
+        slivers: [
+          // Stats summary bar
+          SliverToBoxAdapter(
+            child: StatsSummaryBar(
+              agents: _agents,
+              onTap: () {
+                // TODO: Show detailed stats
+              },
+            ),
+          ),
+          
+          // Agent cards with staggered animation
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final agent = _agents[index];
+                final animationIndex = index < _cardControllers.length ? index : 0;
+                
+                if (index >= _cardControllers.length) {
+                  // Fallback for safety
+                  return AgentCard(
+                    agent: agent,
+                    onTap: () => _showAgentDetail(agent),
+                    onLongPress: () => _showQuickActions(agent),
+                  );
+                }
+                
+                return SlideTransition(
+                  position: _slideAnimations[animationIndex],
+                  child: FadeTransition(
+                    opacity: _fadeAnimations[animationIndex],
+                    child: AgentCard(
+                      agent: agent,
+                      onTap: () => _showAgentDetail(agent),
+                      onLongPress: () => _showQuickActions(agent),
+                    ),
+                  ),
+                );
+              },
+              childCount: _agents.length,
+            ),
+          ),
+          
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 100),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.pets,
+              size: 80,
+              color: isDark 
+                  ? AppColors.textDarkSecondary.withOpacity(0.3)
+                  : AppColors.textLightSecondary.withOpacity(0.3),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Keine aktiven Agents',
+              style: TextStyle(
+                color: isDark ? AppColors.textDark : AppColors.textLight,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Alle Agents sind idle oder es sind keine vorhanden.',
+              style: TextStyle(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: _showNewTaskModal,
+              icon: const Icon(Icons.add),
+              label: const Text('Neuen Task starten'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.textPrimary,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showAgentDetail(AgentSession agent) {
-    // TODO: Show bottom sheet with agent details
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.bgDarkSecondary,
