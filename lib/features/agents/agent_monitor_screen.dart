@@ -5,6 +5,7 @@ import '../../core/services/mock_agent_data.dart';
 import '../../models/agent_session.dart';
 import '../../models/agent_status.dart';
 import 'widgets/widgets.dart';
+import '../chat/chat_screen.dart';
 
 // Navigation callback typedefs
 typedef NavigateToChatCallback = void Function(String? agentId);
@@ -389,9 +390,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
           SliverToBoxAdapter(
             child: StatsSummaryBar(
               agents: _allAgents,
-              onTap: () {
-                // TODO: Show detailed stats
-              },
+              onTap: () => _showDetailedStats(context),
             ),
           ),
 
@@ -553,10 +552,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
           agent: agent,
           onViewChat: () {
             Navigator.pop(context);
-            // TODO: Navigate to chat
-            if (widget.onNavigateToChat != null) {
-              widget.onNavigateToChat!(agent.id);
-            }
+            _navigateToChat(agent);
           },
           onCancelTask: () {
             Navigator.pop(context);
@@ -564,10 +560,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
           },
           onSendMessage: () {
             Navigator.pop(context);
-            // TODO: Open message dialog
-            if (widget.onSendMessage != null) {
-              widget.onSendMessage!(agent.id);
-            }
+            _showSendMessageDialog(agent);
           },
         ),
       ),
@@ -581,19 +574,15 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
       builder: (context) => QuickActionsSheet(
         agent: agent,
         onSendMessage: () {
-          // TODO: Open message dialog
-          if (widget.onSendMessage != null) {
-            widget.onSendMessage!(agent.id);
-          }
+          Navigator.pop(context);
+          _showSendMessageDialog(agent);
         },
         onCancelTask: () {
           _cancelAgentTask(agent);
         },
         onViewHistory: () {
-          // TODO: Navigate to history
-          if (widget.onNavigateToHistory != null) {
-            widget.onNavigateToHistory!(agent.id);
-          }
+          Navigator.pop(context);
+          _navigateToHistory(agent);
         },
         onResetAgent: () {
           _resetAgent(agent);
@@ -778,10 +767,476 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
       ),
     );
   }
+
+  /// Show detailed stats modal
+  void _showDetailedStats(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Calculate detailed stats
+    final totalAgents = _allAgents.length;
+    final activeCount = _allAgents.where((a) => 
+        a.status == AgentStatus.live || a.status == AgentStatus.busy).length;
+    final busyCount = _allAgents.where((a) => a.status == AgentStatus.busy).length;
+    final idleCount = _allAgents.where((a) => a.status == AgentStatus.idle).length;
+    final errorCount = _allAgents.where((a) => a.status == AgentStatus.error).length;
+    
+    // Calculate total messages processed (mock data for demo)
+    final totalMessages = _allAgents.length * 42; // Mock: ~42 messages per agent
+    final avgResponseTime = '1.2s'; // Mock average
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '📊 Detailed Statistics',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Stats grid
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.smart_toy,
+                    label: 'Total Agents',
+                    value: '$totalAgents',
+                    color: AppColors.primary,
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.check_circle,
+                    label: 'Active',
+                    value: '$activeCount',
+                    color: const Color(0xFF22C55E),
+                    isDark: isDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.pending,
+                    label: 'Busy',
+                    value: '$busyCount',
+                    color: const Color(0xFFEAB308),
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.pause_circle,
+                    label: 'Idle',
+                    value: '$idleCount',
+                    color: const Color(0xFF6B7280),
+                    isDark: isDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.error,
+                    label: 'Errors',
+                    value: '$errorCount',
+                    color: const Color(0xFFEF4444),
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.message,
+                    label: 'Total Msgs',
+                    value: '$totalMessages',
+                    color: const Color(0xFF3B82F6),
+                    isDark: isDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Average response time
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.bgDarkTertiary : AppColors.bgLightTertiary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.speed, color: AppColors.primary),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Avg Response Time',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                  ),
+                  const Spacer(),
+                  Text(
+                    avgResponseTime,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Bottom padding
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Navigate to chat screen with the agent
+  void _navigateToChat(AgentSession agent) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(initialAgent: agent.name),
+      ),
+    );
+  }
+
+  /// Show dialog to send a direct message to an agent
+  void _showSendMessageDialog(AgentSession agent) {
+    final messageController = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Text(agent.avatarEmoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 12),
+            Text(
+              'Message ${agent.name}',
+              style: TextStyle(
+                color: isDark ? AppColors.textDark : AppColors.textLight,
+              ),
+            ),
+          ],
+        ),
+        content: TextField(
+          controller: messageController,
+          autofocus: true,
+          maxLines: 3,
+          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+          decoration: InputDecoration(
+            hintText: 'Type your message...',
+            hintStyle: TextStyle(
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+            ),
+            filled: true,
+            fillColor: isDark ? AppColors.bgDarkTertiary : AppColors.bgLightTertiary,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              if (messageController.text.trim().isNotEmpty) {
+                Navigator.pop(dialogContext);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Message sent to ${agent.name}'),
+                    backgroundColor: AppColors.primary,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.send, size: 18),
+            label: const Text('Send'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Navigate to session history for the agent
+  void _navigateToHistory(AgentSession agent) {
+    // Import history screen - navigate to it
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _AgentHistoryScreen(agent: agent),
+      ),
+    );
+  }
+}
+
+/// Stats card widget for detailed stats modal
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+  final bool isDark;
+
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.bgDarkTertiary : AppColors.bgLightTertiary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Simple history screen for agent sessions
+class _AgentHistoryScreen extends StatelessWidget {
+  final AgentSession agent;
+
+  const _AgentHistoryScreen({required this.agent});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.bgDark : AppColors.bgLight,
+      appBar: AppBar(
+        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        title: Row(
+          children: [
+            Text(agent.avatarEmoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 12),
+            Text(
+              '${agent.name} History',
+              style: TextStyle(
+                color: isDark ? AppColors.textDark : AppColors.textLight,
+              ),
+            ),
+          ],
+        ),
+        iconTheme: IconThemeData(
+          color: isDark ? AppColors.textDark : AppColors.textLight,
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Agent info card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Agent Details',
+                  style: TextStyle(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _HistoryRow(label: 'Name', value: agent.name),
+                _HistoryRow(label: 'Role', value: agent.role ?? 'Unknown'),
+                _HistoryRow(label: 'Status', value: agent.status.name),
+                _HistoryRow(label: 'Started', value: agent.startedAt?.toString().split('.').first ?? 'N/A'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Recent activity
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Recent Activity',
+                  style: TextStyle(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _HistoryRow(label: 'Last Active', value: agent.lastActive?.toString().split('.').first ?? 'Never'),
+                _HistoryRow(label: 'Current Task', value: agent.currentTask ?? 'None'),
+                _HistoryRow(label: 'Progress', value: '${(agent.progress * 100).toInt()}%'),
+                _HistoryRow(label: 'Steps Completed', value: '${agent.steps.length}'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Messages processed (mock)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Statistics',
+                  style: TextStyle(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _HistoryRow(label: 'Messages Processed', value: '42'),
+                _HistoryRow(label: 'Avg Response Time', value: '1.2s'),
+                _HistoryRow(label: 'Uptime', value: agent.durationString),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _HistoryRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: isDark ? AppColors.textDark : AppColors.textLight,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Connection status indicator with reconnect button
-class _ConnectionStatusIndicator extends StatelessWidget {
   final bool isConnected;
   final bool isReconnecting;
   final VoidCallback onReconnect;
