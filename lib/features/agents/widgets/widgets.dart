@@ -1,5 +1,8 @@
 export 'agent_avatar.dart';
 export 'agent_card.dart';
+export 'agent_detail_sheet.dart';
+export 'filter_bar.dart';
 export 'progress_bar.dart';
+export 'quick_actions_sheet.dart';
 export 'stats_summary_bar.dart';
 export 'status_indicator.dart';
