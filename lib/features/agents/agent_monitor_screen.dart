@@ -1,13 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/mock_agent_data.dart';
 import '../../models/agent_session.dart';
 import '../../models/agent_status.dart';
 import 'widgets/widgets.dart';
 
+// Navigation callback typedefs
+typedef NavigateToChatCallback = void Function(String? agentId);
+typedef NavigateToHistoryCallback = void Function(String? agentId);
+typedef SendMessageCallback = void Function(String agentId);
+
 /// Main Agent Control Center screen with filter/sort, grid/list view, and animations
 class AgentMonitorScreen extends StatefulWidget {
-  const AgentMonitorScreen({super.key});
+  final NavigateToChatCallback? onNavigateToChat;
+  final SendMessageCallback? onSendMessage;
+  final NavigateToHistoryCallback? onNavigateToHistory;
+
+  const AgentMonitorScreen({
+    super.key,
+    this.onNavigateToChat,
+    this.onSendMessage,
+    this.onNavigateToHistory,
+  });
 
   @override
   State<AgentMonitorScreen> createState() => _AgentMonitorScreenState();
@@ -34,11 +49,36 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
   AgentSort _selectedSort = AgentSort.name;
   AgentViewMode _viewMode = AgentViewMode.list;
 
+  // Selected agent for new task modal
+  String? _selectedAgentForTask;
+
   // WebSocket connection controller (for future real implementation)
   @override
   void initState() {
     super.initState();
+    _loadLastSelectedAgent();
     _loadAgents();
+  }
+
+  Future<void> _loadLastSelectedAgent() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastAgent = prefs.getString('last_selected_agent');
+    if (lastAgent != null && mounted) {
+      setState(() {
+        _selectedAgentForTask = lastAgent;
+      });
+    }
+  }
+
+  Future<void> _storeSelectedAgent(String? agentId) async {
+    _selectedAgentForTask = agentId;
+    final prefs = await SharedPreferences.getInstance();
+    if (agentId != null) {
+      await prefs.setString('last_selected_agent', agentId);
+    } else {
+      await prefs.remove('last_selected_agent');
+    }
+    if (mounted) setState(() {});
   }
 
   @override
@@ -514,6 +554,9 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
           onViewChat: () {
             Navigator.pop(context);
             // TODO: Navigate to chat
+            if (widget.onNavigateToChat != null) {
+              widget.onNavigateToChat!(agent.id);
+            }
           },
           onCancelTask: () {
             Navigator.pop(context);
@@ -522,6 +565,9 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
           onSendMessage: () {
             Navigator.pop(context);
             // TODO: Open message dialog
+            if (widget.onSendMessage != null) {
+              widget.onSendMessage!(agent.id);
+            }
           },
         ),
       ),
@@ -536,12 +582,18 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
         agent: agent,
         onSendMessage: () {
           // TODO: Open message dialog
+          if (widget.onSendMessage != null) {
+            widget.onSendMessage!(agent.id);
+          }
         },
         onCancelTask: () {
           _cancelAgentTask(agent);
         },
         onViewHistory: () {
           // TODO: Navigate to history
+          if (widget.onNavigateToHistory != null) {
+            widget.onNavigateToHistory!(agent.id);
+          }
         },
         onResetAgent: () {
           _resetAgent(agent);
@@ -657,6 +709,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 ),
                 dropdownColor: AppColors.bgElevated,
                 style: const TextStyle(color: AppColors.textPrimary),
+                value: _selectedAgentForTask,
                 items: _allAgents.map((agent) {
                   return DropdownMenuItem(
                     value: agent.id,
@@ -670,7 +723,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                   );
                 }).toList(),
                 onChanged: (value) {
-                  // TODO: Store selected agent
+                  _storeSelectedAgent(value);
                 },
               ),
               const SizedBox(height: 16),

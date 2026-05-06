@@ -1304,6 +1304,7 @@ class ChatInput extends StatefulWidget {
   final Function(String)? onImageSelected;
   final bool enabled;
   final bool showVoiceInput;
+  final bool pushToTalkMode;
 
   const ChatInput({
     super.key,
@@ -1311,6 +1312,7 @@ class ChatInput extends StatefulWidget {
     this.onImageSelected,
     this.enabled = true,
     this.showVoiceInput = true,
+    this.pushToTalkMode = false,
   });
 
   @override
@@ -1321,6 +1323,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   final _controller = TextEditingController();
   bool _isRecording = false;
   bool _isRecordingVoiceMessage = false;
+  bool _isPttHolding = false;
   VoiceInputService? _voiceService;
   VoiceMessageService? _voiceMessageService;
   final ImagePicker _imagePicker = ImagePicker();
@@ -1365,6 +1368,18 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
     _voiceService?.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onPttPress() {
+    if (!widget.enabled) return;
+    _voiceService?.startListening();
+    setState(() => _isPttHolding = true);
+    HapticService.lightImpact();
+  }
+
+  void _onPttRelease() {
+    _voiceService?.stopListening();
+    setState(() => _isPttHolding = false);
   }
 
   void _toggleRecording() {
@@ -1587,11 +1602,18 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
             Row(
               children: [
                 if (widget.showVoiceInput)
-                  _AnimatedVoiceButton(
-                    isRecording: _isRecording,
-                    enabled: widget.enabled,
-                    onPressed: _toggleRecording,
-                  ),
+                  widget.pushToTalkMode
+                      ? _PushToTalkButton(
+                          isHolding: _isPttHolding,
+                          enabled: widget.enabled,
+                          onPress: _onPttPress,
+                          onRelease: _onPttRelease,
+                        )
+                      : _AnimatedVoiceButton(
+                          isRecording: _isRecording,
+                          enabled: widget.enabled,
+                          onPressed: _toggleRecording,
+                        ),
                 IconButton(
                   icon: const Icon(Icons.attach_file, color: AppColors.primary),
                   onPressed: widget.enabled ? _showAttachmentOptions : null,
@@ -1760,3 +1782,113 @@ class _AnimatedVoiceButtonState extends State<_AnimatedVoiceButton>
     );
   }
 }
+
+
+/// Push-to-Talk button - hold to record, release to send
+class _PushToTalkButton extends StatefulWidget {
+  final bool isHolding;
+  final bool enabled;
+  final VoidCallback onPress;
+  final VoidCallback onRelease;
+
+  const _PushToTalkButton({
+    required this.isHolding,
+    required this.enabled,
+    required this.onPress,
+    required this.onRelease,
+  });
+
+  @override
+  State<_PushToTalkButton> createState() => _PushToTalkButtonState();
+}
+
+class _PushToTalkButtonState extends State<_PushToTalkButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    _glowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_PushToTalkButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isHolding && !oldWidget.isHolding) {
+      _controller.repeat(reverse: true);
+    } else if (!widget.isHolding && oldWidget.isHolding) {
+      _controller.stop();
+      _controller.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final scale = widget.isHolding ? _scaleAnimation.value : 1.0;
+        final glow = widget.isHolding ? _glowAnimation.value : 0.0;
+        
+        return GestureDetector(
+          onTapDown: widget.enabled ? (_) => widget.onPress() : null,
+          onTapUp: widget.enabled ? (_) => widget.onRelease() : null,
+          onTapCancel: widget.enabled ? widget.onRelease : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: widget.isHolding 
+                  ? AppColors.error.withOpacity(0.2) 
+                  : AppColors.bgDarkTertiary,
+              border: Border.all(
+                color: widget.isHolding 
+                    ? AppColors.error 
+                    : (widget.enabled ? AppColors.primary : Colors.grey),
+                width: 2,
+              ),
+              boxShadow: widget.isHolding
+                  ? [
+                      BoxShadow(
+                        color: AppColors.error.withOpacity(0.3 * glow),
+                        blurRadius: 12 * glow,
+                        spreadRadius: 2 * glow,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Transform.scale(
+              scale: scale,
+              child: Icon(
+                widget.isHolding ? Icons.mic : Icons.mic_none,
+                color: widget.isHolding ? AppColors.error : AppColors.primary,
+                size: 24,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
