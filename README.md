@@ -34,6 +34,7 @@ A **native iOS app** for OpenClaw that connects directly to your OpenClaw gatewa
 | 📸 **Image Upload** | Share images from gallery or camera |
 | 📋 **Tasks & Cron Jobs** | Monitor your scheduled OpenClaw tasks |
 | 📂 **Session History** | View past conversations with swipe-to-delete |
+| 🤖 **Multi-Agent Monitoring** | Real-time Agent Control Center - see all agents, their status, current tasks, and progress |
 
 ### Security Features
 
@@ -345,13 +346,26 @@ flutter build ios --release --export-options-plist=ExportOptions.plist
 - [x] Session History
 - [x] Tasks/Cron Jobs
 
-### Phase 3 - Polish
-- [ ] Face ID native implementation
-- [ ] Push Notifications
-- [ ] Widgets for home screen
-- [ ] Better animations
+### Phase 3 - Polish ✅
+- [x] Animations (pulse, shake, transitions)
+- [x] Notification badges
+- [x] Pull to refresh
+- [x] Empty states
 
-### Phase 4 - Future
+### Phase 4 - Multi-Agent Control Center ✅
+- [x] Agent cards with real-time status (LIVE/BUSY/IDLE/ERROR)
+- [x] Progress bars for active tasks
+- [x] Agent avatars with type icons
+- [x] Stats summary bar (agents count, active, busy, errors)
+- [x] Filter and sort options (All/Active/Idle/Error)
+- [x] Grid/List view toggle
+- [x] Agent detail bottom sheet
+- [x] Quick actions (message, cancel, view history, reset)
+- [x] Connection indicators
+- [x] Activity timeline per agent
+- [x] Staggered animations
+
+### Phase 5 - Future
 - [ ] Android support (Flutter web?)
 - [ ] macOS support
 - [ ] Widgets
