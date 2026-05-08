@@ -26,11 +26,8 @@ class MessageBubble extends StatelessWidget {
   final List<MessageAttachment>? attachments;
   final MessageStatus? status;
   final VoidCallback? onRetry;
-  final VoidCallback? onEdit;
   final Map<String, int>? reactions;
-  final bool isEdited;
-  final bool isStreaming;
-
+  final bool isStreaming; // true while text is being streamed
 
   const MessageBubble({
     super.key,
@@ -43,9 +40,7 @@ class MessageBubble extends StatelessWidget {
     this.attachments,
     this.status,
     this.onRetry,
-    this.onEdit,
     this.reactions,
-    this.isEdited = false,
     this.isStreaming = false,
   });
 
@@ -124,33 +119,26 @@ class MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.md),
               child: GestureDetector(
                 onLongPress: () {
-                  _showContextMenu(context);
+                  Clipboard.setData(ClipboardData(text: content));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Message copied to clipboard'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
                 },
-                child: isStreaming
-                    ? StreamingText(
-                        text: content,
-                        style: TextStyle(
-                          color: isUser 
-                              ? Colors.white 
-                              : (isDark ? AppColors.textDark : AppColors.textLight),
-                          height: 1.4,
-                        ),
+                child: isCode || isJson
+                    ? _CodeBlock(
+                        content: content,
+                        isDark: isDark,
+                        isJson: isJson,
                       )
-                    : (isCode || isJson
-                        ? _CodeBlock(
-                            content: content,
-                            isDark: isDark,
-                            isJson: isJson,
-                          )
-                        : SelectableText(
-                            content,
-                            style: TextStyle(
-                              color: isUser 
-                                  ? Colors.white 
-                                  : (isDark ? AppColors.textDark : AppColors.textLight),
-                              height: 1.4,
-                            ),
-                          )),
+                    : _InteractiveText(
+                        content: content,
+                        isUser: isUser,
+                        isDark: isDark,
+                        isStreaming: isStreaming,
+                      ),
               ),
             ),
             
@@ -669,6 +657,84 @@ class _FileAttachment extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Renders text with blinking cursor when streaming
+class _InteractiveText extends StatefulWidget {
+  final String content;
+  final bool isUser;
+  final bool isDark;
+  final bool isStreaming;
+
+  const _InteractiveText({
+    required this.content,
+    required this.isUser,
+    required this.isDark,
+    required this.isStreaming,
+  });
+
+  @override
+  State<_InteractiveText> createState() => _InteractiveTextState();
+}
+
+class _InteractiveTextState extends State<_InteractiveText>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _cursorController;
+
+  @override
+  void initState() {
+    super.initState();
+    _cursorController = AnimationController(
+      duration: const Duration(milliseconds: 530),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _cursorController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = widget.isUser
+        ? Colors.white
+        : (widget.isDark ? AppColors.textDark : AppColors.textLight);
+
+    return SelectableText.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: widget.content,
+            style: TextStyle(
+              color: textColor,
+              height: 1.4,
+            ),
+          ),
+          if (widget.isStreaming)
+            WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: AnimatedBuilder(
+                animation: _cursorController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _cursorController.value,
+                    child: Container(
+                      width: 2,
+                      height: 16,
+                      margin: const EdgeInsets.only(left: 2, right: 2),
+                      color: textColor,
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );

@@ -23,8 +23,8 @@ class WebSocketService extends ChangeNotifier {
   Function(String)? onError;
   Function()? onConnected;
   Function()? onDisconnected;
-  Function()? onStreamStart;
-  Function()? onStreamEnd;
+  Function()? onStreamingStart;  // New: called when assistant starts streaming
+  Function()? onStreamingEnd;    // New: called when streaming is complete
 
   ConnectionStatus get status => _status;
   List<String> get availableAgents => _availableAgents;
@@ -107,14 +107,14 @@ class WebSocketService extends ChangeNotifier {
           _availableAgents = List<String>.from(message['agents'] ?? []);
           notifyListeners();
           break;
+        case 'message_stream_start':
+          onStreamingStart?.call();
+          break;
         case 'message_chunk':
           onMessage?.call(message['content'] ?? '');
           break;
-        case 'message_stream_start':
-          onStreamStart?.call();
-          break;
         case 'message_stream_end':
-          onStreamEnd?.call();
+          onStreamingEnd?.call();
           break;
         case 'thinking':
           onThinking?.call(message['content'] ?? '');

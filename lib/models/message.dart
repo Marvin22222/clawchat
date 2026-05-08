@@ -1,4 +1,4 @@
-enum MessageType { user, assistant, system, thinking, toolCall }
+enum MessageType { user, assistant, system, thinking, toolCall, streaming }
 
 enum MessageStatus { sending, sent, error }
 
@@ -26,8 +26,8 @@ class ChatMessage {
   final Map<String, dynamic>? toolData;
   final List<MessageAttachment>? attachments;
   final Map<String, int>? reactions; // emoji -> count
-  final bool isEdited;
-  final bool isStreaming;
+  final bool isStreaming; // true while assistant is streaming this message
+  final List<String>? streamingChunks; // accumulated chunks for display
 
   ChatMessage({
     required this.id,
@@ -39,8 +39,8 @@ class ChatMessage {
     this.toolData,
     this.attachments,
     this.reactions,
-    this.isEdited = false,
     this.isStreaming = false,
+    this.streamingChunks,
   });
 
   ChatMessage copyWith({
@@ -49,8 +49,8 @@ class ChatMessage {
     Map<String, dynamic>? toolData,
     List<MessageAttachment>? attachments,
     Map<String, int>? reactions,
-    bool? isEdited,
     bool? isStreaming,
+    List<String>? streamingChunks,
   }) {
     return ChatMessage(
       id: id,
@@ -62,8 +62,8 @@ class ChatMessage {
       toolData: toolData ?? this.toolData,
       attachments: attachments ?? this.attachments,
       reactions: reactions ?? this.reactions,
-      isEdited: isEdited ?? this.isEdited,
       isStreaming: isStreaming ?? this.isStreaming,
+      streamingChunks: streamingChunks ?? this.streamingChunks,
     );
   }
 }

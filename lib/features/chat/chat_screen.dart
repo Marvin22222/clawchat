@@ -77,16 +77,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _setupWebSocket() {
     final auth = context.read<AuthProvider>();
     
-    auth.ws.onStreamStart = () {
+    auth.ws.onStreamingStart = () {
       if (mounted) {
         setState(() {
-          // Add a new streaming assistant message
+          final msgId = DateTime.now().millisecondsSinceEpoch.toString();
+          _currentStreamingMessageId = msgId;
           _messages.add(ChatMessage(
-            id: 'stream_${DateTime.now().millisecondsSinceEpoch}',
+            id: msgId,
             content: '',
             type: MessageType.assistant,
             timestamp: DateTime.now(),
-            status: MessageStatus.sending,
             agentName: _currentAgent,
             isStreaming: true,
           ));
@@ -99,14 +99,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     auth.ws.onMessage = (content) {
       if (mounted) {
         setState(() {
-          // Find the current streaming message
-          final streamingIndex = _messages.indexWhere((m) => m.isStreaming);
-          if (streamingIndex >= 0) {
+          if (_currentStreamingMessageId != null) {
             // Append to streaming message
-            final streamMsg = _messages[streamingIndex];
-            _messages[streamingIndex] = streamMsg.copyWith(
-              content: streamMsg.content + content,
-            );
+            final idx = _messages.indexWhere((m) => m.id == _currentStreamingMessageId);
+            if (idx >= 0) {
+              _messages[idx] = _messages[idx].copyWith(
+                content: _messages[idx].content + content,
+              );
+            }
           } else if (_messages.isNotEmpty && _messages.last.type == MessageType.assistant) {
             // Fallback: append to last assistant message
             final lastMsg = _messages.last;
@@ -128,19 +128,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
     };
 
-    auth.ws.onStreamEnd = () {
+    auth.ws.onStreamingEnd = () {
       if (mounted) {
         setState(() {
-          // Mark streaming as complete
-          final streamingIndex = _messages.indexWhere((m) => m.isStreaming);
-          if (streamingIndex >= 0) {
-            _messages[streamingIndex] = _messages[streamingIndex].copyWith(
-              isStreaming: false,
-              status: MessageStatus.sent,
-            );
+          if (_currentStreamingMessageId != null) {
+            final idx = _messages.indexWhere((m) => m.id == _currentStreamingMessageId);
+            if (idx >= 0) {
+              _messages[idx] = _messages[idx].copyWith(isStreaming: false);
+            }
           }
+          _currentStreamingMessageId = null;
+          _isTyping = false;
         });
-        _scrollToBottom();
       }
     };
 
