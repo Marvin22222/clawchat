@@ -9,6 +9,7 @@ import '../../core/constants/spacing.dart';
 import '../../core/services/websocket_service.dart';
 import '../../core/services/chat_persistence_service.dart';
 import '../../core/services/haptic_service.dart';
+import '../../core/services/notification_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/message.dart';
 import 'widgets/chat_widgets.dart' hide ThinkingIndicator, ToolCallCard;
@@ -30,12 +31,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _isTyping = false;
   bool _showScrollToBottom = false;
   String _currentAgent = 'main';
+  bool _isAppInForeground = true;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
+    _isAppInForeground = true;
     if (widget.initialAgent != null) {
       _currentAgent = widget.initialAgent!;
     }
@@ -63,6 +66,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     final auth = context.read<AuthProvider>();
+    
+    _isAppInForeground = (state == AppLifecycleState.resumed);
     
     if (state == AppLifecycleState.paused) {
       // App going to background - save messages and start auto-lock timer
@@ -130,6 +135,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     auth.ws.onStreamingEnd = () {
       if (mounted) {
+        // Find the message that just finished streaming
+        final streamingIndex = _messages.indexWhere((m) => m.isStreaming);
+        String? finalContent;
+        String? agentName;
+        
+        if (streamingIndex >= 0) {
+          finalContent = _messages[streamingIndex].content;
+          agentName = _messages[streamingIndex].agentName;
+        }
+        
         setState(() {
           if (_currentStreamingMessageId != null) {
             final idx = _messages.indexWhere((m) => m.id == _currentStreamingMessageId);
@@ -140,6 +155,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _currentStreamingMessageId = null;
           _isTyping = false;
         });
+        
+        // Show notification for incoming message if app is in background
+        if (finalContent != null && finalContent.isNotEmpty) {
+          _showIncomingMessageNotification(finalContent, agentName ?? 'main');
+        }
+        
+        _scrollToBottom();
       }
     };
 
@@ -150,6 +172,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         });
       }
     };
+  }
+
+  /// Show notification for incoming message when app is in background
+  void _showIncomingMessageNotification(String content, String agentName) {
+    if (!_isAppInForeground && NotificationService().isInitialized) {
+      final notif = NotificationService();
+      // Parse sender from agent name or use default
+      final sender = agentName == 'main' ? 'Assistant' : agentName;
+      notif.showMessageNotification(
+        sender: sender,
+        message: content,
+      );
+    }
   }
 
   void _scrollToBottom() {
