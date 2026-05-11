@@ -128,9 +128,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Verbindungsstatus'),
             subtitle: Text(
               auth.isConnected ? 'Verbunden' : 'Nicht verbunden',
-              style: TextStyle(
+              style: AppTypography.label.copyWith(
                 color: auth.isConnected ? AppColors.success : AppColors.error,
-                fontWeight: FontWeight.w500,
               ),
             ),
             trailing: auth.isConnected
@@ -191,8 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Dark Mode'),
             subtitle: Text(
               theme.isDarkMode ? 'Dunkles Theme aktiviert' : 'Helles Theme aktiviert',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.caption.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -214,8 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Theme Farbe'),
             subtitle: Text(
               _getThemeName(theme.accentColor),
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.caption.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -288,8 +285,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Eingabemodus'),
               subtitle: Text(
                 voiceSettings.inputMode.displayName,
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.caption.copyWith(
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
@@ -313,8 +309,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Sprache für Transkription'),
               subtitle: Text(
                 voiceSettings.transcriptionLanguageName,
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.caption.copyWith(
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
@@ -338,8 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Sprach-Empfindlichkeit'),
               subtitle: Text(
                 voiceSettings.sensitivityLabel,
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.caption.copyWith(
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
@@ -363,8 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Wiedergabe-Geschwindigkeit'),
               subtitle: Text(
                 '${voiceSettings.playbackSpeed.toStringAsFixed(1)}x',
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.caption.copyWith(
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
@@ -388,8 +381,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Auto-Play Sprachnachrichten'),
               subtitle: Text(
                 voiceSettings.autoPlayVoice ? 'An' : 'Aus',
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.caption.copyWith(
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
@@ -435,8 +427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Standard Agent'),
             subtitle: Text(
               auth.selectedAgent ?? 'main',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.caption.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -458,8 +449,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Verfügbare Agents'),
             subtitle: Text(
               '${auth.ws.availableAgents.length} Agents verfügbar',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.caption.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -489,8 +479,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Agent Presets'),
               subtitle: Text(
                 '${presetsProvider.presets.length} Preset(s) gespeichert',
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.caption.copyWith(
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
@@ -631,8 +620,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Tipp: Nach dem Ändern wird automatisch neu verbunden.',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.caption.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.textDarkSecondary
                     : AppColors.textLightSecondary,
@@ -717,12 +705,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Theme Farbe',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTypography.h5.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.md),
             Expanded(
@@ -829,12 +814,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Standard Agent wählen',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTypography.h5.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.md),
             Expanded(
@@ -927,12 +909,9 @@ class _PresetsManagerContent extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Agent Presets',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTypography.h4,
                 ),
                 IconButton(
                   icon: const Icon(Iconsax.add_circle, color: AppColors.primary),
@@ -958,9 +937,8 @@ class _PresetsManagerContent extends StatelessWidget {
                             const SizedBox(height: AppSpacing.md),
                             Text(
                               'Keine Presets vorhanden',
-                              style: TextStyle(
+                              style: AppTypography.body.copyWith(
                                 color: Colors.grey[600],
-                                fontSize: 16,
                               ),
                             ),
                             const SizedBox(height: AppSpacing.sm),
@@ -1032,10 +1010,7 @@ class _PresetsManagerContent extends StatelessWidget {
                 // Title
                 Text(
                   isEditing ? 'Preset bearbeiten' : 'Neues Preset',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTypography.h4,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 // Name field
@@ -1136,7 +1111,7 @@ class _PresetsManagerContent extends StatelessWidget {
                     ),
                     child: Text(
                       isEditing ? 'Speichern' : 'Erstellen',
-                      style: const TextStyle(color: Colors.white),
+                      style: AppTypography.button.copyWith(color: Colors.white),
                     ),
                   ),
                 ),
@@ -1208,7 +1183,7 @@ class _PresetListItem extends StatelessWidget {
         ),
         title: Text(
           preset.name,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1216,8 +1191,7 @@ class _PresetListItem extends StatelessWidget {
             Text('Agent: ${preset.agentId}'),
             Text(
               'Modell: ${modelType.displayName}',
-              style: TextStyle(
-                fontSize: 11,
+              style: AppTypography.captionSmall.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -1226,8 +1200,7 @@ class _PresetListItem extends StatelessWidget {
                 preset.systemPrompt!.length > 50 
                     ? '${preset.systemPrompt!.substring(0, 50)}...' 
                     : preset.systemPrompt!,
-                style: TextStyle(
-                  fontSize: 11,
+                style: AppTypography.captionSmall.copyWith(
                   fontStyle: FontStyle.italic,
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
@@ -1270,13 +1243,11 @@ class _SectionHeader extends StatelessWidget {
       ),
       child: Text(
         title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+        style: AppTypography.label.copyWith(
+          letterSpacing: 1,
           color: isDark
               ? AppColors.textDarkSecondary
               : AppColors.textLightSecondary,
-          letterSpacing: 1,
         ),
       ),
     );
@@ -1326,7 +1297,7 @@ class _ThemeColorOption extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               name,
-              style: const TextStyle(fontSize: 10),
+              style: AppTypography.captionSmall,
             ),
           ],
         ),
@@ -1377,17 +1348,14 @@ class _VoiceSensitivitySheetState extends State<_VoiceSensitivitySheet> {
           ),
           Text(
             'Sprach-Empfindlichkeit',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            style: AppTypography.h4.copyWith(
               color: isDark ? AppColors.textDark : AppColors.textLight,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
             'Pausen-Dauer: ${(_sensitivity * 3).toStringAsFixed(1)} Sekunden',
-            style: TextStyle(
-              fontSize: 14,
+            style: AppTypography.bodySmall.copyWith(
               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
             ),
           ),
@@ -1406,9 +1374,9 @@ class _VoiceSensitivitySheetState extends State<_VoiceSensitivitySheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Niedrig', style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary, fontSize: 12)),
-              Text('Mittel', style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary, fontSize: 12)),
-              Text('Hoch', style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary, fontSize: 12)),
+              Text('Niedrig', style: AppTypography.caption.copyWith(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)),
+              Text('Mittel', style: AppTypography.caption.copyWith(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)),
+              Text('Hoch', style: AppTypography.caption.copyWith(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -1427,7 +1395,7 @@ class _VoiceSensitivitySheetState extends State<_VoiceSensitivitySheet> {
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'Was wird angepasst:',
-                      style: TextStyle(
+                      style: AppTypography.label.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                         color: isDark ? AppColors.textDark : AppColors.textLight,
@@ -1438,8 +1406,7 @@ class _VoiceSensitivitySheetState extends State<_VoiceSensitivitySheet> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   '• Pausendauer (wann Spracherkennung stoppt)\n• Hörzeit (maximale Aufnahmedauer)\n• Empfindlichkeit für leise Sprache',
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: AppTypography.caption.copyWith(
                     color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                     height: 1.5,
                   ),
@@ -1464,7 +1431,7 @@ class _VoiceSensitivitySheetState extends State<_VoiceSensitivitySheet> {
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               ),
-              child: const Text('Speichern', style: TextStyle(color: Colors.white)),
+              child: Text('Speichern', style: AppTypography.button.copyWith(color: Colors.white)),
             ),
           ),
         ],
