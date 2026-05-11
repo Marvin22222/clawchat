@@ -1,6 +1,38 @@
 import 'package:flutter/material.dart';
 
 class DateTimeUtils {
+  static String formatRelativeTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    // Less than 1 hour: "vor 5 Min"
+    if (diff.inMinutes < 60) {
+      final mins = diff.inMinutes;
+      return mins <= 1 ? 'Gerade eben' : 'vor ${mins} Min';
+    }
+    // Less than 24 hours: "vor 2 Std"
+    if (diff.inHours < 24) {
+      final hrs = diff.inHours;
+      return 'vor $hrs Std';
+    }
+    // Yesterday: "Gestern, 14:32"
+    if (isYesterday(dateTime)) {
+      return 'Gestern, ${_formatTimeOnly(dateTime)}';
+    }
+    // This week (7 days): "Mo, 14:32"
+    if (diff.inDays < 7) {
+      final days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+      final dayName = days[dateTime.weekday - 1];
+      return '$dayName, ${_formatTimeOnly(dateTime)}';
+    }
+    // Older: "01.01.24" (date only, 2-digit year)
+    return '${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.year.toString().substring(2)}';
+  }
+
+  static String _formatTimeOnly(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
   static String formatMessageTime(DateTime dateTime) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);

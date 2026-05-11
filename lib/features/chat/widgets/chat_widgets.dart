@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/helpers.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/atom-one-light.dart';
 import 'package:image_picker/image_picker.dart';
@@ -167,7 +168,7 @@ class MessageBubble extends StatelessWidget {
                 children: [
                   // Time
                   Text(
-                    _formatTime(timestamp),
+                    DateTimeUtils.formatRelativeTime(timestamp),
                     style: TextStyle(
                       fontSize: 10,
                       color: (isUser ? Colors.white : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)).withOpacity(0.6),
@@ -291,27 +292,6 @@ class MessageBubble extends StatelessWidget {
            (text.contains('\n') && text.contains('  '));
   }
 
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(time.year, time.month, time.day);
-    
-    if (messageDate == today) {
-      // Today: just time
-      return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-    } else if (messageDate == today.subtract(const Duration(days: 1))) {
-      // Yesterday
-      return 'Gestern ${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-    } else {
-      // This week or older: check if within 7 days for day name
-      final days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-      if (now.difference(time).inDays < 7) {
-        // This week: day name + time
-        final dayName = days[time.weekday - 1];
-        return '$dayName ${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-      }
-      // Older: date + time
-      return '${time.day.toString().padLeft(2, '0')}.${time.month.toString().padLeft(2, '0')}. ${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     }
   }
 
