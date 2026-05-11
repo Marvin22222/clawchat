@@ -749,6 +749,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               onDelete: msg.type == MessageType.user ? () => _deleteMessage(msg.id) : null,
                               messageId: msg.id,
                               onReact: (emoji) => _addReaction(msg.id, emoji),
+                              isFirstInGroup: _isFirstInGroup(index),
+                              isLastInGroup: _isLastInGroup(index),
+                              isSameSenderAsPrevious: _isSameSenderAsPrevious(index),
                             ),
                           ),
                         ],
@@ -823,6 +826,41 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  /// Check if message at index is the first in a group of consecutive messages from the same sender
+  bool _isFirstInGroup(int index) {
+    if (index == 0) return true;
+    final currentMsg = _messages[index];
+    final prevMsg = _messages[index - 1];
+    // First if previous message is from different sender
+    if (currentMsg.type != prevMsg.type) return true;
+    if (currentMsg.type == MessageType.user) return true; // User is always "first" since no consecutive user messages in normal flow
+    // For assistant, check agent name
+    return currentMsg.agentName != prevMsg.agentName;
+  }
+
+  /// Check if message at index is the last in a group of consecutive messages from the same sender
+  bool _isLastInGroup(int index) {
+    if (index == _messages.length - 1) return true;
+    final currentMsg = _messages[index];
+    final nextMsg = _messages[index + 1];
+    // Last if next message is from different sender
+    if (currentMsg.type != nextMsg.type) return true;
+    if (currentMsg.type == MessageType.user) return true; // User is always "last"
+    // For assistant, check agent name
+    return currentMsg.agentName != nextMsg.agentName;
+  }
+
+  /// Check if message at index is from the same sender as the previous message
+  bool _isSameSenderAsPrevious(int index) {
+    if (index == 0) return false;
+    final currentMsg = _messages[index];
+    final prevMsg = _messages[index - 1];
+    // User messages are never consecutive in normal chat (user sends one, then waits)
+    if (currentMsg.type == MessageType.user || prevMsg.type == MessageType.user) return false;
+    // Both are assistant - check agent name
+    return currentMsg.agentName == prevMsg.agentName;
   }
 
   ToolStatus _getToolStatus(String status) {

@@ -38,6 +38,10 @@ class MessageBubble extends StatelessWidget {
   final bool isStreaming; // true while text is being streamed
   final bool isEdited; // true if message was edited
   final Function(String emoji)? onReact; // Callback for double-tap reaction
+  // Context for spacing optimization
+  final bool isFirstInGroup; // First message from this sender in a sequence
+  final bool isLastInGroup;  // Last message from this sender in a sequence
+  final bool isSameSenderAsPrevious; // Same sender as previous message
 
   const MessageBubble({
     super.key,
@@ -57,6 +61,9 @@ class MessageBubble extends StatelessWidget {
     this.isStreaming = false,
     this.isEdited = false,
     this.onReact,
+    this.isFirstInGroup = true,
+    this.isLastInGroup = true,
+    this.isSameSenderAsPrevious = false,
   });
 
   @override
@@ -65,6 +72,26 @@ class MessageBubble extends StatelessWidget {
     final isJson = _isJson(content);
     final isCode = _isCode(content);
 
+    // Calculate dynamic vertical margin based on message context
+    // Compact spacing for consecutive messages from same sender
+    // More spacing when switching between different senders or first/last in group
+    final double topMargin;
+    final double bottomMargin;
+    
+    if (isSameSenderAsPrevious) {
+      // Same sender consecutively - compact spacing
+      topMargin = AppSpacing.xs;
+      bottomMargin = isLastInGroup ? AppSpacing.sm : AppSpacing.xs;
+    } else {
+      // Different sender or first message - more spacing
+      topMargin = isFirstInGroup ? AppSpacing.md : AppSpacing.sm;
+      bottomMargin = isLastInGroup ? AppSpacing.md : AppSpacing.sm;
+    }
+    
+    // Horizontal margins: user messages more right-aligned, assistant more left-aligned
+    final double leftMargin = isUser ? AppSpacing.xl : AppSpacing.md;
+    final double rightMargin = isUser ? AppSpacing.md : AppSpacing.xl;
+    
     return isUser && onDelete != null
         ? Dismissible(
           key: ValueKey(messageId ?? content),
@@ -83,9 +110,10 @@ class MessageBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         margin: EdgeInsets.only(
-          left: isUser ? AppSpacing.xl : AppSpacing.md,
-          right: isUser ? AppSpacing.md : AppSpacing.xl,
-          bottom: AppSpacing.sm,
+          left: leftMargin,
+          right: rightMargin,
+          top: topMargin,
+          bottom: bottomMargin,
         ),
         decoration: BoxDecoration(
           color: isUser 
