@@ -904,8 +904,7 @@ class _FileAttachment extends StatelessWidget {
           Flexible(
             child: Text(
               attachment.fileName,
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.bodySmall.copyWith(
                 color: isUser ? Colors.white : (isDark ? AppColors.textDark : AppColors.textLight),
               ),
               overflow: TextOverflow.ellipsis,
@@ -965,7 +964,7 @@ class _InteractiveTextState extends State<_InteractiveText>
         children: [
           TextSpan(
             text: widget.content,
-            style: TextStyle(
+            style: AppTypography.body.copyWith(
               color: textColor,
               height: 1.4,
             ),
@@ -1068,8 +1067,7 @@ class _CodeBlock extends StatelessWidget {
                     ),
                     child: Text(
                       language.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 9,
+                      style: AppTypography.captionSmall.copyWith(
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,
                       ),
@@ -1852,18 +1850,16 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'Voice Message recording...',
-                      style: TextStyle(
+                      style: AppTypography.bodySmall.copyWith(
                         color: AppColors.error,
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Text(
                       _formatDuration(_voiceMessageService?.recordingDuration ?? Duration.zero),
-                      style: TextStyle(
+                      style: AppTypography.bodySmall.copyWith(
                         color: isDark ? AppColors.textDark : AppColors.textLight,
-                        fontSize: 12,
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -1889,19 +1885,17 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'Recording...',
-                      style: TextStyle(
+                      style: AppTypography.bodySmall.copyWith(
                         color: AppColors.error,
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Flexible(
                       child: Text(
                         _voiceService?.transcribedText ?? '',
-                        style: TextStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           color: isDark ? AppColors.textDark : AppColors.textLight,
-                          fontSize: 12,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

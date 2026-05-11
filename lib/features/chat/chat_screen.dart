@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
+import '../../core/constants/typography.dart';
 import '../../core/services/websocket_service.dart';
 import '../../core/services/chat_persistence_service.dart';
 import '../../core/services/haptic_service.dart';
@@ -372,16 +373,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
             title: Text(
               'Nachricht bearbeiten',
-              style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+              style: AppTypography.h5.copyWith(color: isDark ? AppColors.textDark : AppColors.textLight),
             ),
             content: TextField(
               controller: editController,
               maxLines: 5,
               autofocus: true,
               enabled: !isLoading,
-              style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+              style: AppTypography.body.copyWith(color: isDark ? AppColors.textDark : AppColors.textLight),
               decoration: InputDecoration(
                 hintText: 'Nachricht eingeben...',
+                hintStyle: AppTypography.bodySmall.copyWith(
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
@@ -403,7 +407,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 onPressed: isLoading ? null : () => Navigator.pop(dialogContext),
                 child: Text(
                   'Abbrechen',
-                  style: TextStyle(
+                  style: AppTypography.button.copyWith(
                     color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                   ),
                 ),
@@ -458,9 +462,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                 ),
-                child: const Text(
+                child: Text(
                   'Speichern',
-                  style: TextStyle(color: Colors.white),
+                  style: AppTypography.button.copyWith(color: Colors.white),
                 ),
               ),
             ],
@@ -582,11 +586,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           decoration: InputDecoration(
             hintText: 'Nachrichten durchsuchen...',
             border: InputBorder.none,
-            hintStyle: TextStyle(
+            hintStyle: AppTypography.bodySmall.copyWith(
               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
             ),
           ),
-          style: TextStyle(
+          style: AppTypography.body.copyWith(
             color: isDark ? AppColors.textDark : AppColors.textLight,
           ),
           onChanged: _onSearchChanged,
@@ -609,9 +613,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             if (auth.ws.isConnected)
               Text(
                 'Online',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.normal,
+                style: AppTypography.captionSmall.copyWith(
                   color: AppColors.primary,
                 ),
               ),
@@ -657,7 +659,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   Expanded(
                     child: Text(
                       'Nicht verbunden. Nachricht senden fehlgeschlagen.',
-                      style: TextStyle(color: AppColors.error, fontSize: 13),
+                      style: AppTypography.bodySmall.copyWith(color: AppColors.error),
                     ),
                   ),
                   TextButton(
@@ -781,10 +783,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         'Loading...',
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: AppTypography.label.copyWith(
                           color: AppColors.primary,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -892,11 +892,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           const SizedBox(width: AppSpacing.sm),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 12,
-              color: textColor,
-              fontWeight: FontWeight.w500,
-            ),
+            style: AppTypography.label.copyWith(color: textColor),
           ),
         ],
       ),
@@ -975,7 +971,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return Center(
         child: Text(
           'Tippe um zu suchen',
-          style: TextStyle(
+          style: AppTypography.body.copyWith(
             color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
           ),
         ),
@@ -995,7 +991,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             const SizedBox(height: AppSpacing.md),
             Text(
               'Keine Ergebnisse gefunden',
-              style: TextStyle(
+              style: AppTypography.bodySmall.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -1015,9 +1011,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ),
           child: Text(
             '${_searchResults.length} Treffer für "$_searchQuery"',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+            style: AppTypography.label.copyWith(
               color: AppColors.primary,
             ),
           ),
@@ -1068,8 +1062,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Text(
               text,
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.caption.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -1097,9 +1090,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             const SizedBox(height: AppSpacing.md),
             Text(
               isConnected ? 'Starte die Konversation' : 'Nicht verbunden',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+              style: AppTypography.h5.copyWith(
                 color: isDark ? AppColors.textDark : AppColors.textLight,
               ),
             ),
@@ -1108,7 +1099,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               isConnected 
                   ? 'Schreib eine Nachricht' 
                   : 'Verbinde dich mit dem Gateway',
-              style: TextStyle(
+              style: AppTypography.bodySmall.copyWith(
                 color: isDark 
                     ? AppColors.textDarkSecondary 
                     : AppColors.textLightSecondary,
@@ -1149,10 +1140,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
+            style: AppTypography.label.copyWith(
               color: AppColors.primary,
-              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -1200,7 +1189,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   children: [
                     Text(
                       'Agent auswählen',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: AppTypography.h5.copyWith(
                         color: isDark ? AppColors.textDark : AppColors.textLight,
                       ),
                     ),
@@ -1224,7 +1213,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         padding: const EdgeInsets.all(AppSpacing.lg),
                         child: Text(
                           'Keine Agents verfügbar',
-                          style: TextStyle(
+                          style: AppTypography.body.copyWith(
                             color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                           ),
                         ),
@@ -1247,7 +1236,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             ),
                             title: Text(
                               agent,
-                              style: TextStyle(
+                              style: AppTypography.body.copyWith(
                                 fontWeight: agent == _currentAgent ? FontWeight.bold : FontWeight.normal,
                                 color: isDark ? AppColors.textDark : AppColors.textLight,
                               ),
@@ -1272,8 +1261,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Text(
                     '${presetsProvider.presets.length} Preset(s) verfügbar - tippe auf "Presets" für mehr',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: AppTypography.captionSmall.copyWith(
                       color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                     ),
                   ),
@@ -1324,7 +1312,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   children: [
                     Text(
                       'Presets',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: AppTypography.h5.copyWith(
                         color: isDark ? AppColors.textDark : AppColors.textLight,
                       ),
                     ),
@@ -1370,7 +1358,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       ),
                       title: Text(
                         preset.name,
-                        style: TextStyle(
+                        style: AppTypography.body.copyWith(
                           fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                           color: isDark ? AppColors.textDark : AppColors.textLight,
                         ),
@@ -1380,8 +1368,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         children: [
                           Text(
                             '${preset.agentId} • ${modelType.displayName}',
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: AppTypography.label.copyWith(
                               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                             ),
                           ),
@@ -1390,8 +1377,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               preset.systemPrompt!.length > 40 
                                   ? '${preset.systemPrompt!.substring(0, 40)}...' 
                                   : preset.systemPrompt!,
-                              style: TextStyle(
-                                fontSize: 11,
+                              style: AppTypography.captionSmall.copyWith(
                                 fontStyle: FontStyle.italic,
                                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                               ),
@@ -1404,7 +1390,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               ? Chip(
                                   label: Text(
                                     preset.agentId,
-                                    style: const TextStyle(fontSize: 10),
+                                    style: AppTypography.captionSmall,
                                   ),
                                   backgroundColor: AppColors.warning.withOpacity(0.2),
                                   padding: EdgeInsets.zero,
@@ -1426,6 +1412,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         // Set active preset
                         presetsProvider.setActivePreset(preset.id);
                         
+
                         Navigator.pop(context);
                       },
                     );
@@ -1517,7 +1504,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             searchController.text.isEmpty
                                 ? 'Tippe um zu suchen'
                                 : 'Keine Ergebnisse gefunden',
-                            style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                            style: AppTypography.bodySmall.copyWith(
+                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            ),
                           ),
                         )
                       : ListView.builder(
@@ -1539,11 +1528,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 msg.content,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+                                style: AppTypography.body.copyWith(
+                                  color: isDark ? AppColors.textDark : AppColors.textLight,
+                                ),
                               ),
                               subtitle: Text(
                                 _formatMessageTime(msg.timestamp),
-                                style: TextStyle(fontSize: 12, color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+                                style: AppTypography.caption.copyWith(
+                                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                                ),
                               ),
                               onTap: () {
                                 Navigator.pop(context);
@@ -1632,9 +1625,8 @@ class _SearchResultItem extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     text: TextSpan(
-                      style: TextStyle(
+                      style: AppTypography.body.copyWith(
                         color: isDark ? AppColors.textDark : AppColors.textLight,
-                        fontSize: 14,
                       ),
                       children: _buildHighlightedText(message.content, query),
                     ),
@@ -1643,8 +1635,7 @@ class _SearchResultItem extends StatelessWidget {
                   // Timestamp
                   Text(
                     _formatMessageTime(message.timestamp),
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: AppTypography.captionSmall.copyWith(
                       color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                     ),
                   ),
@@ -1735,6 +1726,8 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
     )..repeat();
   }
 
+  @override
+  void dispose() {
     _controller.dispose();
     super.dispose();
   }
@@ -1781,8 +1774,7 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
               ),
               Text(
                 'Chat exportieren',
-                style: TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold,
+                style: AppTypography.h5.copyWith(
                   color: isDark ? AppColors.textDark : AppColors.textLight,
                 ),
               ),
