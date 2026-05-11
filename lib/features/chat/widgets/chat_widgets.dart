@@ -16,6 +16,7 @@ import '../../../models/message.dart';
 import 'streaming_text.dart';
 import 'fullscreen_image_viewer.dart';
 import 'package:flutter/gestures.dart';
+import '../../../widgets/animations/skeleton_loaders.dart';
 
 class MessageBubble extends StatelessWidget {
   final String content;
@@ -484,45 +485,142 @@ class _ImageAttachment extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
           child: isRemote
-              ? Image.network(
-                  attachment.url!,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      width: 100, height: 100,
-                      color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            isUser ? Colors.white70 : AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 100, height: 100,
-                      color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
-                      child: const Icon(Icons.broken_image, color: Colors.grey),
-                    );
-                  },
+              ? _ImageWithPlaceholder(
+                  imageUrl: attachment.url!,
+                  isUser: isUser,
                 )
-              : Image.file(
-                  File(attachment.path),
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 100, height: 100,
-                      color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
-                      child: const Icon(Icons.broken_image, color: Colors.grey),
-                    );
-                  },
+              : _LocalImageWithPlaceholder(
+                  imagePath: attachment.path,
+                  isUser: isUser,
                 ),
         ),
       ),
+    );
+  }
+}
+
+/// Image widget with blur placeholder and crossfade transition
+class _ImageWithPlaceholder extends StatefulWidget {
+  final String imageUrl;
+  final bool isUser;
+
+  const _ImageWithPlaceholder({
+    required this.imageUrl,
+    required this.isUser,
+  });
+
+  @override
+  State<_ImageWithPlaceholder> createState() => _ImageWithPlaceholderState();
+}
+
+class _ImageWithPlaceholderState extends State<_ImageWithPlaceholder> {
+  bool _isLoaded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        // Blur placeholder (shown while loading or on error)
+        if (!_isLoaded)
+          const BlurPlaceholder(
+            width: 100,
+            height: 100,
+            borderRadius: AppRadius.medium,
+            showShimmer: true,
+          ),
+        // Actual image with crossfade
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: Image.network(
+            widget.imageUrl,
+            key: ValueKey(_isLoaded ? widget.imageUrl : 'placeholder'),
+            fit: BoxFit.cover,
+            width: 200,
+            height: 200,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) {
+                // Image loaded
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() => _isLoaded = true);
+                  }
+                });
+                return child;
+              }
+              // Still loading - show placeholder (AnimatedSwitcher will handle crossfade)
+              return const SizedBox.shrink();
+            },
+            errorBuilder: (context, error, stackTrace) {
+              // Error state - keep placeholder visible
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Local image with blur placeholder and crossfade transition
+class _LocalImageWithPlaceholder extends StatefulWidget {
+  final String imagePath;
+  final bool isUser;
+
+  const _LocalImageWithPlaceholder({
+    required this.imagePath,
+    required this.isUser,
+  });
+
+  @override
+  State<_LocalImageWithPlaceholder> createState() => _LocalImageWithPlaceholderState();
+}
+
+class _LocalImageWithPlaceholderState extends State<_LocalImageWithPlaceholder> {
+  bool _isLoaded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        // Blur placeholder (shown while loading or on error)
+        if (!_isLoaded)
+          const BlurPlaceholder(
+            width: 100,
+            height: 100,
+            borderRadius: AppRadius.medium,
+            showShimmer: true,
+          ),
+        // Actual image with crossfade
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: Image.file(
+            File(widget.imagePath),
+            key: ValueKey(_isLoaded ? widget.imagePath : 'placeholder'),
+            fit: BoxFit.cover,
+            width: 200,
+            height: 200,
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded || frame != null) {
+                // Image loaded
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() => _isLoaded = true);
+                  }
+                });
+                return child;
+              }
+              // Still loading - show nothing (placeholder visible)
+              return const SizedBox.shrink();
+            },
+            errorBuilder: (context, error, stackTrace) {
+              // Error state - keep placeholder visible
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ],
     );
   }
 }

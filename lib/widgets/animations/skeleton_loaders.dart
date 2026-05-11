@@ -722,3 +722,128 @@ class SettingsScreenSkeleton extends StatelessWidget {
     );
   }
 }
+/// BlurPlaceholder for image loading states
+class BlurPlaceholder extends StatelessWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+  final bool showShimmer;
+
+  const BlurPlaceholder({
+    super.key,
+    this.width = 100,
+    this.height = 100,
+    this.borderRadius = AppRadius.medium,
+    this.showShimmer = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: Container(
+        width: width,
+        height: height,
+        constraints: BoxConstraints(
+          maxWidth: width,
+          maxHeight: height,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[850] : Colors.grey[300],
+        ),
+        child: Stack(
+          children: [
+            // Shimmer overlay
+            if (showShimmer)
+              _ShimmerOverlay(
+                width: width,
+                height: height,
+                isDark: isDark,
+              ),
+            // Center icon
+            Center(
+              child: Icon(
+                Icons.image_outlined,
+                size: 32,
+                color: isDark ? Colors.grey[600] : Colors.grey[400],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ShimmerOverlay extends StatefulWidget {
+  final double width;
+  final double height;
+  final bool isDark;
+
+  const _ShimmerOverlay({
+    required this.width,
+    required this.height,
+    required this.isDark,
+  });
+
+  @override
+  State<_ShimmerOverlay> createState() => _ShimmerOverlayState();
+}
+
+class _ShimmerOverlayState extends State<_ShimmerOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor = widget.isDark ? Colors.grey[800]! : Colors.grey[200]!;
+    final highlightColor = widget.isDark ? Colors.grey[700]! : Colors.grey[100]!;
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              stops: [
+                (_animation.value - 1).clamp(0.0, 1.0),
+                _animation.value.clamp(0.0, 1.0),
+                (_animation.value + 1).clamp(0.0, 1.0),
+              ],
+              colors: [
+                Colors.transparent,
+                highlightColor.withOpacity(0.5),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
