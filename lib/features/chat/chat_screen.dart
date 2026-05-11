@@ -270,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _editMessage(String messageId) {
+  void _editMessage(String messageId) async {
     // Find the message to edit
     final messageIndex = _messages.indexWhere((m) => m.id == messageId);
     if (messageIndex < 0) return;
@@ -283,61 +283,107 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
-        title: Text(
-          'Nachricht bearbeiten',
-          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
-        ),
-        content: TextField(
-          controller: editController,
-          maxLines: 5,
-          autofocus: true,
-          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
-          decoration: InputDecoration(
-            hintText: 'Nachricht eingeben...',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.medium),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          bool isLoading = false;
+          return AlertDialog(
+            backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+            title: Text(
+              'Nachricht bearbeiten',
+              style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
             ),
-            filled: true,
-            fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Abbrechen',
-              style: TextStyle(
-                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+            content: TextField(
+              controller: editController,
+              maxLines: 5,
+              autofocus: true,
+              enabled: !isLoading,
+              style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+              decoration: InputDecoration(
+                hintText: 'Nachricht eingeben...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                ),
+                filled: true,
+                fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
               ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final newText = editController.text.trim();
-              if (newText.isNotEmpty && newText != message.content) {
-                setState(() {
-                  _messages[messageIndex] = message.copyWith(
-                    content: newText,
-                    isEdited: true,
+            actions: [
+              if (isLoading)
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              TextButton(
+                onPressed: isLoading ? null : () => Navigator.pop(dialogContext),
+                child: Text(
+                  'Abbrechen',
+                  style: TextStyle(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: isLoading ? null : () async {
+                  final newText = editController.text.trim();
+                  if (newText.isEmpty || newText == message.content) {
+                    Navigator.pop(dialogContext);
+                    return;
+                  }
+
+                  setDialogState(() => isLoading = true);
+
+                  // Call API to update message
+                  final auth = context.read<AuthProvider>();
+                  final updatedMessage = await auth.api.editMessage(
+                    messageId: messageId,
+                    newContent: newText,
                   );
-                });
-                // Persist after edit
-                ChatPersistenceService.saveMessages(_messages);
-                HapticService.lightImpact();
-              }
-              Navigator.pop(dialogContext);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
-            child: const Text(
-              'Speichern',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
+
+                  if (!mounted) return;
+
+                  if (updatedMessage != null) {
+                    // Update with server response
+                    setState(() {
+                      _messages[messageIndex] = updatedMessage;
+                    });
+                    ChatPersistenceService.saveMessages(_messages);
+                    HapticService.mediumImpact();
+                  } else {
+                    // Fallback to local update if API fails
+                    setState(() {
+                      _messages[messageIndex] = message.copyWith(
+                        content: newText,
+                        isEdited: true,
+                      );
+                    });
+                    ChatPersistenceService.saveMessages(_messages);
+                    HapticService.lightImpact();
+                    // Show error snackbar
+                    ScaffoldMessenger.of(this).showSnackBar(
+                      SnackBar(
+                        content: Text('Nachricht lokal gespeichert (Server-Fehler)'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  }
+
+                  Navigator.pop(dialogContext);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                child: const Text(
+                  'Speichern',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

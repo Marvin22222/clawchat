@@ -26,8 +26,10 @@ class MessageBubble extends StatelessWidget {
   final List<MessageAttachment>? attachments;
   final MessageStatus? status;
   final VoidCallback? onRetry;
+  final VoidCallback? onEdit;
   final Map<String, int>? reactions;
   final bool isStreaming; // true while text is being streamed
+  final bool isEdited; // true if message was edited
 
   const MessageBubble({
     super.key,
@@ -40,8 +42,10 @@ class MessageBubble extends StatelessWidget {
     this.attachments,
     this.status,
     this.onRetry,
+    this.onEdit,
     this.reactions,
     this.isStreaming = false,
+    this.isEdited = false,
   });
 
   @override
@@ -119,13 +123,7 @@ class MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.md),
               child: GestureDetector(
                 onLongPress: () {
-                  Clipboard.setData(ClipboardData(text: content));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Message copied to clipboard'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                  _showContextMenu(context);
                 },
                 child: isCode || isJson
                     ? _CodeBlock(

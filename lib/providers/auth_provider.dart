@@ -4,11 +4,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/websocket_service.dart';
+import '../../core/services/api_service.dart';
 import '../../core/utils/logger.dart';
 import '../../models/message.dart';
 
 class AuthProvider extends ChangeNotifier {
   final WebSocketService _ws = WebSocketService();
+  final ApiService _api = ApiService();
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   
   String? _gatewayUrl;
@@ -20,6 +22,7 @@ class AuthProvider extends ChangeNotifier {
   DateTime? _backgroundedAt;
 
   WebSocketService get ws => _ws;
+  ApiService get api => _api;
   String? get gatewayUrl => _gatewayUrl;
   String? get token => _token;
   bool get isLoading => _isLoading;
@@ -42,6 +45,11 @@ class AuthProvider extends ChangeNotifier {
       _token = await _secureStorage.read(key: 'gateway_token');
       _useBiometrics = await _getBiometricPreference();
       _useAutoLock = await _getAutoLockPreference();
+      
+      // Configure API service
+      if (_gatewayUrl != null && _token != null) {
+        _api.configure(_gatewayUrl!, _token!);
+      }
       
       // Auto-login if credentials exist
       if (_gatewayUrl != null && _token != null) {
@@ -79,6 +87,8 @@ class AuthProvider extends ChangeNotifier {
         await _secureStorage.write(key: 'gateway_token', value: token);
         _gatewayUrl = gatewayUrl;
         _token = token;
+        // Configure API service with new credentials
+        _api.configure(gatewayUrl, token);
       }
       
       _isLoading = false;
@@ -139,6 +149,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> connect() async {
     if (_gatewayUrl != null && _token != null) {
       await _ws.connect(_gatewayUrl!, _token!);
+      _api.configure(_gatewayUrl!, _token!);
       notifyListeners();
     }
   }

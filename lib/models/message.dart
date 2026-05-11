@@ -28,6 +28,7 @@ class ChatMessage {
   final Map<String, int>? reactions; // emoji -> count
   final bool isStreaming; // true while assistant is streaming this message
   final List<String>? streamingChunks; // accumulated chunks for display
+  final bool isEdited; // true if message was edited
 
   ChatMessage({
     required this.id,
@@ -41,6 +42,7 @@ class ChatMessage {
     this.reactions,
     this.isStreaming = false,
     this.streamingChunks,
+    this.isEdited = false,
   });
 
   ChatMessage copyWith({
@@ -51,6 +53,7 @@ class ChatMessage {
     Map<String, int>? reactions,
     bool? isStreaming,
     List<String>? streamingChunks,
+    bool? isEdited,
   }) {
     return ChatMessage(
       id: id,
@@ -64,6 +67,7 @@ class ChatMessage {
       reactions: reactions ?? this.reactions,
       isStreaming: isStreaming ?? this.isStreaming,
       streamingChunks: streamingChunks ?? this.streamingChunks,
+      isEdited: isEdited ?? this.isEdited,
     );
   }
 }
