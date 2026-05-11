@@ -7,6 +7,7 @@ import '../utils/logger.dart';
 class ChatPersistenceService {
   static const String _messagesKey = 'chat_messages';
   static const int _maxMessages = 100; // Keep last 100 messages
+  static const int _pageSize = 50; // Number of messages per lazy-load page
 
   /// Save messages to local storage
   static Future<void> saveMessages(List<ChatMessage> messages) async {
@@ -26,7 +27,7 @@ class ChatPersistenceService {
     }
   }
 
-  /// Load messages from local storage
+  /// Load messages from local storage (most recent first)
   static Future<List<ChatMessage>> loadMessages() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -41,6 +42,81 @@ class ChatPersistenceService {
     } catch (e) {
       AppLogger.error('Failed to load messages: $e', tag: 'PERSIST');
       return [];
+    }
+  }
+
+  /// Load older messages with pagination (for lazy loading)
+  /// Returns messages from [beforeTimestamp] going backwards, limited by [limit]
+  /// Returns empty list when no more messages available
+  static Future<List<ChatMessage>> loadOlderMessages({
+    required DateTime beforeTimestamp,
+    int limit = _pageSize,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_messagesKey);
+      
+      if (jsonString == null || jsonString.isEmpty) {
+        return [];
+      }
+      
+      final jsonList = jsonDecode(jsonString) as List;
+      final allMessages = jsonList.map((json) => _messageFromJson(json)).toList();
+      
+      // Filter messages older than beforeTimestamp
+      final olderMessages = allMessages
+          .where((m) => m.timestamp.isBefore(beforeTimestamp))
+          .toList();
+      
+      // Sort by timestamp descending (newest first within the older batch)
+      olderMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      // Return only the requested limit
+      if (olderMessages.length <= limit) {
+        return olderMessages.reversed.toList(); // Oldest to newest order for prepend
+      }
+      
+      return olderMessages.take(limit).toList().reversed.toList();
+    } catch (e) {
+      AppLogger.error('Failed to load older messages: $e', tag: 'PERSIST');
+      return [];
+    }
+  }
+
+  /// Get total message count
+  static Future<int> getMessageCount() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_messagesKey);
+      
+      if (jsonString == null || jsonString.isEmpty) {
+        return 0;
+      }
+      
+      final jsonList = jsonDecode(jsonString) as List;
+      return jsonList.length;
+    } catch (e) {
+      AppLogger.error('Failed to get message count: $e', tag: 'PERSIST');
+      return 0;
+    }
+  }
+
+  /// Check if there are older messages available before a given timestamp
+  static Future<bool> hasOlderMessages(DateTime beforeTimestamp) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_messagesKey);
+      
+      if (jsonString == null || jsonString.isEmpty) {
+        return false;
+      }
+      
+      final jsonList = jsonDecode(jsonString) as List;
+      final allMessages = jsonList.map((json) => _messageFromJson(json)).toList();
+      
+      return allMessages.any((m) => m.timestamp.isBefore(beforeTimestamp));
+    } catch (e) {
+      return false;
     }
   }
 

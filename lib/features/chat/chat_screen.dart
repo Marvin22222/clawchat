@@ -43,6 +43,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _isAppInForeground = true;
   bool _isRefreshing = false;
   
+  // Lazy loading state
+  bool _isLoadingOlder = false;
+  bool _hasMoreOlderMessages = true;
+  static const int _messagesPerPage = 50;
+  
   // Search state
   bool _isSearching = false;
   String _searchQuery = '';
@@ -68,6 +73,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final atBottom = _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100;
     if (atBottom != !_showScrollToBottom) {
       setState(() => _showScrollToBottom = !atBottom);
+    }
+    
+    // Lazy loading: detect scroll near top
+    if (_scrollController.position.pixels <= 200 && !_isLoadingOlder && _hasMoreOlderMessages) {
+      _loadOlderMessages();
     }
   }
 
@@ -106,6 +116,53 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       setState(() {
         _messages.addAll(savedMessages);
       });
+      // Check if there are more messages available
+      if (savedMessages.length >= _messagesPerPage) {
+        final oldestMessage = savedMessages.first;
+        _hasMoreOlderMessages = await ChatPersistenceService.hasOlderMessages(oldestMessage.timestamp);
+      } else {
+        _hasMoreOlderMessages = false;
+      }
+    }
+  }
+  
+  Future<void> _loadOlderMessages() async {
+    if (_isLoadingOlder || !_hasMoreOlderMessages || _messages.isEmpty) return;
+    
+    setState(() => _isLoadingOlder = true);
+    
+    // Get the oldest message's timestamp as the anchor point
+    final oldestMessage = _messages.first;
+    final olderMessages = await ChatPersistenceService.loadOlderMessages(
+      beforeTimestamp: oldestMessage.timestamp,
+      limit: _messagesPerPage,
+    );
+    
+    if (mounted) {
+      setState(() {
+        if (olderMessages.isNotEmpty) {
+          // Insert older messages at the beginning (maintaining chronological order)
+          _messages.insertAll(0, olderMessages);
+          _hasMoreOlderMessages = olderMessages.length >= _messagesPerPage;
+        } else {
+          _hasMoreOlderMessages = false;
+        }
+        _isLoadingOlder = false;
+      });
+      
+      // Keep scroll position after loading older messages
+      if (olderMessages.isNotEmpty && _scrollController.hasClients) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            // Calculate scroll offset to maintain current view position
+            final estimatedItemHeight = 80.0;
+            final offset = olderMessages.length * estimatedItemHeight;
+            _scrollController.jumpTo(
+              (_scrollController.position.pixels + offset).clamp(0.0, _scrollController.position.maxScrollExtent),
+            );
+          }
+        });
+      }
     }
   }
 
@@ -693,28 +750,61 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           child: ListView.builder(
                             controller: _scrollController,
                             physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                            itemCount: _messages.length + (_isTyping || _isStreaming ? 1 : 0),
+                            padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.md),
+                            // Item count: messages + loading indicator at top (if loading) + typing indicator at bottom
+                            itemCount: _messages.length + (_isLoadingOlder ? 1 : 0) + (_isTyping || _isStreaming ? 1 : 0),
                             itemBuilder: (context, index) {
-                          if (index == _messages.length) {
-                            // Show typing indicator when agent is thinking or streaming
-                            if (_isStreaming && (_messages.isEmpty || _messages.last.content.isEmpty)) {
-                              return Padding(
-                                padding: const EdgeInsets.only(top: AppSpacing.md),
-                                child: AgentTypingIndicator(agentName: _currentAgent),
-                              );
-                            } else if (_isTyping) {
-                              return const Padding(
-                                padding: EdgeInsets.only(top: AppSpacing.md),
-                                child: ThinkingIndicator(),
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          }
-                      
-                      final msg = _messages[index];
-                      final showDateHeader = index == 0 ||
-                          !_isSameDay(msg.timestamp, _messages[index - 1].timestamp);
+                              // Loading indicator at top
+                              if (_isLoadingOlder && index == 0) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                                  child: Center(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        Text(
+                                          'Loading older messages...',
+                                          style: AppTypography.label.copyWith(
+                                            color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+                              
+                              // Adjust index for messages (accounting for loading header)
+                              final messageIndex = _isLoadingOlder ? index - 1 : index;
+                              
+                              // Typing indicator at the end
+                              if (messageIndex == _messages.length) {
+                                if (_isStreaming && (_messages.isEmpty || _messages.last.content.isEmpty)) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: AppSpacing.md),
+                                    child: AgentTypingIndicator(agentName: _currentAgent),
+                                  );
+                                } else if (_isTyping) {
+                                  return const Padding(
+                                    padding: EdgeInsets.only(top: AppSpacing.md),
+                                    child: ThinkingIndicator(),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              }
+                          
+                      final msg = _messages[messageIndex];
+                      final showDateHeader = messageIndex == 0 ||
+                          !_isSameDay(msg.timestamp, _messages[messageIndex - 1].timestamp);
                       
                       return Column(
                         children: [
@@ -749,9 +839,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               onDelete: msg.type == MessageType.user ? () => _deleteMessage(msg.id) : null,
                               messageId: msg.id,
                               onReact: (emoji) => _addReaction(msg.id, emoji),
-                              isFirstInGroup: _isFirstInGroup(index),
-                              isLastInGroup: _isLastInGroup(index),
-                              isSameSenderAsPrevious: _isSameSenderAsPrevious(index),
+                              isFirstInGroup: _isFirstInGroup(messageIndex),
+                              isLastInGroup: _isLastInGroup(messageIndex),
+                              isSameSenderAsPrevious: _isSameSenderAsPrevious(messageIndex),
                             ),
                           ),
                         ],
