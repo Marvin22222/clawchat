@@ -26,13 +26,20 @@ class ClawChatApp extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
-          return MaterialApp(
-            title: 'ClawChat',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const AppWrapper(),
+          return AnimatedTheme(
+            data: themeProvider.isDarkMode
+                ? AppTheme.darkTheme
+                : AppTheme.lightTheme,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: MaterialApp(
+              title: 'ClawChat',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              home: const AppWrapper(),
+            ),
           );
         },
       ),
