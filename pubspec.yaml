@@ -25,6 +25,10 @@ dependencies:
   audioplayers: ^6.1.0
   # HTTP client for REST API calls (message editing)
   http: ^1.2.0
+  
+  # PDF Export
+  pdf: ^3.11.0
+  printing: ^5.13.0
   # Sharing & Export
   share_plus: ^10.0.0
   path_provider: ^2.1.2

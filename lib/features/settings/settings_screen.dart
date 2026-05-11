@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/spacing.dart';
@@ -7,6 +8,7 @@ import '../../core/services/notification_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
+import 'chat_export_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -356,6 +358,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showPresetsManager(context, presetsProvider, auth),
             ),
+          ),
+
+          const Divider(),
+
+          // Data & Export Section
+          _SectionHeader(title: 'Daten & Export'),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Icons.download, color: AppColors.success, size: 20),
+            ),
+            title: const Text('Chat Export'),
+            subtitle: const Text('Chats als JSON, Text oder PDF exportieren'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ChatExportScreen(),
+                ),
+              );
+            },
           ),
 
           const Divider(),
