@@ -10,6 +10,7 @@ import '../../core/services/websocket_service.dart';
 import '../../core/services/chat_persistence_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/utils/logger.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
 import '../../models/message.dart';
@@ -434,6 +435,54 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
+  void _deleteMessage(String messageId) async {
+    // Find the message index
+    final messageIndex = _messages.indexWhere((m) => m.id == messageId);
+    if (messageIndex < 0) return;
+
+    final message = _messages[messageIndex];
+    if (message.type != MessageType.user) return;
+
+    // Store for undo
+    final deletedMessage = message;
+
+    // Remove from local list immediately
+    setState(() {
+      _messages.removeAt(messageIndex);
+    });
+
+    // Persist updated list
+    ChatPersistenceService.saveMessages(_messages);
+
+    // Show undo snackbar
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Nachricht gelöscht'),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Rückgängig',
+          onPressed: () {
+            // Restore the message
+            setState(() {
+              _messages.insert(messageIndex, deletedMessage);
+            });
+            ChatPersistenceService.saveMessages(_messages);
+          },
+        ),
+      ),
+    );
+
+    // Call API to delete on server (fire and forget)
+    final auth = context.read<AuthProvider>();
+    auth.api.deleteMessage(messageId).then((success) {
+      if (!success) {
+        AppLogger.error('Failed to delete message on server: $messageId', tag: 'CHAT');
+      }
+    });
+  }
+
   void _onImageSelected(String filePath) {
     // Create attachment from file path
     final fileName = filePath.split('/').last;
@@ -579,6 +628,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               isStreaming: msg.isStreaming,
                               onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
                               onEdit: msg.type == MessageType.user ? () => _editMessage(msg.id) : null,
+                              onDelete: msg.type == MessageType.user ? () => _deleteMessage(msg.id) : null,
+                              messageId: msg.id,
                             ),
                         ],
                       );

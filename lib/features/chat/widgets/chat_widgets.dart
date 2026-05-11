@@ -28,6 +28,8 @@ class MessageBubble extends StatelessWidget {
   final MessageStatus? status;
   final VoidCallback? onRetry;
   final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final String? messageId;
   final Map<String, int>? reactions;
   final bool isStreaming; // true while text is being streamed
   final bool isEdited; // true if message was edited
@@ -44,6 +46,8 @@ class MessageBubble extends StatelessWidget {
     this.status,
     this.onRetry,
     this.onEdit,
+    this.onDelete,
+    this.messageId,
     this.reactions,
     this.isStreaming = false,
     this.isEdited = false,
@@ -55,9 +59,20 @@ class MessageBubble extends StatelessWidget {
     final isJson = _isJson(content);
     final isCode = _isCode(content);
 
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
+    return isUser && onDelete != null
+        ? Dismissible(
+          key: ValueKey(messageId ?? content),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
+            color: Colors.red,
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+          onDismissed: (_) => onDelete?.call(),
+          child: Align(
+            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),

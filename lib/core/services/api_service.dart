@@ -102,6 +102,31 @@ class ApiService {
     }
     return [];
   }
+
+  /// Delete a message via DELETE /api/messages/{messageId}
+  /// Returns true on success, false on failure
+  Future<bool> deleteMessage(String messageId) async {
+    if (_gatewayUrl == null || _token == null) {
+      AppLogger.warning('ApiService: Not configured, cannot delete message', tag: 'API');
+      return false;
+    }
+
+    try {
+      final uri = Uri.parse('$_baseUrl/api/messages/$messageId');
+      final response = await http.delete(uri, headers: _headers).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        AppLogger.debug('Message deleted successfully: $messageId', tag: 'API');
+        return true;
+      } else {
+        AppLogger.error('Failed to delete message: ${response.statusCode} - ${response.body}', tag: 'API');
+        return false;
+      }
+    } catch (e) {
+      AppLogger.error('Error deleting message: $e', tag: 'API');
+      return false;
+    }
+  }
 }
 
 // Extension to parse ChatMessage from JSON (for API responses)
