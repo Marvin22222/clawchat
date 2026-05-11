@@ -778,7 +778,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isConnected ? Icons.chat_bubble_outline : Icons.wifi_off,
+              isConnected ? Icons.arrow_upward : Icons.wifi_off,
               size: 64,
               color: isDark 
                   ? AppColors.textDarkSecondary 
@@ -786,7 +786,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              isConnected ? 'Keine Nachrichten' : 'Nicht verbunden',
+              isConnected ? 'Starte die Konversation' : 'Nicht verbunden',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -796,7 +796,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             const SizedBox(height: AppSpacing.sm),
             Text(
               isConnected 
-                  ? 'Starte eine Unterhaltung!' 
+                  ? 'Schreib eine Nachricht' 
                   : 'Verbinde dich mit dem Gateway',
               style: TextStyle(
                 color: isDark 

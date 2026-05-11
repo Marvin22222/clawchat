@@ -391,7 +391,6 @@ class _FilesScreenState extends State<FilesScreen> {
               const SizedBox(height: AppSpacing.sm),
               Text(
                 _error!,
-                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: isDark
                       ? AppColors.textDarkSecondary
@@ -425,14 +424,14 @@ class _FilesScreenState extends State<FilesScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.folder_outlined,
+                  Icons.folder_open,
                   size: 48,
                   color: AppColors.primary,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                'Noch keine Dateien',
+                'Keine Dateien',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -441,8 +440,7 @@ class _FilesScreenState extends State<FilesScreen> {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Dateien die du sendest erscheinen hier.\nTippe + um eine Datei hochzuladen.',
-                textAlign: TextAlign.center,
+                'Dateien werden hier angezeigt',
                 style: TextStyle(
                   fontSize: 14,
                   color: isDark

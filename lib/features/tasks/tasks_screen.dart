@@ -107,7 +107,7 @@ class _TasksScreenState extends State<TasksScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.task_outlined,
+              Icons.task_alt,
               size: 64,
               color: isDark
                   ? AppColors.textDarkSecondary
@@ -116,8 +116,8 @@ class _TasksScreenState extends State<TasksScreen> {
             const SizedBox(height: AppSpacing.md),
             Text(
               taskProvider.filterStatus != null
-                  ? 'Keine Tasks mit diesem Status'
-                  : 'Keine aktiven Tasks',
+                  ? 'Keine Aufgaben'
+                  : 'Alle erledigt! 🎉',
               style: TextStyle(
                 color: isDark
                     ? AppColors.textDarkSecondary
