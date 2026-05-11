@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(AppRadius.xl),
                   ),
                   child: const Icon(
-                    Icons.chat_bubble_rounded,
+                    Iconsax.messages_rounded,
                     size: 40,
                     color: Colors.white,
                   ),
@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _gatewayController,
                 decoration: const InputDecoration(
                   hintText: 'z.B. localhost:18789 oder deine.domain.com',
-                  prefixIcon: Icon(Icons.link),
+                  prefixIcon: Icon(Iconsax.link),
                 ),
                 keyboardType: TextInputType.url,
               ),
@@ -214,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _tokenController,
                 decoration: const InputDecoration(
                   hintText: 'gw_xxxxxxxxxxxxx',
-                  prefixIcon: Icon(Icons.key),
+                  prefixIcon: Icon(Iconsax.key),
                 ),
                 obscureText: true,
               ),
@@ -265,8 +265,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         )
                       : Icon(
                           _biometricTypeName == 'Face ID' 
-                              ? Icons.face 
-                              : Icons.fingerprint,
+                              ? Iconsax.face 
+                              : Iconsax.finger_print,
                         ),
                   label: Text('Mit $_biometricTypeName anmelden'),
                   style: OutlinedButton.styleFrom(

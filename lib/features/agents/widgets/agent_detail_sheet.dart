@@ -262,7 +262,7 @@ class _StepsList extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.check,
+                    Iconsax.tick_square,
                     size: 14,
                     color: AppColors.primary,
                   ),
@@ -466,7 +466,7 @@ class _ActionButtons extends StatelessWidget {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: onViewChat,
-            icon: const Icon(Icons.chat_bubble_outline, size: 18),
+            icon: const Icon(Iconsax.messages, size: 18),
             label: const Text('View Chat'),
             style: OutlinedButton.styleFrom(
               foregroundColor: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
@@ -486,7 +486,7 @@ class _ActionButtons extends StatelessWidget {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: onCancelTask,
-              icon: const Icon(Icons.cancel_outlined, size: 18),
+              icon: const Icon(Iconsax.close_square, size: 18),
               label: const Text('Cancel'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.warning,
@@ -504,7 +504,7 @@ class _ActionButtons extends StatelessWidget {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: onSendMessage,
-            icon: const Icon(Icons.send, size: 18),
+            icon: const Icon(Iconsax.send, size: 18),
             label: const Text('Message'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,

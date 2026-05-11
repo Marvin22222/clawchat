@@ -8,7 +8,7 @@ class ErrorHandler {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error_outline, color: Colors.white),
+            const Icon(Iconsax.warning_2_outline, color: Colors.white),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(message)),
           ],
@@ -34,7 +34,7 @@ class ErrorHandler {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_outline, color: Colors.white),
+            const Icon(Iconsax.tick_square_circle_outline, color: Colors.white),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(message)),
           ],
@@ -53,7 +53,7 @@ class ErrorHandler {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.info_outline, color: Colors.white),
+            const Icon(Iconsax.info_circle, color: Colors.white),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(message)),
           ],

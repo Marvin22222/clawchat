@@ -176,11 +176,11 @@ class _SortDropdown extends StatelessWidget {
   IconData _getSortIcon(AgentSort sort) {
     switch (sort) {
       case AgentSort.name:
-        return Icons.sort_by_alpha;
+        return Iconsax.sort;
       case AgentSort.status:
-        return Icons.circle;
+        return Iconsax.circle;
       case AgentSort.lastActive:
-        return Icons.access_time;
+        return Iconsax.clock;
     }
   }
 
@@ -226,7 +226,7 @@ class _SortDropdown extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Icon(
-              Icons.arrow_drop_down,
+              Iconsax.arrow_down_1,
               size: 16,
               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
             ),
@@ -258,7 +258,7 @@ class _SortDropdown extends StatelessWidget {
               if (sort == selectedSort) ...[
                 const Spacer(),
                 Icon(
-                  Icons.check,
+                  Iconsax.tick_square,
                   size: 16,
                   color: AppColors.primary,
                 ),
@@ -296,13 +296,13 @@ class _ViewModeToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ViewModeButton(
-            icon: Icons.grid_view_rounded,
+            icon: Iconsax.grid_1,
             isSelected: viewMode == AgentViewMode.grid,
             onTap: () => onChanged(AgentViewMode.grid),
             isFirst: true,
           ),
           _ViewModeButton(
-            icon: Icons.view_list_rounded,
+            icon: Iconsax.list,
             isSelected: viewMode == AgentViewMode.list,
             onTap: () => onChanged(AgentViewMode.list),
             isFirst: false,

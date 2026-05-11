@@ -40,7 +40,7 @@ class SettingsTile extends StatelessWidget {
               ),
             )
           : null,
-      trailing: trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
+      trailing: trailing ?? (onTap != null ? const Icon(Iconsax.chevron_right) : null),
       onTap: onTap,
     );
   }

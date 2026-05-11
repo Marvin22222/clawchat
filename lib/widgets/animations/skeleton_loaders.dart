@@ -765,7 +765,7 @@ class BlurPlaceholder extends StatelessWidget {
             // Center icon
             Center(
               child: Icon(
-                Icons.image_outlined,
+                Iconsax.image_outlined,
                 size: 32,
                 color: isDark ? Colors.grey[600] : Colors.grey[400],
               ),

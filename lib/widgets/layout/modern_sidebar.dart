@@ -55,7 +55,7 @@ class ModernSidebar extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.pets,
+              Iconsax.emoji_happy,
               color: Colors.white,
               size: 28,
             ),

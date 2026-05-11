@@ -44,14 +44,14 @@ class _AgentsScreenState extends State<AgentsScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(_showPresets ? Icons.smart_toy : Icons.bookmark),
+            icon: Icon(_showPresets ? Iconsax.robot : Iconsax.bookmark),
             onPressed: () {
               setState(() => _showPresets = !_showPresets);
             },
             tooltip: _showPresets ? 'Agents' : 'Presets',
           ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Iconsax.refresh),
             onPressed: () {
               auth.connect();
             },
@@ -202,7 +202,7 @@ class _PresetsList extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.bookmark_border,
+                  Iconsax.bookmark_border,
                   size: 48,
                   color: AppColors.primary,
                 ),
@@ -294,7 +294,7 @@ class _PresetCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                   child: const Icon(
-                    Icons.bookmark,
+                    Iconsax.bookmark,
                     color: AppColors.primary,
                   ),
                 ),
@@ -340,7 +340,7 @@ class _PresetCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                  icon: const Icon(Iconsax.trash_outline, color: AppColors.error),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -399,7 +399,7 @@ class _EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.smart_toy_outlined,
+                Iconsax.robot_outlined,
                 size: 48,
                 color: AppColors.primary,
               ),
@@ -429,7 +429,7 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
               onPressed: onRefresh,
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Iconsax.refresh),
               label: const Text('Erneut versuchen'),
             ),
           ],
@@ -503,24 +503,24 @@ class _AgentsList extends StatelessWidget {
   IconData _getAgentIcon(String agent) {
     final lower = agent.toLowerCase();
     if (lower.contains('code') || lower.contains('dev')) {
-      return Icons.code;
+      return Iconsax.code;
     }
     if (lower.contains('research') || lower.contains('search')) {
-      return Icons.search;
+      return Iconsax.search_normal_1;
     }
     if (lower.contains('write') || lower.contains('content')) {
-      return Icons.edit_document;
+      return Iconsax.edit_document;
     }
     if (lower.contains('analyst') || lower.contains('data')) {
-      return Icons.analytics;
+      return Iconsax.chart;
     }
     if (lower.contains('image') || lower.contains('vision')) {
-      return Icons.image;
+      return Iconsax.image;
     }
     if (lower.contains('voice') || lower.contains('audio')) {
-      return Icons.mic;
+      return Iconsax.microphone;
     }
-    return Icons.smart_toy;
+    return Iconsax.robot;
   }
 
   Color _getAgentColor(String agent) {
@@ -693,7 +693,7 @@ class _AgentCard extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: Icon(
-                        isSelected ? Icons.star : Icons.star_border,
+                        isSelected ? Iconsax.star_1 : Iconsax.star_1_border,
                         color: isSelected 
                             ? AppColors.warning 
                             : (isDark 
@@ -706,7 +706,7 @@ class _AgentCard extends StatelessWidget {
                           : 'Als Standard setzen',
                     ),
                     Icon(
-                      Icons.arrow_forward_ios,
+                      Iconsax.arrow_right_1,
                       size: 16,
                       color: isDark
                           ? AppColors.textDarkSecondary

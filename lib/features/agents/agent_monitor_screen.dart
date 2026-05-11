@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/mock_agent_data.dart';
@@ -239,7 +240,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
       floatingActionButton: FloatingActionButton(
         onPressed: _showNewTaskModal,
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: AppColors.textPrimary),
+        child: const Icon(Iconsax.add, color: AppColors.textPrimary),
       ),
     );
   }
@@ -257,7 +258,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
-              Icons.pets,
+              Iconsax.emoji_happy,
               color: AppColors.textPrimary,
               size: 20,
             ),
@@ -281,7 +282,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
           onReconnect: _reconnect,
         ),
         IconButton(
-          icon: const Icon(Icons.refresh, color: AppColors.textSecondary),
+          icon: const Icon(Iconsax.refresh, color: AppColors.textSecondary),
           onPressed: _loadAgents,
         ),
       ],
@@ -320,7 +321,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.cloud_off,
+                Iconsax.cloud_no_update,
                 size: 40,
                 color: AppColors.error,
               ),
@@ -346,7 +347,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: _reconnect,
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Iconsax.refresh),
               label: const Text('Reconnect'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -478,7 +479,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.pets,
+              Iconsax.emoji_happy,
               size: 80,
               color: isDark
                   ? AppColors.textDarkSecondary.withValues(alpha: 0.3)
@@ -509,7 +510,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             if (_selectedFilter != AgentFilter.all)
               ElevatedButton.icon(
                 onPressed: () => _onFilterChanged(AgentFilter.all),
-                icon: const Icon(Icons.clear),
+                icon: const Icon(Iconsax.close_square),
                 label: const Text('Clear Filter'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -523,7 +524,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             else
               ElevatedButton.icon(
                 onPressed: _showNewTaskModal,
-                icon: const Icon(Icons.add),
+                icon: const Icon(Iconsax.add),
                 label: const Text('Start New Task'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -674,7 +675,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                    icon: const Icon(Iconsax.close_square, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -816,7 +817,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                  icon: const Icon(Iconsax.close_square, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -827,7 +828,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               children: [
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.smart_toy,
+                    icon: Iconsax.robot,
                     label: 'Total Agents',
                     value: '$totalAgents',
                     color: AppColors.primary,
@@ -837,7 +838,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.check_circle,
+                    icon: Iconsax.tick_square_circle,
                     label: 'Active',
                     value: '$activeCount',
                     color: const Color(0xFF22C55E),
@@ -851,7 +852,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               children: [
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.pending,
+                    icon: Iconsax.timer_pause,
                     label: 'Busy',
                     value: '$busyCount',
                     color: const Color(0xFFEAB308),
@@ -861,7 +862,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.pause_circle,
+                    icon: Iconsax.pause_circle,
                     label: 'Idle',
                     value: '$idleCount',
                     color: const Color(0xFF6B7280),
@@ -875,7 +876,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               children: [
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.error,
+                    icon: Iconsax.warning_2,
                     label: 'Errors',
                     value: '$errorCount',
                     color: const Color(0xFFEF4444),
@@ -885,7 +886,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.message,
+                    icon: Iconsax.message_text,
                     label: 'Total Msgs',
                     value: '$totalMessages',
                     color: const Color(0xFF3B82F6),
@@ -905,7 +906,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               ),
               child: Row(
                 children: [
-                  Icon(Icons.speed, color: AppColors.primary),
+                  Icon(Iconsax.speedometer, color: AppColors.primary),
                   const SizedBox(width: 12),
                   const Text(
                     'Avg Response Time',
@@ -1006,7 +1007,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 );
               }
             },
-            icon: const Icon(Icons.send, size: 18),
+            icon: const Icon(Iconsax.send, size: 18),
             label: const Text('Send'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -1281,7 +1282,7 @@ class _HistoryRow extends StatelessWidget {
 
     if (!isConnected) {
       return IconButton(
-        icon: const Icon(Icons.cloud_off, color: AppColors.error),
+        icon: const Icon(Iconsax.cloud_no_update, color: AppColors.error),
         onPressed: onReconnect,
         tooltip: 'Connection lost. Tap to reconnect.',
       );

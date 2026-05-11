@@ -48,7 +48,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
-              Icon(Icons.broken_image, color: Colors.white54, size: 64),
+              Icon(Iconsax.image, color: Colors.white54, size: 64),
               SizedBox(height: AppSpacing.md),
               Text('Bild konnte nicht geladen werden', style: TextStyle(color: Colors.white54)),
             ],
@@ -64,7 +64,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Icon(Icons.broken_image, color: Colors.white54, size: 64),
+                Icon(Iconsax.image, color: Colors.white54, size: 64),
                 SizedBox(height: AppSpacing.md),
                 Text('Bild konnte nicht geladen werden', style: TextStyle(color: Colors.white54)),
               ],
@@ -90,21 +90,21 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
         title: const Text('Foto', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.zoom_in),
+            icon: const Icon(Iconsax.zoom_in_1),
             onPressed: () {
               _transformationController.value = Matrix4.identity()..scale(2.0);
               setState(() => _currentScale = 2.0);
             },
           ),
           IconButton(
-            icon: const Icon(Icons.zoom_out),
+            icon: const Icon(Iconsax.zoom_out_1),
             onPressed: () {
               _transformationController.value = Matrix4.identity();
               setState(() => _currentScale = 1.0);
             },
           ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Iconsax.refresh),
             onPressed: () {
               _transformationController.value = Matrix4.identity();
               setState(() => _currentScale = 1.0);

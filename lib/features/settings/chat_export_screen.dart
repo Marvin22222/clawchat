@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -55,7 +56,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
           if (_selectedChatIds.isNotEmpty)
             TextButton.icon(
               onPressed: _clearSelection,
-              icon: const Icon(Icons.clear, size: 20),
+              icon: const Icon(Iconsax.close_square, size: 20),
               label: Text('${_selectedChatIds.length} ausgewählt'),
             ),
         ],
@@ -75,7 +76,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.chat_bubble_outline,
+            Iconsax.messages_bubble_outline,
             size: 64,
             color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
           ),
@@ -118,7 +119,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+              Icon(Iconsax.info_circle, color: AppColors.primary, size: 20),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
@@ -181,7 +182,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
             child: Row(
               children: [
                 Icon(
-                  isSelected ? Icons.check_circle : Icons.circle_outlined,
+                  isSelected ? Iconsax.check_circle : Iconsax.circle,
                   color: isSelected ? AppColors.primary : Colors.grey,
                   size: 20,
                 ),
@@ -207,7 +208,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: Colors.grey[400]),
+                Icon(Iconsax.chevron_right, color: Colors.grey[400]),
               ],
             ),
           ),
@@ -277,7 +278,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
               children: [
                 Expanded(
                   child: _ExportButton(
-                    icon: Icons.code,
+                    icon: Iconsax.code,
                     label: 'JSON',
                     color: AppColors.primary,
                     onTap: () => _exportAsJson(),
@@ -287,7 +288,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: _ExportButton(
-                    icon: Icons.text_snippet,
+                    icon: Iconsax.text_block,
                     label: 'Text',
                     color: AppColors.secondary,
                     onTap: () => _exportAsText(),
@@ -297,7 +298,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: _ExportButton(
-                    icon: Icons.picture_as_pdf,
+                    icon: Iconsax.paperclip,
                     label: 'PDF',
                     color: AppColors.error,
                     onTap: () => _exportAsPdf(),
@@ -369,7 +370,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
           const SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                Icon(Iconsax.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
                 Text('JSON Export erfolgreich'),
               ],
@@ -399,7 +400,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
           const SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                Icon(Iconsax.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
                 Text('Text Export erfolgreich'),
               ],
@@ -429,7 +430,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
           const SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                Icon(Iconsax.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
                 Text('PDF Export erfolgreich'),
               ],
@@ -451,7 +452,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
         const SnackBar(
           content: Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.white, size: 20),
+              Icon(Iconsax.warning_2, color: Colors.white, size: 20),
               SizedBox(width: 8),
               Text('Export fehlgeschlagen'),
             ],

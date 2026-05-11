@@ -240,7 +240,7 @@ class _AgentCardState extends State<AgentCard>
                     Row(
                       children: [
                         Icon(
-                          Icons.format_list_numbered,
+                          Iconsax.list,
                           size: 14,
                           color: isDark
                               ? AppColors.textDarkSecondary

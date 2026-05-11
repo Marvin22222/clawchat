@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import '../../../core/utils/logger.dart';
@@ -71,7 +72,7 @@ class MessageBubble extends StatelessWidget {
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 20),
             color: Colors.red,
-            child: const Icon(Icons.delete, color: Colors.white),
+            child: const Icon(Iconsax.trash, color: Colors.white),
           ),
           onDismissed: (_) => onDelete?.call(),
           child: Align(
@@ -203,10 +204,10 @@ class MessageBubble extends StatelessWidget {
                     const SizedBox(width: 4),
                     Icon(
                       status == MessageStatus.error
-                          ? Icons.error_outline
+                          ? Iconsax.warning_2_outline
                           : status == MessageStatus.sending
-                              ? Icons.access_time
-                              : Icons.done,
+                              ? Iconsax.clock
+                              : Iconsax.tick_circle,
                       size: 12,
                       color: status == MessageStatus.error
                           ? Colors.white70
@@ -244,7 +245,7 @@ class MessageBubble extends StatelessWidget {
                       child: Row(
                         children: [
                           Icon(
-                            Icons.refresh,
+                            Iconsax.refresh,
                             size: 12,
                             color: isUser ? Colors.white70 : AppColors.error,
                           ),
@@ -403,7 +404,7 @@ class MessageBubble extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               // Copy option (always available)
               ListTile(
-                leading: Icon(Icons.copy, color: isDark ? AppColors.textDark : AppColors.textLight),
+                leading: Icon(Iconsax.copy, color: isDark ? AppColors.textDark : AppColors.textLight),
                 title: Text(
                   'Kopieren',
                   style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
@@ -423,7 +424,7 @@ class MessageBubble extends StatelessWidget {
               // Edit option (only for user messages)
               if (isUser && onEdit != null) ...[
                 ListTile(
-                  leading: Icon(Icons.edit, color: AppColors.primary),
+                  leading: Icon(Iconsax.edit, color: AppColors.primary),
                   title: Text(
                     'Bearbeiten',
                     style: TextStyle(color: AppColors.primary),
@@ -570,7 +571,7 @@ class _ImageAttachment extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.md),
               ListTile(
-                leading: Icon(Icons.fullscreen, color: isDark ? AppColors.textDark : AppColors.textLight),
+                leading: Icon(Iconsax.fullscreen, color: isDark ? AppColors.textDark : AppColors.textLight),
                 title: Text('Vollbild', style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight)),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -578,7 +579,7 @@ class _ImageAttachment extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.link, color: isDark ? AppColors.textDark : AppColors.textLight),
+                leading: Icon(Iconsax.link, color: isDark ? AppColors.textDark : AppColors.textLight),
                 title: Text('Pfad kopieren', style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight)),
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: attachment.url ?? attachment.path));
@@ -823,7 +824,7 @@ class _AudioAttachmentState extends State<_AudioAttachment> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                _isPlaying ? Icons.pause : Icons.play_arrow,
+                _isPlaying ? Iconsax.pause : Iconsax.play,
                 size: 20,
                 color: widget.isUser ? AppColors.primary : Colors.white,
               ),
@@ -886,7 +887,7 @@ class _FileAttachment extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.attach_file,
+            Iconsax.attach_2,
             size: 20,
             color: isUser ? Colors.white : AppColors.primary,
           ),
@@ -1097,7 +1098,7 @@ class _CodeBlock extends StatelessWidget {
                       SnackBar(
                         content: Row(
                           children: [
-                            Icon(Icons.check, color: AppColors.success, size: 16),
+                            Icon(Iconsax.tick_square, color: AppColors.success, size: 16),
                             const SizedBox(width: 8),
                             const Text('Copied to clipboard'),
                           ],
@@ -1119,7 +1120,7 @@ class _CodeBlock extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
-                      Icons.copy,
+                      Iconsax.copy,
                       size: 14,
                       color: (isDark ? Colors.white70 : Colors.black54),
                     ),
@@ -1175,13 +1176,13 @@ class _ToolCallCardState extends State<ToolCallCard> {
   IconData get _statusIcon {
     switch (widget.status) {
       case 'running':
-        return Icons.play_circle_outline;
+        return Iconsax.play_circle_outline;
       case 'success':
-        return Icons.check_circle;
+        return Iconsax.tick_square_circle;
       case 'failed':
-        return Icons.error;
+        return Iconsax.warning_2;
       default:
-        return Icons.info_outline;
+        return Iconsax.info_circle;
     }
   }
 
@@ -1235,7 +1236,7 @@ class _ToolCallCardState extends State<ToolCallCard> {
                           borderRadius: BorderRadius.circular(AppRadius.small),
                         ),
                         child: Icon(
-                          Icons.build,
+                          Iconsax.heart,
                           size: 18,
                           color: _statusColor,
                         ),
@@ -1286,7 +1287,7 @@ class _ToolCallCardState extends State<ToolCallCard> {
                           turns: _isExpanded ? 0.5 : 0,
                           duration: const Duration(milliseconds: 200),
                           child: Icon(
-                            Icons.keyboard_arrow_down,
+                            Iconsax.arrow_down_1,
                             color: widget.isDark 
                                 ? AppColors.textDarkSecondary 
                                 : AppColors.textLightSecondary,
@@ -1760,7 +1761,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.mic, color: AppColors.error),
+                leading: const Icon(Iconsax.microphone, color: AppColors.error),
                 title: const Text('Voice Message'),
                 onTap: () {
                   Navigator.pop(context);
@@ -1768,7 +1769,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.camera_alt, color: AppColors.primary),
+                leading: const Icon(Iconsax.camera, color: AppColors.primary),
                 title: const Text('Camera'),
                 onTap: () {
                   Navigator.pop(context);
@@ -1776,7 +1777,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library, color: AppColors.secondary),
+                leading: const Icon(Iconsax.gallery, color: AppColors.secondary),
                 title: const Text('Gallery'),
                 onTap: () {
                   Navigator.pop(context);
@@ -1925,7 +1926,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                           onPressed: _toggleRecording,
                         ),
                 IconButton(
-                  icon: const Icon(Icons.attach_file, color: AppColors.primary),
+                  icon: const Icon(Iconsax.attach_2, color: AppColors.primary),
                   onPressed: widget.enabled ? _showAttachmentOptions : null,
                   tooltip: 'Add attachment',
                 ),
@@ -1965,7 +1966,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                    icon: const Icon(Iconsax.send, color: Colors.white, size: 20),
                     onPressed: widget.enabled ? _send : null,
                   ),
                 ),
@@ -2081,7 +2082,7 @@ class _AnimatedVoiceButtonState extends State<_AnimatedVoiceButton>
           scale: scale,
           child: IconButton(
             icon: Icon(
-              widget.isRecording ? Icons.stop : Icons.mic,
+              widget.isRecording ? Iconsax.stop : Iconsax.microphone,
               color: widget.isRecording ? AppColors.error : AppColors.primary,
             ),
             onPressed: widget.enabled ? widget.onPressed : null,
@@ -2190,7 +2191,7 @@ class _PushToTalkButtonState extends State<_PushToTalkButton>
             child: Transform.scale(
               scale: scale,
               child: Icon(
-                widget.isHolding ? Icons.mic : Icons.mic_none,
+                widget.isHolding ? Iconsax.microphone : Iconsax.microphone_none,
                 color: widget.isHolding ? AppColors.error : AppColors.primary,
                 size: 24,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/constants/colors.dart';
@@ -67,7 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.link, color: AppColors.primary, size: 20),
+              child: const Icon(Iconsax.link, color: AppColors.primary, size: 20),
             ),
             title: const Text('Gateway URL'),
             subtitle: Text(
@@ -77,7 +78,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
-            trailing: const Icon(Icons.edit, size: 18),
+            trailing: const Icon(Iconsax.edit, size: 18),
             onTap: () => _showGatewayUrlDialog(context, auth),
           ),
           
@@ -90,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.secondary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.key, color: AppColors.secondary, size: 20),
+              child: const Icon(Iconsax.key, color: AppColors.secondary, size: 20),
             ),
             title: const Text('Access Token'),
             subtitle: Text(
@@ -104,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             trailing: IconButton(
-              icon: Icon(_showToken ? Icons.visibility_off : Icons.visibility, size: 20),
+              icon: Icon(_showToken ? Iconsax.eye_off : Iconsax.eye, size: 20),
               onPressed: () => setState(() => _showToken = !_showToken),
             ),
             onTap: () => _showTokenDialog(context, auth),
@@ -120,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
               child: Icon(
-                auth.isConnected ? Icons.cloud_done : Icons.cloud_off,
+                auth.isConnected ? Iconsax.cloud_done : Iconsax.cloud_no_update,
                 color: auth.isConnected ? AppColors.success : AppColors.error,
                 size: 20,
               ),
@@ -153,7 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.notifications, color: AppColors.primary, size: 20),
+              child: const Icon(Iconsax.notification, color: AppColors.primary, size: 20),
             ),
             title: const Text('Push-Benachrichtigungen'),
             subtitle: const Text('Neue Nachrichten melden'),
@@ -183,7 +184,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
               child: Icon(
-                theme.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                theme.isDarkMode ? Iconsax.moon : Iconsax.sun_1,
                 color: AppColors.info,
                 size: 20,
               ),
@@ -209,7 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.warning.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.palette, color: AppColors.warning, size: 20),
+              child: const Icon(Iconsax.color_swatch, color: AppColors.warning, size: 20),
             ),
             title: const Text('Theme Farbe'),
             subtitle: Text(
@@ -219,7 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(Iconsax.chevron_right),
             onTap: () => _showThemeSelector(context, theme),
           ),
 
@@ -237,7 +238,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.success.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.fingerprint, color: AppColors.success, size: 20),
+              child: const Icon(Iconsax.finger_print, color: AppColors.success, size: 20),
             ),
             title: const Text('Face ID / Touch ID'),
             subtitle: const Text('Schneller Login mit Biometrie'),
@@ -254,7 +255,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.lock, color: AppColors.error, size: 20),
+              child: const Icon(Iconsax.lock, color: AppColors.error, size: 20),
             ),
             title: const Text('Auto-Sperre'),
             subtitle: const Text('App nach 5 Min. Inaktivität sperren'),
@@ -279,8 +280,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: Icon(
                   voiceSettings.inputMode == VoiceInputMode.pushToTalk
-                      ? Icons.touch_app
-                      : Icons.mic,
+                      ? Iconsax.touch
+                      : Iconsax.microphone,
                   color: AppColors.primary,
                   size: 20,
                 ),
@@ -293,7 +294,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Iconsax.chevron_right),
               onTap: () => _showVoiceInputModeSelector(context, voiceSettings),
             ),
           ),
@@ -308,7 +309,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.secondary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.small),
                 ),
-                child: const Icon(Icons.translate, color: AppColors.secondary, size: 20),
+                child: const Icon(Iconsax.translate, color: AppColors.secondary, size: 20),
               ),
               title: const Text('Sprache für Transkription'),
               subtitle: Text(
@@ -318,7 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Iconsax.chevron_right),
               onTap: () => _showLanguageSelector(context, voiceSettings),
             ),
           ),
@@ -333,7 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.warning.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.small),
                 ),
-                child: const Icon(Icons.sensors, color: AppColors.warning, size: 20),
+                child: const Icon(Iconsax.waves, color: AppColors.warning, size: 20),
               ),
               title: const Text('Sprach-Empfindlichkeit'),
               subtitle: Text(
@@ -343,7 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Iconsax.chevron_right),
               onTap: () => _showVoiceSensitivitySettings(context, voiceSettings),
             ),
           ),
@@ -358,7 +359,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.info.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.small),
                 ),
-                child: const Icon(Icons.speed, color: AppColors.info, size: 20),
+                child: const Icon(Iconsax.speedometer, color: AppColors.info, size: 20),
               ),
               title: const Text('Wiedergabe-Geschwindigkeit'),
               subtitle: Text(
@@ -368,7 +369,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Iconsax.chevron_right),
               onTap: () => _showPlaybackSpeedSelector(context, voiceSettings),
             ),
           ),
@@ -383,7 +384,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.success.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.small),
                 ),
-                child: const Icon(Icons.play_circle, color: AppColors.success, size: 20),
+                child: const Icon(Iconsax.play_circle, color: AppColors.success, size: 20),
               ),
               title: const Text('Auto-Play Sprachnachrichten'),
               subtitle: Text(
@@ -407,7 +408,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.mic_none, color: AppColors.error, size: 20),
+              child: const Icon(Iconsax.microphone_none, color: AppColors.error, size: 20),
             ),
             title: const Text('Sprachnachricht testen'),
             subtitle: const Text('Aufnahme- und Wiedergabequalität prüfen'),
@@ -430,7 +431,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.smart_toy, color: Colors.white, size: 20),
+              child: const Icon(Iconsax.robot, color: Colors.white, size: 20),
             ),
             title: const Text('Standard Agent'),
             subtitle: Text(
@@ -440,7 +441,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(Iconsax.chevron_right),
             onTap: () => _showAgentSelector(context, auth),
           ),
           
@@ -453,7 +454,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.info.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.psychology, color: AppColors.info, size: 20),
+              child: const Icon(Iconsax.global, color: AppColors.info, size: 20),
             ),
             title: const Text('Verfügbare Agents'),
             subtitle: Text(
@@ -463,7 +464,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(Iconsax.chevron_right),
             onTap: () {
               Navigator.push(
                 context,
@@ -484,7 +485,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.warning.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.small),
                 ),
-                child: const Icon(Icons.bookmark, color: AppColors.warning, size: 20),
+                child: const Icon(Iconsax.bookmark, color: AppColors.warning, size: 20),
               ),
               title: const Text('Agent Presets'),
               subtitle: Text(
@@ -494,7 +495,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                 ),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Iconsax.chevron_right),
               onTap: () => _showPresetsManager(context, presetsProvider, auth),
             ),
           ),
@@ -512,11 +513,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.success.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.download, color: AppColors.success, size: 20),
+              child: const Icon(Iconsax.cloud_download, color: AppColors.success, size: 20),
             ),
             title: const Text('Chat Export'),
             subtitle: const Text('Chats als JSON, Text oder PDF exportieren'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(Iconsax.chevron_right),
             onTap: () {
               Navigator.push(
                 context,
@@ -533,13 +534,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SectionHeader(title: 'Über'),
           
           const ListTile(
-            leading: Icon(Icons.info_outline),
+            leading: Icon(Iconsax.info_circle),
             title: Text('Version'),
             subtitle: Text(AppStrings.appVersion),
           ),
           
           const ListTile(
-            leading: Icon(Icons.code),
+            leading: Icon(Iconsax.code),
             title: Text('ClawChat'),
             subtitle: Text('OpenClaw iOS App'),
           ),
@@ -555,7 +556,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.logout, color: AppColors.error, size: 20),
+              child: const Icon(Iconsax.logout, color: AppColors.error, size: 20),
             ),
             title: const Text(
               'Abmelden',
@@ -869,7 +870,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           title: Text(agent),
                           trailing: auth.selectedAgent == agent
-                              ? const Icon(Icons.check_circle, color: AppColors.success)
+                              ? const Icon(Iconsax.tick_square_circle, color: AppColors.success)
                               : null,
                           onTap: () {
                             auth.setSelectedAgent(agent);
@@ -935,7 +936,7 @@ class _PresetsManagerContent extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add_circle, color: AppColors.primary),
+                  icon: const Icon(Iconsax.add_circle, color: AppColors.primary),
                   onPressed: () => _showPresetEditor(context, presetsProvider, auth),
                 ),
               ],
@@ -951,7 +952,7 @@ class _PresetsManagerContent extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.bookmark_border,
+                              Iconsax.bookmark_border,
                               size: 64,
                               color: Colors.grey[400],
                             ),
@@ -966,7 +967,7 @@ class _PresetsManagerContent extends StatelessWidget {
                             const SizedBox(height: AppSpacing.sm),
                             TextButton.icon(
                               onPressed: () => _showPresetEditor(context, presetsProvider, auth),
-                              icon: const Icon(Icons.add),
+                              icon: const Icon(Iconsax.add),
                               label: const Text('Preset erstellen'),
                             ),
                           ],
@@ -1204,7 +1205,7 @@ class _PresetListItem extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(AppRadius.small),
           ),
-          child: const Icon(Icons.bookmark, color: Colors.white, size: 20),
+          child: const Icon(Iconsax.bookmark, color: Colors.white, size: 20),
         ),
         title: Text(
           preset.name,
@@ -1238,11 +1239,11 @@ class _PresetListItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.edit, size: 20),
+              icon: const Icon(Iconsax.edit, size: 20),
               onPressed: onEdit,
             ),
             IconButton(
-              icon: const Icon(Icons.delete, size: 20, color: AppColors.error),
+              icon: const Icon(Iconsax.trash, size: 20, color: AppColors.error),
               onPressed: onDelete,
             ),
           ],
@@ -1320,7 +1321,7 @@ class _ThemeColorOption extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white, size: 20)
+                  ? const Icon(Iconsax.tick_square, color: Colors.white, size: 20)
                   : null,
             ),
             const SizedBox(height: 4),
@@ -1423,7 +1424,7 @@ class _VoiceSensitivitySheetState extends State<_VoiceSensitivitySheet> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.info_outline, color: AppColors.info, size: 16),
+                    Icon(Iconsax.info_circle, color: AppColors.info, size: 16),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'Was wird angepasst:',

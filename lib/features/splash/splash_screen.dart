@@ -92,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ],
                       ),
                       child: const Icon(
-                        Icons.chat_bubble_rounded,
+                        Iconsax.messages_rounded,
                         size: AppDimensions.iconXLarge,
                         color: Colors.white,
                       ),

@@ -86,13 +86,13 @@ class _AgentActivityCardState extends State<AgentActivityCard>
   IconData get _statusIcon {
     switch (widget.status) {
       case AgentActivityStatus.idle:
-        return Icons.circle_outlined;
+        return Iconsax.circle;
       case AgentActivityStatus.running:
-        return Icons.play_circle_filled;
+        return Iconsax.play_circle_filled;
       case AgentActivityStatus.completed:
-        return Icons.check_circle;
+        return Iconsax.tick_square_circle;
       case AgentActivityStatus.error:
-        return Icons.error;
+        return Iconsax.warning_2;
     }
   }
 
@@ -241,7 +241,7 @@ class _AgentActivityCardState extends State<AgentActivityCard>
                         IconButton(
                           onPressed: widget.onCancel,
                           icon: Icon(
-                            Icons.close,
+                            Iconsax.close_square,
                             color: AppColors.error,
                             size: 20,
                           ),
@@ -257,7 +257,7 @@ class _AgentActivityCardState extends State<AgentActivityCard>
                           turns: _isExpanded ? 0.5 : 0,
                           duration: const Duration(milliseconds: 200),
                           child: Icon(
-                            Icons.keyboard_arrow_down,
+                            Iconsax.arrow_down_1,
                             color: isDark
                                 ? AppColors.textDarkSecondary
                                 : AppColors.textLightSecondary,
@@ -358,19 +358,19 @@ class _AgentStepItem extends StatelessWidget {
     switch (step.status) {
       case StepStatus.pending:
         stepColor = AppColors.textLightSecondary;
-        stepIcon = Icons.circle_outlined;
+        stepIcon = Iconsax.circle;
         break;
       case StepStatus.running:
         stepColor = AppColors.warning;
-        stepIcon = Icons.play_circle;
+        stepIcon = Iconsax.play_circle;
         break;
       case StepStatus.completed:
         stepColor = AppColors.success;
-        stepIcon = Icons.check_circle;
+        stepIcon = Iconsax.tick_square_circle;
         break;
       case StepStatus.error:
         stepColor = AppColors.error;
-        stepIcon = Icons.error;
+        stepIcon = Iconsax.warning_2;
         break;
     }
 

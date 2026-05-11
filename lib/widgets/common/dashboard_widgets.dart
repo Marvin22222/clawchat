@@ -36,7 +36,7 @@ class QuickActionWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             children: [
               _QuickActionCard(
-                icon: Icons.add_circle_outline,
+                icon: Iconsax.add_circle_outline,
                 title: 'Neuer Chat',
                 color: AppColors.primary,
                 isDark: isDark,
@@ -50,28 +50,28 @@ class QuickActionWidget extends StatelessWidget {
                     : null,
               ),
               _QuickActionCard(
-                icon: Icons.smart_toy,
+                icon: Iconsax.robot,
                 title: 'Agents',
                 color: AppColors.secondary,
                 isDark: isDark,
                 onTap: auth.ws.isConnected ? () {} : null,
               ),
               _QuickActionCard(
-                icon: Icons.history,
+                icon: Iconsax.clock_1,
                 title: 'Verlauf',
                 color: AppColors.info,
                 isDark: isDark,
                 onTap: () {},
               ),
               _QuickActionCard(
-                icon: Icons.task_alt,
+                icon: Iconsax.task_alt,
                 title: 'Tasks',
                 color: AppColors.success,
                 isDark: isDark,
                 onTap: auth.ws.isConnected ? () {} : null,
               ),
               _QuickActionCard(
-                icon: Icons.settings,
+                icon: Iconsax.setting_2,
                 title: 'Einstellungen',
                 color: AppColors.warning,
                 isDark: isDark,
@@ -220,7 +220,7 @@ class AgentChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.smart_toy,
+              Iconsax.robot,
               size: 16,
               color: isSelected ? Colors.white : AppColors.primary,
             ),

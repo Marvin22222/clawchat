@@ -198,7 +198,7 @@ class _StatusIndicatorState extends State<StatusIndicator>
           ),
           child: Center(
             child: Icon(
-              Icons.close,
+              Iconsax.close_square,
               size: size * 0.7,
               color: Colors.white,
             ),

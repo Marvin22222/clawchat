@@ -100,7 +100,7 @@ class QuickActionsSheet extends StatelessWidget {
               children: [
                 // Send message
                 _ActionTile(
-                  icon: Icons.message_outlined,
+                  icon: Iconsax.message_text_outlined,
                   iconColor: AppColors.primary,
                   title: 'Send Message',
                   subtitle: 'Send a message to this agent',
@@ -113,7 +113,7 @@ class QuickActionsSheet extends StatelessWidget {
                 // Cancel task (only if busy or live)
                 if (agent.status.name == 'busy' || agent.status.name == 'live')
                   _ActionTile(
-                    icon: Icons.cancel_outlined,
+                    icon: Iconsax.close_square,
                     iconColor: AppColors.warning,
                     title: 'Cancel Task',
                     subtitle: 'Stop the current task',
@@ -126,7 +126,7 @@ class QuickActionsSheet extends StatelessWidget {
                 
                 // View history
                 _ActionTile(
-                  icon: Icons.history,
+                  icon: Iconsax.clock_1,
                   iconColor: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                   title: 'View History',
                   subtitle: 'See past activity and conversations',
@@ -138,7 +138,7 @@ class QuickActionsSheet extends StatelessWidget {
                 
                 // Reset agent
                 _ActionTile(
-                  icon: Icons.refresh,
+                  icon: Iconsax.refresh,
                   iconColor: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
                   title: 'Reset Agent',
                   subtitle: 'Clear state and restart',
@@ -332,7 +332,7 @@ class _ActionTile extends StatelessWidget {
         ),
       ),
       trailing: Icon(
-        Icons.chevron_right,
+        Iconsax.chevron_right,
         color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
       ),
     );

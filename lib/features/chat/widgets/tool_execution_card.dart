@@ -76,28 +76,28 @@ class _ToolExecutionCardState extends State<ToolExecutionCard>
   IconData get _statusIcon {
     switch (widget.status) {
       case ToolStatus.running:
-        return Icons.hourglass_top;
+        return Iconsax.clock_1;
       case ToolStatus.completed:
-        return Icons.check_circle;
+        return Iconsax.tick_square_circle;
       case ToolStatus.error:
-        return Icons.error;
+        return Iconsax.warning_2;
     }
   }
 
   IconData get _toolIcon {
     // Map tool names to icons
     final name = widget.toolName.toLowerCase();
-    if (name.contains('search')) return Icons.search;
-    if (name.contains('calc') || name.contains('math')) return Icons.calculate;
-    if (name.contains('code')) return Icons.code;
-    if (name.contains('file')) return Icons.insert_drive_file;
-    if (name.contains('web')) return Icons.language;
-    if (name.contains('image')) return Icons.image;
-    if (name.contains('weather')) return Icons.cloud;
-    if (name.contains('time')) return Icons.access_time;
-    if (name.contains('music')) return Icons.music_note;
-    if (name.contains('video')) return Icons.videocam;
-    return Icons.build; // default
+    if (name.contains('search')) return Iconsax.search_normal_1;
+    if (name.contains('calc') || name.contains('math')) return Iconsax.calculator;
+    if (name.contains('code')) return Iconsax.code;
+    if (name.contains('file')) return Iconsax.document;
+    if (name.contains('web')) return Iconsax.global;
+    if (name.contains('image')) return Iconsax.image;
+    if (name.contains('weather')) return Iconsax.cloud;
+    if (name.contains('time')) return Iconsax.clock;
+    if (name.contains('music')) return Iconsax.music;
+    if (name.contains('video')) return Iconsax.video;
+    return Iconsax.heart; // default
   }
 
   @override
@@ -221,7 +221,7 @@ class _ToolExecutionCardState extends State<ToolExecutionCard>
                   RotationTransition(
                     turns: _rotationAnimation,
                     child: Icon(
-                      Icons.keyboard_arrow_down,
+                      Iconsax.arrow_down_1,
                       color: _statusColor,
                       size: 20,
                     ),

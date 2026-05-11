@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
@@ -22,7 +23,7 @@ class HomeScreen extends StatelessWidget {
         title: const Text('ClawChat'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Iconsax.setting_2),
             onPressed: () {
               Navigator.push(
                 context,
@@ -88,7 +89,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _QuickActionCard(
-                      icon: Icons.chat,
+                      icon: Iconsax.messages,
                       title: 'Chat',
                       color: AppColors.primary,
                       onTap: auth.ws.isConnected
@@ -106,7 +107,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: _QuickActionCard(
-                      icon: Icons.smart_toy,
+                      icon: Iconsax.robot,
                       title: 'Agents',
                       color: AppColors.secondary,
                       onTap: auth.ws.isConnected
@@ -124,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: _QuickActionCard(
-                      icon: Icons.task,
+                      icon: Iconsax.task,
                       title: 'Tasks',
                       color: AppColors.info,
                       onTap: auth.ws.isConnected
@@ -187,7 +188,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     title: Text(agent),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: const Icon(Iconsax.chevron_right),
                     onTap: () {
                       Navigator.push(
                         context,

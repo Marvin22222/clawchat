@@ -20,25 +20,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingPage> _pages = [
     OnboardingPage(
-      icon: Icons.chat_bubble_rounded,
+      icon: Iconsax.messages_rounded,
       title: 'Willkommen bei ClawChat',
       description: 'Dein direkter Zugang zu OpenClaw - jetzt mit voller Transparenz!',
       color: AppColors.primary,
     ),
     OnboardingPage(
-      icon: Icons.smart_toy,
+      icon: Iconsax.robot,
       title: 'Agent Management',
       description: 'Wechsle zwischen verschiedenen Agents - Main, Coding, Research und mehr!',
       color: AppColors.secondary,
     ),
     OnboardingPage(
-      icon: Icons.visibility,
+      icon: Iconsax.eye,
       title: 'Volle Transparenz',
       description: 'Sieh was der AI macht - Tool Calls, Thinking, alles in Echtzeit!',
       color: AppColors.info,
     ),
     OnboardingPage(
-      icon: Icons.bolt,
+      icon: Iconsax.flash,
       title: 'Modern & Schnell',
       description: 'Native iOS Performance mit schönem Dark/Light Mode',
       color: AppColors.success,

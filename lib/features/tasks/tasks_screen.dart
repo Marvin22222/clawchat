@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
@@ -35,7 +36,7 @@ class _TasksScreenState extends State<TasksScreen> {
         title: const Text('Tasks & Cron Jobs'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Iconsax.refresh),
             onPressed: () {
               context.read<TaskProvider>().refresh();
             },
@@ -79,7 +80,7 @@ class _TasksScreenState extends State<TasksScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.error_outline,
+              Iconsax.warning_2_outline,
               size: 64,
               color: AppColors.error,
             ),
@@ -107,7 +108,7 @@ class _TasksScreenState extends State<TasksScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.task_alt,
+              Iconsax.task_alt,
               size: 64,
               color: isDark
                   ? AppColors.textDarkSecondary
@@ -329,13 +330,13 @@ class TaskCard extends StatelessWidget {
   IconData get _statusIcon {
     switch (task.status) {
       case TaskStatus.completed:
-        return Icons.check_circle;
+        return Iconsax.tick_square_circle;
       case TaskStatus.running:
-        return Icons.play_circle;
+        return Iconsax.play_circle;
       case TaskStatus.failed:
-        return Icons.error;
+        return Iconsax.warning_2;
       case TaskStatus.pending:
-        return Icons.schedule;
+        return Iconsax.clock;
     }
   }
 
@@ -382,7 +383,7 @@ class TaskCard extends StatelessWidget {
                       children: [
                         if (task.agent != null) ...[
                           Icon(
-                            Icons.smart_toy_outlined,
+                            Iconsax.robot_outlined,
                             size: 12,
                             color: isDark
                                 ? AppColors.textDarkSecondary
@@ -402,7 +403,7 @@ class TaskCard extends StatelessWidget {
                         ],
                         if (task.cronExpression != null) ...[
                           Icon(
-                            Icons.schedule,
+                            Iconsax.clock,
                             size: 12,
                             color: isDark
                                 ? AppColors.textDarkSecondary
@@ -496,13 +497,13 @@ class TaskDetailsSheet extends StatelessWidget {
   IconData get _statusIcon {
     switch (task.status) {
       case TaskStatus.completed:
-        return Icons.check_circle;
+        return Iconsax.tick_square_circle;
       case TaskStatus.running:
-        return Icons.play_circle;
+        return Iconsax.play_circle;
       case TaskStatus.failed:
-        return Icons.error;
+        return Iconsax.warning_2;
       case TaskStatus.pending:
-        return Icons.schedule;
+        return Iconsax.clock;
     }
   }
 
@@ -580,41 +581,41 @@ class TaskDetailsSheet extends StatelessWidget {
                 
                 // Details
                 _DetailRow(
-                  icon: Icons.fingerprint,
+                  icon: Iconsax.finger_print,
                   label: 'Task ID',
                   value: task.id,
                   isDark: isDark,
                 ),
                 if (task.agent != null)
                   _DetailRow(
-                    icon: Icons.smart_toy_outlined,
+                    icon: Iconsax.robot_outlined,
                     label: 'Agent',
                     value: task.agent!,
                     isDark: isDark,
                   ),
                 _DetailRow(
-                  icon: Icons.calendar_today,
+                  icon: Iconsax.calendar_1,
                   label: 'Erstellt',
                   value: _formatDateTime(task.createdAt),
                   isDark: isDark,
                 ),
                 if (task.completedAt != null)
                   _DetailRow(
-                    icon: Icons.check_circle_outline,
+                    icon: Iconsax.tick_square_circle_outline,
                     label: 'Abgeschlossen',
                     value: _formatDateTime(task.completedAt!),
                     isDark: isDark,
                   ),
                 if (task.duration != null)
                   _DetailRow(
-                    icon: Icons.timer_outlined,
+                    icon: Iconsax.timer_1,
                     label: 'Dauer',
                     value: _formatDuration(task.duration!),
                     isDark: isDark,
                   ),
                 if (task.cronExpression != null)
                   _DetailRow(
-                    icon: Icons.schedule,
+                    icon: Iconsax.clock,
                     label: 'Zeitplan',
                     value: task.cronExpression!,
                     isDark: isDark,
@@ -632,7 +633,7 @@ class TaskDetailsSheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Icons.error_outline,
+                          Iconsax.warning_2_outline,
                           color: AppColors.error,
                           size: 20,
                         ),
@@ -662,7 +663,7 @@ class TaskDetailsSheet extends StatelessWidget {
                           // Task neu starten
                           Navigator.pop(context);
                         },
-                        icon: const Icon(Icons.replay),
+                        icon: const Icon(Iconsax.arrow_clockwise),
                         label: const Text('Neustarten'),
                       ),
                     ),
@@ -670,7 +671,7 @@ class TaskDetailsSheet extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close),
+                        icon: const Icon(Iconsax.close_square),
                         label: const Text('Schließen'),
                       ),
                     ),

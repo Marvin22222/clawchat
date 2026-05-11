@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import '../../widgets/layout/modern_sidebar.dart';
 import '../chat/chat_screen.dart';
 import '../files/files_screen.dart';
@@ -20,33 +21,33 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<SidebarItem> _sidebarItems = const [
     SidebarItem(
       label: 'Home',
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home,
+      icon: Iconsax.home,
+      activeIcon: Iconsax.home,
     ),
     SidebarItem(
       label: 'Chat',
-      icon: Icons.chat_bubble_outline,
-      activeIcon: Icons.chat_bubble,
+      icon: Iconsax.messages,
+      activeIcon: Iconsax.messages,
     ),
     SidebarItem(
       label: 'Files',
-      icon: Icons.folder_outlined,
-      activeIcon: Icons.folder,
+      icon: Iconsax.folder,
+      activeIcon: Iconsax.folder,
     ),
     SidebarItem(
       label: 'Tasks',
-      icon: Icons.task_outlined,
-      activeIcon: Icons.task,
+      icon: Iconsax.task,
+      activeIcon: Iconsax.task,
     ),
     SidebarItem(
       label: 'History',
-      icon: Icons.history_outlined,
-      activeIcon: Icons.history,
+      icon: Iconsax.clock_1,
+      activeIcon: Iconsax.clock_1,
     ),
     SidebarItem(
       label: 'Settings',
-      icon: Icons.settings_outlined,
-      activeIcon: Icons.settings,
+      icon: Iconsax.setting_2,
+      activeIcon: Iconsax.setting_2,
     ),
   ];
 

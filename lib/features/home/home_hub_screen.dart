@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
@@ -66,7 +67,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           slivers: [
             SliverToBoxAdapter(child: _buildHeader(auth)),
             SliverToBoxAdapter(child: _buildQuickInput()),
-            SliverToBoxAdapter(child: _buildSectionHeader('Agents', Icons.smart_toy_outlined)),
+            SliverToBoxAdapter(child: _buildSectionHeader('Agents', Iconsax.robot_outlined)),
             SliverToBoxAdapter(child: _buildAgentsGrid()),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
@@ -88,7 +89,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.pets,
+              Iconsax.emoji_happy,
               color: AppColors.textPrimary,
               size: 28,
             ),
@@ -125,7 +126,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh, color: AppColors.textSecondary),
+            icon: const Icon(Iconsax.refresh, color: AppColors.textSecondary),
             onPressed: _loadAgents,
           ),
           const SizedBox(width: 8),
@@ -160,7 +161,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.pets,
+              Iconsax.emoji_happy,
               color: AppColors.textPrimary,
               size: 24,
             ),
@@ -229,7 +230,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
-              icon: const Icon(Icons.send, color: AppColors.textPrimary, size: 20),
+              icon: const Icon(Iconsax.send, color: AppColors.textPrimary, size: 20),
               onPressed: () => _startChat(),
             ),
           ),
@@ -249,13 +250,13 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.smart_toy, size: 18, color: AppColors.primary),
+            Icon(Iconsax.robot, size: 18, color: AppColors.primary),
             const SizedBox(width: 4),
             Text(
               'main',
               style: AppTypography.bodySmall.copyWith(color: AppColors.textPrimary),
             ),
-            const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary, size: 20),
+            const Icon(Iconsax.arrow_down_1, color: AppColors.textSecondary, size: 20),
           ],
         ),
       );
@@ -291,7 +292,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 ),
                 if (agent == _selectedAgent) ...[
                   const Spacer(),
-                  const Icon(Icons.check, size: 16, color: AppColors.primary),
+                  const Icon(Iconsax.tick_square, size: 16, color: AppColors.primary),
                 ],
               ],
             ),
@@ -310,7 +311,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               _selectedAgent,
               style: AppTypography.bodySmall.copyWith(color: AppColors.textPrimary),
             ),
-            const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary, size: 20),
+            const Icon(Iconsax.arrow_down_1, color: AppColors.textSecondary, size: 20),
           ],
         ),
       ),
@@ -321,18 +322,18 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     switch (agent.toLowerCase()) {
       case 'coding':
       case 'dev':
-        return Icons.code;
+        return Iconsax.code;
       case 'research':
       case 'search':
-        return Icons.search;
+        return Iconsax.search_normal_1;
       case 'image':
       case 'vision':
-        return Icons.image;
+        return Iconsax.image;
       case 'voice':
       case 'audio':
-        return Icons.mic;
+        return Iconsax.microphone;
       default:
-        return Icons.smart_toy;
+        return Iconsax.robot;
     }
   }
 
@@ -380,7 +381,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         ),
         child: Column(
           children: [
-            Icon(Icons.smart_toy_outlined, color: AppColors.textMuted, size: 48),
+            Icon(Iconsax.robot_outlined, color: AppColors.textMuted, size: 48),
             const SizedBox(height: AppSpacing.md),
             Text(
               'Verbinde dich mit dem Gateway',
@@ -472,7 +473,7 @@ class _AgentCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               const Icon(
-                Icons.arrow_forward_ios,
+                Iconsax.arrow_right_1,
                 size: 12,
                 color: AppColors.textMuted,
               ),
@@ -487,18 +488,18 @@ class _AgentCard extends StatelessWidget {
     switch (agent.toLowerCase()) {
       case 'coding':
       case 'dev':
-        return Icons.code;
+        return Iconsax.code;
       case 'research':
       case 'search':
-        return Icons.search;
+        return Iconsax.search_normal_1;
       case 'image':
       case 'vision':
-        return Icons.image;
+        return Iconsax.image;
       case 'voice':
       case 'audio':
-        return Icons.mic;
+        return Iconsax.microphone;
       default:
-        return Icons.smart_toy;
+        return Iconsax.robot;
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -571,7 +572,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return Scaffold(
       appBar: _isSearching ? AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Iconsax.arrow_left_1),
           onPressed: _cancelSearch,
         ),
         title: TextField(
@@ -593,7 +594,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         actions: [
           if (_searchQuery.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.clear),
+              icon: const Icon(Iconsax.close_square),
               onPressed: () {
                 _searchController.clear();
                 _onSearchChanged('');
@@ -618,16 +619,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.download),
+            icon: const Icon(Iconsax.cloud_download),
             onPressed: () => _showExportSheet(context),
             tooltip: 'Chat exportieren',
           ),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Iconsax.search_normal_1),
             onPressed: _toggleSearch,
           ),
           IconButton(
-            icon: const Icon(Icons.smart_toy_outlined),
+            icon: const Icon(Iconsax.robot_outlined),
             onPressed: () {
               // Show agent picker
               _showAgentPicker(context, auth);
@@ -651,7 +652,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               color: AppColors.error.withOpacity(0.1),
               child: Row(
                 children: [
-                  const Icon(Icons.wifi_off, color: AppColors.error, size: 20),
+                  const Icon(Iconsax.wifi_slash, color: AppColors.error, size: 20),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
@@ -805,7 +806,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     HapticService.lightImpact();
                   },
                   backgroundColor: isDark ? AppColors.bgDarkTertiary : AppColors.primary,
-                  child: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                  child: const Icon(Iconsax.arrow_down_1, color: Colors.white),
                 ),
               ),
           ],
@@ -853,26 +854,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       case ConnectionStatus.connected:
         bgColor = AppColors.primary.withOpacity(0.1);
         textColor = AppColors.primary;
-        icon = Icons.check_circle;
+        icon = Iconsax.tick_square_circle;
         text = 'Connected';
         break;
       case ConnectionStatus.connecting:
         bgColor = Colors.orange.withOpacity(0.1);
         textColor = Colors.orange;
-        icon = Icons.sync;
+        icon = Iconsax.sync;
         text = 'Connecting...';
         break;
       case ConnectionStatus.error:
         bgColor = AppColors.error.withOpacity(0.1);
         textColor = AppColors.error;
-        icon = Icons.error_outline;
+        icon = Iconsax.warning_2_outline;
         text = 'Connection error';
         break;
       case ConnectionStatus.disconnected:
       default:
         bgColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
         textColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
-        icon = Icons.wifi_off;
+        icon = Iconsax.wifi_slash;
         text = 'Disconnected';
         break;
     }
@@ -987,7 +988,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.search_off,
+              Iconsax.search_normal_1_off,
               size: 48,
               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
             ),
@@ -1087,7 +1088,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isConnected ? Icons.arrow_upward : Icons.wifi_off,
+              isConnected ? Iconsax.arrow_up_2 : Iconsax.wifi_slash,
               size: 64,
               color: isDark 
                   ? AppColors.textDarkSecondary 
@@ -1119,9 +1120,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _HintChip(icon: Icons.mic, label: 'Voice', isDark: isDark),
+                  _HintChip(icon: Iconsax.microphone, label: 'Voice', isDark: isDark),
                   const SizedBox(width: AppSpacing.sm),
-                  _HintChip(icon: Icons.attach_file, label: 'Image', isDark: isDark),
+                  _HintChip(icon: Iconsax.attach_2, label: 'Image', isDark: isDark),
                 ],
               ),
             ],
@@ -1209,7 +1210,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           Navigator.pop(context);
                           _showPresetPicker(context, auth, presetsProvider);
                         },
-                        icon: const Icon(Icons.bookmark, size: 18),
+                        icon: const Icon(Iconsax.bookmark, size: 18),
                         label: const Text('Presets'),
                       ),
                   ],
@@ -1252,7 +1253,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               ),
                             ),
                             trailing: agent == _currentAgent
-                                ? Icon(Icons.check, color: AppColors.primary)
+                                ? Icon(Iconsax.tick_square, color: AppColors.primary)
                                 : null,
                             selected: agent == _currentAgent,
                             onTap: () {
@@ -1332,7 +1333,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         Navigator.pop(context);
                         _showAgentPicker(context, auth);
                       },
-                      icon: const Icon(Icons.arrow_back, size: 18),
+                      icon: const Icon(Iconsax.arrow_left_1, size: 18),
                       label: const Text('Agents'),
                     ),
                   ],
@@ -1362,7 +1363,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           borderRadius: BorderRadius.circular(AppRadius.small),
                         ),
                         child: Icon(
-                          Icons.bookmark,
+                          Iconsax.bookmark,
                           color: Colors.white,
                           size: 20,
                         ),
@@ -1398,7 +1399,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         ],
                       ),
                       trailing: isActive
-                          ? Icon(Icons.check_circle, color: AppColors.success)
+                          ? Icon(Iconsax.tick_square_circle, color: AppColors.success)
                           : (!isCurrentAgent 
                               ? Chip(
                                   label: Text(
@@ -1488,7 +1489,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     autofocus: true,
                     decoration: InputDecoration(
                       hintText: 'Nachrichten durchsuchen...',
-                      prefixIcon: const Icon(Icons.search),
+                      prefixIcon: const Icon(Iconsax.search_normal_1),
                       filled: true,
                       fillColor: isDark ? Colors.grey[800] : Colors.grey[200],
                       border: OutlineInputBorder(
@@ -1529,7 +1530,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 backgroundColor: msg.type == MessageType.user ? AppColors.primary : AppColors.secondary,
                                 radius: 16,
                                 child: Icon(
-                                  msg.type == MessageType.user ? Icons.person : Icons.smart_toy,
+                                  msg.type == MessageType.user ? Iconsax.user : Iconsax.robot,
                                   color: Colors.white,
                                   size: 16,
                                 ),
@@ -1615,7 +1616,7 @@ class _SearchResultItem extends StatelessWidget {
                   : AppColors.secondary,
               radius: 16,
               child: Icon(
-                message.type == MessageType.user ? Icons.person : Icons.smart_toy,
+                message.type == MessageType.user ? Iconsax.user : Iconsax.robot,
                 color: Colors.white,
                 size: 16,
               ),
@@ -1652,7 +1653,7 @@ class _SearchResultItem extends StatelessWidget {
             ),
             // Navigate icon
             Icon(
-              Icons.chevron_right,
+              Iconsax.chevron_right,
               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               size: 20,
             ),
@@ -1745,7 +1746,7 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
       builder: (context, child) {
         return Transform.rotate(
           angle: _controller.value * 2 * 3.14159,
-          child: Icon(Icons.sync, size: 16, color: widget.color),
+          child: Icon(Iconsax.sync, size: 16, color: widget.color),
         );
       },
     );
@@ -1793,7 +1794,7 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
                     color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
-                  child: const Icon(Icons.code, color: AppColors.primary),
+                  child: const Icon(Iconsax.code, color: AppColors.primary),
                 ),
                 title: const Text('Als JSON'),
                 subtitle: const Text('Export für Backup oder Analyse'),
@@ -1810,7 +1811,7 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
                     color: AppColors.secondary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
-                  child: const Icon(Icons.text_snippet, color: AppColors.secondary),
+                  child: const Icon(Iconsax.text_block, color: AppColors.secondary),
                 ),
                 title: const Text('Als Text'),
                 subtitle: const Text('Lesbare Formatierung'),
@@ -1868,7 +1869,7 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const Icon(Iconsax.tick_square_circle, color: Colors.white, size: 20),
                   const SizedBox(width: 8),
                   Expanded(Text('$filename wurde in die Zwischenablage kopiert')),
                 ],

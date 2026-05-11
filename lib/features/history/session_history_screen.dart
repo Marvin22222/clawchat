@@ -50,7 +50,7 @@ class SessionHistoryScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.chat_bubble_outline,
+                    Iconsax.messages,
                     size: 64,
                     color: isDark 
                         ? AppColors.textDarkSecondary 
@@ -132,7 +132,7 @@ class _SessionCard extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: AppSpacing.md),
         color: AppColors.error,
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Iconsax.trash, color: Colors.white),
       ),
       onDismissed: (_) => onDelete(),
       child: Card(

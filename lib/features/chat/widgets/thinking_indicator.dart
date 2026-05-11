@@ -126,7 +126,7 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
             IconButton(
               onPressed: widget.onCancel,
               icon: Icon(
-                Icons.close,
+                Iconsax.close_square,
                 size: 18,
                 color: AppColors.textLight.withOpacity(0.5),
               ),

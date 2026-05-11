@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -99,7 +100,7 @@ class _FilesScreenState extends State<FilesScreen> {
               SnackBar(
                 content: Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                    const Icon(Iconsax.tick_square_circle, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
                     Expanded(Text('${file.name} hochgeladen')),
                   ],
@@ -117,7 +118,7 @@ class _FilesScreenState extends State<FilesScreen> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                const Icon(Iconsax.warning_2_outline, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Expanded(Text('Upload fehlgeschlagen: $e')),
               ],
@@ -224,12 +225,12 @@ class _FilesScreenState extends State<FilesScreen> {
                         Navigator.pop(ctx);
                         _shareFile(file);
                       },
-                      icon: const Icon(Icons.share),
+                      icon: const Icon(Iconsax.share),
                       label: const Text('Teilen'),
                     ),
                     TextButton.icon(
                       onPressed: () => Navigator.pop(ctx),
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(Iconsax.close_square),
                       label: const Text('Schließen'),
                     ),
                   ],
@@ -256,7 +257,7 @@ class _FilesScreenState extends State<FilesScreen> {
         actions: [
           if (_files.isNotEmpty)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.sort),
+              icon: const Icon(Iconsax.sort),
               tooltip: 'Sortieren',
               onSelected: (value) {
                 if (value == _sortBy) {
@@ -274,7 +275,7 @@ class _FilesScreenState extends State<FilesScreen> {
                   child: Row(
                     children: [
                       Icon(
-                        Icons.calendar_today,
+                        Iconsax.calendar_1,
                         size: 18,
                         color: _sortBy == 'date' ? AppColors.primary : null,
                       ),
@@ -287,7 +288,7 @@ class _FilesScreenState extends State<FilesScreen> {
                       ),
                       if (_sortBy == 'date')
                         Icon(
-                          _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                          _sortAscending ? Iconsax.arrow_up_2 : Iconsax.arrow_down_1,
                           size: 16,
                           color: AppColors.primary,
                         ),
@@ -299,7 +300,7 @@ class _FilesScreenState extends State<FilesScreen> {
                   child: Row(
                     children: [
                       Icon(
-                        Icons.sort_by_alpha,
+                        Iconsax.sort,
                         size: 18,
                         color: _sortBy == 'name' ? AppColors.primary : null,
                       ),
@@ -312,7 +313,7 @@ class _FilesScreenState extends State<FilesScreen> {
                       ),
                       if (_sortBy == 'name')
                         Icon(
-                          _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                          _sortAscending ? Iconsax.arrow_up_2 : Iconsax.arrow_down_1,
                           size: 16,
                           color: AppColors.primary,
                         ),
@@ -324,7 +325,7 @@ class _FilesScreenState extends State<FilesScreen> {
                   child: Row(
                     children: [
                       Icon(
-                        Icons.data_usage,
+                        Iconsax.chart,
                         size: 18,
                         color: _sortBy == 'size' ? AppColors.primary : null,
                       ),
@@ -337,7 +338,7 @@ class _FilesScreenState extends State<FilesScreen> {
                       ),
                       if (_sortBy == 'size')
                         Icon(
-                          _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                          _sortAscending ? Iconsax.arrow_up_2 : Iconsax.arrow_down_1,
                           size: 16,
                           color: AppColors.primary,
                         ),
@@ -347,7 +348,7 @@ class _FilesScreenState extends State<FilesScreen> {
               ],
             ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Iconsax.refresh),
             onPressed: _loadFiles,
             tooltip: 'Aktualisieren',
           ),
@@ -357,7 +358,7 @@ class _FilesScreenState extends State<FilesScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _pickAndUploadFile,
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Iconsax.add, color: Colors.white),
       ),
     );
   }
@@ -375,7 +376,7 @@ class _FilesScreenState extends State<FilesScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.error_outline,
+                Iconsax.warning_2_outline,
                 size: 64,
                 color: AppColors.error,
               ),
@@ -400,7 +401,7 @@ class _FilesScreenState extends State<FilesScreen> {
               const SizedBox(height: AppSpacing.lg),
               ElevatedButton.icon(
                 onPressed: _loadFiles,
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(Iconsax.refresh),
                 label: const Text('Erneut versuchen'),
               ),
             ],
@@ -424,7 +425,7 @@ class _FilesScreenState extends State<FilesScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.folder_open,
+                  Iconsax.folder_open,
                   size: 48,
                   color: AppColors.primary,
                 ),
@@ -451,7 +452,7 @@ class _FilesScreenState extends State<FilesScreen> {
               const SizedBox(height: AppSpacing.lg),
               FilledButton.icon(
                 onPressed: _pickAndUploadFile,
-                icon: const Icon(Icons.upload_file),
+                icon: const Icon(Iconsax.cloud_upload),
                 label: const Text('Datei hochladen'),
               ),
             ],
@@ -471,7 +472,7 @@ class _FilesScreenState extends State<FilesScreen> {
           child: Row(
             children: [
               Icon(
-                Icons.storage,
+                Iconsax.server,
                 size: 16,
                 color: isDark
                     ? AppColors.textDarkSecondary
@@ -596,34 +597,34 @@ class _FileCard extends StatelessWidget {
       case 'webp':
       case 'bmp':
       case 'svg':
-        return Icons.image;
+        return Iconsax.image;
       case 'pdf':
-        return Icons.picture_as_pdf;
+        return Iconsax.paperclip;
       case 'doc':
       case 'docx':
       case 'txt':
       case 'rtf':
-        return Icons.description;
+        return Iconsax.document;
       case 'xls':
       case 'xlsx':
       case 'csv':
-        return Icons.table_chart;
+        return Iconsax.chart;
       case 'mp3':
       case 'wav':
       case 'm4a':
       case 'aac':
-        return Icons.audio_file;
+        return Iconsax.music_cues;
       case 'mp4':
       case 'mov':
       case 'avi':
       case 'mkv':
-        return Icons.video_file;
+        return Iconsax.video;
       case 'zip':
       case 'rar':
       case '7z':
       case 'tar':
       case 'gz':
-        return Icons.folder_zip;
+        return Iconsax.folder_zip;
       case 'js':
       case 'ts':
       case 'py':
@@ -634,14 +635,14 @@ class _FileCard extends StatelessWidget {
       case 'h':
       case 'swift':
       case 'kt':
-        return Icons.code;
+        return Iconsax.code;
       case 'json':
       case 'xml':
       case 'html':
       case 'css':
-        return Icons.data_object;
+        return Iconsax.data;
       default:
-        return Icons.insert_drive_file;
+        return Iconsax.document;
     }
   }
 
@@ -779,12 +780,12 @@ class _FileCard extends StatelessWidget {
 
               // Actions
               IconButton(
-                icon: const Icon(Icons.share, size: 20),
+                icon: const Icon(Iconsax.share, size: 20),
                 onPressed: onShare,
                 tooltip: 'Teilen',
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
+                icon: const Icon(Iconsax.trash_outline, size: 20),
                 color: AppColors.error,
                 onPressed: onDelete,
                 tooltip: 'Löschen',

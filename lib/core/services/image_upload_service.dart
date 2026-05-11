@@ -63,7 +63,7 @@ class ImageUploadWidget extends StatelessWidget {
 
     return PopupMenuButton<String>(
       icon: Icon(
-        Icons.add_photo_alternate,
+        Iconsax.add_photo_alternate,
         color: isDark ? AppColors.textDark : AppColors.textLight,
       ),
       onSelected: (value) async {
@@ -85,7 +85,7 @@ class ImageUploadWidget extends StatelessWidget {
           value: 'gallery',
           child: Row(
             children: [
-              const Icon(Icons.photo_library),
+              const Icon(Iconsax.gallery),
               const SizedBox(width: AppSpacing.sm),
               const Text('Aus Galerie'),
             ],
@@ -95,7 +95,7 @@ class ImageUploadWidget extends StatelessWidget {
           value: 'camera',
           child: Row(
             children: [
-              const Icon(Icons.camera_alt),
+              const Icon(Iconsax.camera),
               const SizedBox(width: AppSpacing.sm),
               const Text('Foto aufnehmen'),
             ],
