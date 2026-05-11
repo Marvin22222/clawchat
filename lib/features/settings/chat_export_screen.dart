@@ -11,6 +11,7 @@ import '../../core/services/chat_persistence_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../models/message.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/animations/skeleton_loaders.dart';
 
 /// Screen for exporting chat messages in various formats
 class ChatExportScreen extends StatefulWidget {
@@ -60,7 +61,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const SettingsScreenSkeleton()
           : _messages.isEmpty
               ? _buildEmptyState(isDark)
               : _buildContent(isDark),

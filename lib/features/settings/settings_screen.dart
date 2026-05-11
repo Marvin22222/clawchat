@@ -8,6 +8,7 @@ import '../../core/services/notification_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
+import '../../widgets/animations/skeleton_loaders.dart';
 import 'chat_export_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -899,7 +900,7 @@ void _showPresetsManager(BuildContext context, AgentPresetsProvider presetsProvi
               // Presets list
               Expanded(
                 child: presetsProvider.isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const SettingsScreenSkeleton()
                     : presetsProvider.presets.isEmpty
                         ? Center(
                             child: Column(

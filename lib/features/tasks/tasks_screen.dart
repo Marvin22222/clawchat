@@ -4,6 +4,7 @@ import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import 'models/task_model.dart';
 import 'providers/task_provider.dart';
+import '../../widgets/animations/skeleton_loaders.dart';
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
@@ -69,7 +70,7 @@ class _TasksScreenState extends State<TasksScreen> {
 
   Widget _buildTaskList(TaskProvider taskProvider, bool isDark) {
     if (taskProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const TasksListSkeleton();
     }
 
     if (taskProvider.error != null) {

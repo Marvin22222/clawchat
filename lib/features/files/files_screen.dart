@@ -8,6 +8,7 @@ import 'dart:convert';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../models/message.dart';
+import '../../widgets/animations/skeleton_loaders.dart';
 
 class FilesScreen extends StatefulWidget {
   const FilesScreen({super.key});
@@ -363,7 +364,7 @@ class _FilesScreenState extends State<FilesScreen> {
 
   Widget _buildBody(bool isDark) {
     if (_isLoading && _files.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const FilesListSkeleton();
     }
 
     if (_error != null) {
