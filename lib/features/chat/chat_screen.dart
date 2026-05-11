@@ -34,6 +34,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _showScrollToBottom = false;
   String _currentAgent = 'main';
   bool _isAppInForeground = true;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -78,6 +79,41 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.resumed) {
       // App coming to foreground - cancel auto-lock if not expired
       auth.cancelAutoLockTimer();
+    }
+  }
+
+
+  Future<void> _refresh() async {
+    if (_isRefreshing) return;
+    
+    setState(() => _isRefreshing = true);
+    
+    final auth = context.read<AuthProvider>();
+    
+    // Reconnect WebSocket if disconnected
+    if (!auth.ws.isConnected) {
+      await auth.reconnect();
+      // Wait a bit for connection to establish
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    
+    // Reload saved messages
+    final savedMessages = await ChatPersistenceService.loadMessages();
+    
+    if (mounted) {
+      setState(() {
+        _messages.clear();
+        if (savedMessages.isNotEmpty) {
+          _messages.addAll(savedMessages);
+        }
+        _isRefreshing = false;
+      });
+      
+      // Scroll to bottom after refresh
+      _scrollToBottom();
+      
+      // Haptic feedback
+      HapticService.lightImpact();
     }
   }
 
@@ -494,11 +530,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               children: [
                 _messages.isEmpty
                     ? _buildEmptyState(isDark, auth.ws.isConnected)
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                        itemCount: _messages.length + (_isTyping ? 1 : 0),
-                        itemBuilder: (context, index) {
+                    : RefreshIndicator(
+                        onRefresh: _refresh,
+                        displacement: 50,
+                        backgroundColor: isDark ? AppColors.bgDarkSecondary : Colors.white,
+                        color: AppColors.primary,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                          itemCount: _messages.length + (_isTyping ? 1 : 0),
+                          itemBuilder: (context, index) {
                           if (index == _messages.length && _isTyping) {
                             return const Padding(
                               padding: EdgeInsets.only(top: AppSpacing.md),
@@ -543,8 +585,43 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     },
                   ),
                 ),
-              ],
-            ),
+              ),
+            // Refresh indicator overlay when refreshing
+            if (_isRefreshing)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  color: AppColors.primary.withOpacity(0.1),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        'Loading...',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             // Scroll to bottom FAB
             if (_showScrollToBottom)
               Positioned(
