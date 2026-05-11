@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/animations/app_transitions.dart';
 import '../chat/chat_screen.dart';
 import '../agents/agents_screen.dart';
 import '../tasks/tasks_screen.dart';
@@ -25,7 +26,9 @@ class HomeScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                AppPageTransitions.fadeSlide(
+                  builder: (_) => const SettingsScreen(),
+                ),
               );
             },
           ),
@@ -92,7 +95,7 @@ class HomeScreen extends StatelessWidget {
                           ? () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
+                                AppPageTransitions.fadeSlide(
                                   builder: (_) => const ChatScreen(),
                                 ),
                               );
@@ -110,7 +113,7 @@ class HomeScreen extends StatelessWidget {
                           ? () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
+                                AppPageTransitions.fadeSlide(
                                   builder: (_) => const AgentsScreen(),
                                 ),
                               );
@@ -128,7 +131,7 @@ class HomeScreen extends StatelessWidget {
                           ? () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
+                                AppPageTransitions.fadeSlide(
                                   builder: (_) => const TasksScreen(),
                                 ),
                               );
@@ -188,7 +191,7 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        AppPageTransitions.fadeSlide(
                           builder: (_) => ChatScreen(initialAgent: agent),
                         ),
                       );

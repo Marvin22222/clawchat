@@ -4,6 +4,41 @@ import 'package:flutter/material.dart';
 class AppPageTransitions {
   AppPageTransitions._();
 
+  /// Fade + slide transition (default for most navigation)
+  /// Duration: 300ms, Curve: easeInOut
+  static PageRouteBuilder fadeSlide({
+    required Widget page,
+    Duration duration = const Duration(milliseconds: 300),
+  }) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionDuration: duration,
+      reverseTransitionDuration: duration,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final fadeTransition = FadeTransition(
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut,
+          ),
+        );
+        final slideTransition = Tween<Offset>(
+          begin: const Offset(0.05, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOut,
+        ));
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: slideTransition,
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
   /// Slide up + fade transition (like modal sheets)
   static PageRouteBuilder slideUpFade({
     required Widget page,

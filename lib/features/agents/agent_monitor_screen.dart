@@ -4,6 +4,7 @@ import '../../core/constants/colors.dart';
 import '../../core/services/mock_agent_data.dart';
 import '../../models/agent_session.dart';
 import '../../models/agent_status.dart';
+import '../../widgets/animations/app_transitions.dart';
 import 'widgets/widgets.dart';
 import '../chat/chat_screen.dart';
 
@@ -935,7 +936,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
   void _navigateToChat(AgentSession agent) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      AppPageTransitions.fadeSlide(
         builder: (_) => ChatScreen(initialAgent: agent.name),
       ),
     );
@@ -1022,7 +1023,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
     // Import history screen - navigate to it
     Navigator.push(
       context,
-      MaterialPageRoute(
+      AppPageTransitions.fadeSlide(
         builder: (_) => _AgentHistoryScreen(agent: agent),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/animations/app_transitions.dart';
 import '../chat/chat_screen.dart';
 
 class QuickActionWidget extends StatelessWidget {
@@ -42,7 +43,9 @@ class QuickActionWidget extends StatelessWidget {
                 onTap: auth.ws.isConnected
                     ? () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const ChatScreen()),
+                        AppPageTransitions.fadeSlide(
+                          builder: (_) => const ChatScreen(),
+                        ),
                       )
                     : null,
               ),

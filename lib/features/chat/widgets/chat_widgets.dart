@@ -13,6 +13,7 @@ import '../../../core/constants/spacing.dart';
 import '../../../core/services/voice_input_service.dart';
 import '../../../core/services/voice_message_service.dart';
 import '../../../models/message.dart';
+import '../../../widgets/animations/app_transitions.dart';
 import 'streaming_text.dart';
 import 'fullscreen_image_viewer.dart';
 import 'package:flutter/gestures.dart';
@@ -464,7 +465,7 @@ class _ImageAttachment extends StatelessWidget {
 
   void _showFullscreenImage(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageTransitions.fadeSlide(
         builder: (context) => FullscreenImageViewer(
           imagePath: attachment.path,
           imageUrl: attachment.url,

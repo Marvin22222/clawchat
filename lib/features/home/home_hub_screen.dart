@@ -5,6 +5,7 @@ import '../../core/constants/spacing.dart';
 import '../../core/constants/typography.dart';
 import '../../core/services/mock_agent_data.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/animations/app_transitions.dart';
 import '../../widgets/animations/skeleton_loaders.dart';
 import '../agents/agent_monitor_screen.dart';
 import '../chat/chat_screen.dart';
@@ -40,7 +41,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   void _startChat({String? agent}) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      AppPageTransitions.fadeSlide(
         builder: (_) => ChatScreen(
           initialAgent: agent ?? _selectedAgent,
         ),
@@ -144,7 +145,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AgentMonitorScreen()),
+          AppPageTransitions.fadeSlide(
+            builder: (_) => const AgentMonitorScreen(),
+          ),
         );
       },
       child: Stack(
@@ -350,7 +353,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const TasksScreen()),
+                  AppPageTransitions.fadeSlide(
+                    builder: (_) => const TasksScreen(),
+                  ),
                 );
               },
               child: Text(

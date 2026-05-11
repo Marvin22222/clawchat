@@ -4,6 +4,7 @@ import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../models/message.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/animations/app_transitions.dart';
 import '../chat/chat_screen.dart';
 
 class SessionHistoryScreen extends StatelessWidget {
@@ -78,7 +79,7 @@ class SessionHistoryScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
+                      AppPageTransitions.fadeSlide(
                         builder: (_) => ChatScreen(initialAgent: session.name.toLowerCase()),
                       ),
                     );

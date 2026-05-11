@@ -8,7 +8,9 @@ import '../../core/services/notification_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
+import '../../widgets/animations/app_transitions.dart';
 import '../../widgets/animations/skeleton_loaders.dart';
+import '../agents/agents_screen.dart';
 import 'chat_export_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -462,8 +464,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // Navigate to agents screen
-              Navigator.pushNamed(context, '/agents');
+              Navigator.push(
+                context,
+                AppPageTransitions.fadeSlide(
+                  builder: (_) => const AgentsScreen(),
+                ),
+              );
             },
           ),
 
@@ -513,7 +519,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                AppPageTransitions.fadeSlide(
                   builder: (_) => const ChatExportScreen(),
                 ),
               );

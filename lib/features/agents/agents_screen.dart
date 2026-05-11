@@ -5,6 +5,7 @@ import '../../core/constants/spacing.dart';
 import '../../core/services/agent_preset_service.dart';
 import '../../models/message.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/animations/app_transitions.dart';
 import '../chat/chat_screen.dart';
 
 class AgentsScreen extends StatefulWidget {
@@ -73,7 +74,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
               onAgentTap: (agent) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  AppPageTransitions.fadeSlide(
                     builder: (_) => ChatScreen(initialAgent: agent),
                   ),
                 );
@@ -151,7 +152,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
   void _loadPreset(AgentPreset preset) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      AppPageTransitions.fadeSlide(
         builder: (_) => ChatScreen(initialAgent: preset.agentId),
       ),
     );
