@@ -18,6 +18,7 @@ import '../../widgets/animations/chat_message_animation.dart';
 import 'widgets/chat_widgets.dart' hide ThinkingIndicator, ToolCallCard;
 import 'widgets/thinking_indicator.dart';
 import 'widgets/tool_execution_card.dart';
+import 'widgets/agent_typing_indicator.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? initialAgent;
@@ -33,6 +34,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final List<ChatMessage> _messages = [];
   final Set<String> _hapticsTriggeredForMessages = {};
   bool _isTyping = false;
+  bool _isStreaming = false;
   bool _showScrollToBottom = false;
   String _currentAgent = 'main';
   bool _isAppInForeground = true;
@@ -136,6 +138,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             isStreaming: true,
           ));
           _isTyping = false;
+          _isStreaming = true;
         });
         _scrollToBottom();
       }
@@ -194,6 +197,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           }
           _currentStreamingMessageId = null;
           _isTyping = false;
+          _isStreaming = false;
         });
         
         // Show notification for incoming message if app is in background
@@ -208,7 +212,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     auth.ws.onThinking = (thinking) {
       if (mounted) {
         setState(() {
-          _isTyping = true;
+          // Only show thinking if we're not streaming
+          if (!_isStreaming) {
+            _isTyping = true;
+          }
         });
       }
     };
@@ -589,13 +596,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           controller: _scrollController,
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                          itemCount: _messages.length + (_isTyping ? 1 : 0),
+                          itemCount: _messages.length + (_isTyping || _isStreaming ? 1 : 0),
                           itemBuilder: (context, index) {
-                          if (index == _messages.length && _isTyping) {
-                            return const Padding(
-                              padding: EdgeInsets.only(top: AppSpacing.md),
-                              child: ThinkingIndicator(),
-                            );
+                          if (index == _messages.length) {
+                            // Show typing indicator when agent is thinking or streaming
+                            if (_isStreaming && (_messages.isEmpty || _messages.last.content.isEmpty)) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: AppSpacing.md),
+                                child: AgentTypingIndicator(agentName: _currentAgent),
+                              );
+                            } else if (_isTyping) {
+                              return const Padding(
+                                padding: EdgeInsets.only(top: AppSpacing.md),
+                                child: ThinkingIndicator(),
+                              );
+                            }
+                            return const SizedBox.shrink();
                           }
                       
                       final msg = _messages[index];
