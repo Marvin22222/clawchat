@@ -35,6 +35,7 @@ class MessageBubble extends StatelessWidget {
   final Map<String, int>? reactions;
   final bool isStreaming; // true while text is being streamed
   final bool isEdited; // true if message was edited
+  final Function(String emoji)? onReact; // Callback for double-tap reaction
 
   const MessageBubble({
     super.key,
@@ -53,6 +54,7 @@ class MessageBubble extends StatelessWidget {
     this.reactions,
     this.isStreaming = false,
     this.isEdited = false,
+    this.onReact,
   });
 
   @override
@@ -140,6 +142,11 @@ class MessageBubble extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: GestureDetector(
+                onDoubleTap: () {
+                  if (onReact != null) {
+                    _showQuickReactionPicker(context);
+                  }
+                },
                 onLongPress: () {
                   _showContextMenu(context);
                 },
@@ -310,6 +317,66 @@ class MessageBubble extends StatelessWidget {
   }
 
     }
+  }
+
+  void _showQuickReactionPicker(BuildContext context) {
+    final reactions = ['👍', '❤️', '😂', '🔥', '✅'];
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Text(
+                'Schnelle Reaktion',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: reactions.map((emoji) => 
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      onReact?.call(emoji);
+                      HapticService.lightImpact();
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.bgDark : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
+                      ),
+                      child: Center(
+                        child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                      ),
+                    ),
+                  ),
+                ).toList(),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showContextMenu(BuildContext context) {

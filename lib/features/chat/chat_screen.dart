@@ -511,6 +511,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _sendMessage('[Bild]', attachments: [attachment]);
   }
 
+  void _addReaction(String messageId, String emoji) {
+    setState(() {
+      final index = _messages.indexWhere((m) => m.id == messageId);
+      if (index >= 0) {
+        final msg = _messages[index];
+        final currentReactions = Map<String, int>.from(msg.reactions ?? {});
+        if (currentReactions.containsKey(emoji)) {
+          // Toggle off if already reacted
+          final count = currentReactions[emoji]!;
+          if (count > 1) {
+            currentReactions[emoji] = count - 1;
+          } else {
+            currentReactions.remove(emoji);
+          }
+        } else {
+          // Add reaction
+          currentReactions[emoji] = 1;
+        }
+        _messages[index] = msg.copyWith(reactions: currentReactions.isEmpty ? null : currentReactions);
+      }
+    });
+    ChatPersistenceService.saveMessages(_messages);
+    HapticService.mediumImpact();
+  }
+
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -702,6 +728,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               onEdit: msg.type == MessageType.user ? () => _editMessage(msg.id) : null,
                               onDelete: msg.type == MessageType.user ? () => _deleteMessage(msg.id) : null,
                               messageId: msg.id,
+                              onReact: (emoji) => _addReaction(msg.id, emoji),
                             ),
                           ),
                         ],
@@ -1690,8 +1717,6 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
     )..repeat();
   }
 
-  @override
-  void dispose() {
     _controller.dispose();
     super.dispose();
   }
