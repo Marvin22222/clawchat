@@ -513,7 +513,7 @@ class _AttachmentRow extends StatelessWidget {
       runSpacing: AppSpacing.sm,
       children: attachments.map((attachment) {
         if (attachment.mimeType.startsWith('image/')) {
-          return _ImageAttachment(attachment: attachment, isUser: isUser);
+          return _ImageAttachment(attachment: attachment, isUser: isUser, isDark: isDark);
         } else if (attachment.mimeType.startsWith('audio/')) {
           return _AudioAttachment(attachment: attachment, isUser: isUser);
         } else {
@@ -527,8 +527,13 @@ class _AttachmentRow extends StatelessWidget {
 class _ImageAttachment extends StatelessWidget {
   final MessageAttachment attachment;
   final bool isUser;
+  final bool isDark;
 
-  const _ImageAttachment({required this.attachment, required this.isUser});
+  const _ImageAttachment({
+    required this.attachment,
+    required this.isUser,
+    required this.isDark,
+  });
 
   void _showFullscreenImage(BuildContext context) {
     Navigator.of(context).push(
@@ -536,6 +541,56 @@ class _ImageAttachment extends StatelessWidget {
         builder: (context) => FullscreenImageViewer(
           imagePath: attachment.path,
           imageUrl: attachment.url,
+          isDark: isDark,
+        ),
+      ),
+    );
+  }
+
+  void _showImageContextMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(top: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ListTile(
+                leading: Icon(Icons.fullscreen, color: isDark ? AppColors.textDark : AppColors.textLight),
+                title: Text('Vollbild', style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showFullscreenImage(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.link, color: isDark ? AppColors.textDark : AppColors.textLight),
+                title: Text('Pfad kopieren', style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight)),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: attachment.url ?? attachment.path));
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pfad kopiert'), duration: Duration(seconds: 2)),
+                  );
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
         ),
       ),
     );
@@ -543,24 +598,22 @@ class _ImageAttachment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use URL if available (received image), otherwise use local file
     final bool isRemote = attachment.url != null;
+    final String heroTag = 'image_\${attachment.path}_\${attachment.url ?? ''}';
 
     return GestureDetector(
       onTap: () => _showFullscreenImage(context),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
-          child: isRemote
-              ? _ImageWithPlaceholder(
-                  imageUrl: attachment.url!,
-                  isUser: isUser,
-                )
-              : _LocalImageWithPlaceholder(
-                  imagePath: attachment.path,
-                  isUser: isUser,
-                ),
+      onLongPress: () => _showImageContextMenu(context),
+      child: Hero(
+        tag: heroTag,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
+            child: isRemote
+                ? _ImageWithPlaceholder(imageUrl: attachment.url!, isUser: isUser)
+                : _LocalImageWithPlaceholder(imagePath: attachment.path, isUser: isUser),
+          ),
         ),
       ),
     );

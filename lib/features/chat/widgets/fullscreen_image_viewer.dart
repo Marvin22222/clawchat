@@ -7,11 +7,13 @@ import '../../../core/constants/spacing.dart';
 class FullscreenImageViewer extends StatefulWidget {
   final String imagePath;
   final String? imageUrl; // Remote URL for received images
+  final bool isDark;
 
   const FullscreenImageViewer({
     super.key,
     required this.imagePath,
     this.imageUrl,
+    this.isDark = false,
   });
 
   @override
@@ -29,12 +31,12 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
   }
 
   Widget _buildImage() {
-    // Prefer URL for remote images, fall back to local file
-    final String? imageSource = widget.imageUrl ?? widget.imagePath;
     final bool isRemote = widget.imageUrl != null;
+    final String heroTag = 'image_\${widget.imagePath}_\${widget.imageUrl ?? ''}';
 
+    Widget imageWidget;
     if (isRemote) {
-      return CachedNetworkImage(
+      imageWidget = CachedNetworkImage(
         imageUrl: widget.imageUrl!,
         fit: BoxFit.contain,
         placeholder: (context, url) => const Center(
@@ -54,8 +56,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
         ),
       );
     } else {
-      // Local file
-      return Image.file(
+      imageWidget = Image.file(
         File(widget.imagePath),
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) {
@@ -72,6 +73,11 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
         },
       );
     }
+
+    return Hero(
+      tag: heroTag,
+      child: imageWidget,
+    );
   }
 
   @override
