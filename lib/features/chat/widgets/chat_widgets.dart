@@ -847,21 +847,19 @@ class _AudioAttachmentState extends State<_AudioAttachment> {
               children: [
                 Text(
                   'Voice Message',
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: AppTypography.bodySmall.copyWith(
                     fontWeight: FontWeight.w500,
-                    color: widget.isUser 
-                        ? Colors.white 
+                    color: widget.isUser
+                        ? Colors.white
                         : (isDark ? AppColors.textDark : AppColors.textLight),
                   ),
                 ),
                 if (_duration.inSeconds > 0)
                   Text(
                     '${_formatDuration(_position)} / ${_formatDuration(_duration)}',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: widget.isUser 
-                          ? Colors.white70 
+                    style: AppTypography.captionSmall.copyWith(
+                      color: widget.isUser
+                          ? Colors.white70
                           : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
                     ),
                   ),
@@ -1256,11 +1254,9 @@ class _ToolCallCardState extends State<ToolCallCard> {
                           children: [
                             Text(
                               widget.toolName,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: widget.isDark 
-                                    ? AppColors.textDark 
+                              style: AppTypography.h5.copyWith(
+                                color: widget.isDark
+                                    ? AppColors.textDark
                                     : AppColors.textLight,
                               ),
                             ),
@@ -1316,10 +1312,9 @@ class _ToolCallCardState extends State<ToolCallCard> {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       '${(widget.progress * 100).toInt()}%',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: widget.isDark 
-                            ? AppColors.textDarkSecondary 
+                      style: AppTypography.captionSmall.copyWith(
+                        color: widget.isDark
+                            ? AppColors.textDarkSecondary
                             : AppColors.textLightSecondary,
                       ),
                     ),
@@ -1425,11 +1420,10 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: TextStyle(
-        fontSize: 12,
+      style: AppTypography.label.copyWith(
         fontWeight: FontWeight.w600,
-        color: isError 
-            ? AppColors.error 
+        color: isError
+            ? AppColors.error
             : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
       ),
     );
@@ -1595,12 +1589,11 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
           // "OpenClaw denkt nach..." text
           Text(
             'OpenClaw denkt nach',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: widget.isDark 
-                  ? AppColors.textDarkSecondary 
+            style: AppTypography.bodySmall.copyWith(
+              color: widget.isDark
+                  ? AppColors.textDarkSecondary
                   : AppColors.textLightSecondary,
+            ),
             ),
           ),
         ],
