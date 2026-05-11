@@ -261,22 +261,153 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const Divider();
 
           // Voice Settings Section
-          _SectionHeader(title: 'Spracheingabe'),
+          _SectionHeader(title: 'Sprache & Audio'),
           
+          // Voice Input Mode
+          Consumer<VoiceSettingsProvider>(
+            builder: (context, voiceSettings, _) => ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+                child: Icon(
+                  voiceSettings.inputMode == VoiceInputMode.pushToTalk
+                      ? Icons.touch_app
+                      : Icons.mic,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              title: const Text('Eingabemodus'),
+              subtitle: Text(
+                voiceSettings.inputMode.displayName,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showVoiceInputModeSelector(context, voiceSettings),
+            ),
+          ),
+          
+          // Transcription Language
+          Consumer<VoiceSettingsProvider>(
+            builder: (context, voiceSettings, _) => ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+                child: const Icon(Icons.translate, color: AppColors.secondary, size: 20),
+              ),
+              title: const Text('Sprache für Transkription'),
+              subtitle: Text(
+                voiceSettings.transcriptionLanguageName,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showLanguageSelector(context, voiceSettings),
+            ),
+          ),
+          
+          // Voice Sensitivity
+          Consumer<VoiceSettingsProvider>(
+            builder: (context, voiceSettings, _) => ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+                child: const Icon(Icons.sensors, color: AppColors.warning, size: 20),
+              ),
+              title: const Text('Sprach-Empfindlichkeit'),
+              subtitle: Text(
+                voiceSettings.sensitivityLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showVoiceSensitivitySettings(context, voiceSettings),
+            ),
+          ),
+          
+          // Playback Speed
+          Consumer<VoiceSettingsProvider>(
+            builder: (context, voiceSettings, _) => ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+                child: const Icon(Icons.speed, color: AppColors.info, size: 20),
+              ),
+              title: const Text('Wiedergabe-Geschwindigkeit'),
+              subtitle: Text(
+                '${voiceSettings.playbackSpeed.toStringAsFixed(1)}x',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showPlaybackSpeedSelector(context, voiceSettings),
+            ),
+          ),
+          
+          // Auto-play Voice
+          Consumer<VoiceSettingsProvider>(
+            builder: (context, voiceSettings, _) => SwitchListTile(
+              secondary: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+                child: const Icon(Icons.play_circle, color: AppColors.success, size: 20),
+              ),
+              title: const Text('Auto-Play Sprachnachrichten'),
+              subtitle: Text(
+                voiceSettings.autoPlayVoice ? 'An' : 'Aus',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              value: voiceSettings.autoPlayVoice,
+              onChanged: (value) => voiceSettings.setAutoPlayVoice(value),
+            ),
+          ),
+          
+          // Test Voice Message Button
           ListTile(
             leading: Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
-              child: const Icon(Icons.mic, color: AppColors.primary, size: 20),
+              child: const Icon(Icons.mic_none, color: AppColors.error, size: 20),
             ),
-            title: const Text('Sprach-Empfindlichkeit'),
-            subtitle: const Text('Anpassen der Spracherkennungs-Empfindlichkeit'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showVoiceSensitivitySettings(context),
+            title: const Text('Sprachnachricht testen'),
+            subtitle: const Text('Aufnahme- und Wiedergabequalität prüfen'),
+            onTap: () => _showVoiceTestDialog(context),
           ),
 
           const Divider();

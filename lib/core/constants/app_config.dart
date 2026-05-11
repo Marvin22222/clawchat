@@ -16,6 +16,14 @@ class AppConfig {
   static const String keyThemeMode = 'theme_mode';
   static const String keyOnboardingComplete = 'onboarding_complete';
   
+  // Voice Settings Keys
+  static const String keyVoiceInputMode = 'voice_input_mode';
+  static const String keyTranscriptionLanguage = 'transcription_language';
+  static const String keyPlaybackSpeed = 'playback_speed';
+  static const String keyAutoPlayVoice = 'auto_play_voice';
+  static const String keyVoiceSensitivity = 'voice_sensitivity';
+  static const String keyPauseDuration = 'pause_duration';
+  
   // Timeouts
   static const int connectionTimeoutSeconds = 10;
   static const int messageTimeoutSeconds = 30;
