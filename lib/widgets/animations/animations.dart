@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import 'skeleton_loaders.dart';
+import 'smooth_bottom_sheet.dart';
 
 class PulseAnimation extends StatefulWidget {
   final Widget child;

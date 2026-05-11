@@ -9,6 +9,7 @@ import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
+import '../../widgets/animations/smooth_bottom_sheet.dart';
 import '../../widgets/animations/skeleton_loaders.dart';
 import '../agents/agents_screen.dart';
 import 'chat_export_screen.dart';
@@ -700,10 +701,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showThemeSelector(BuildContext context, ThemeProvider theme) {
-    showModalBottomSheet(
+    showSmoothBottomSheet(
       context: context,
-      builder: (context) => Container(
+      initialChildSize: 0.5,
+      maxChildSize: 0.6,
+      minChildSize: 0.35,
+      snapSizes: const [0.35, 0.5, 0.6],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => Container(
         padding: const EdgeInsets.all(AppSpacing.md),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.bgDarkSecondary
+            : AppColors.bgLightSecondary,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -716,76 +725,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                _ThemeColorOption(
-                  color: AppColors.primary,
-                  name: 'Indigo',
-                  isSelected: theme.accentColor == AppColors.primary,
-                  onTap: () {
-                    theme.setAccentColor(AppColors.primary);
-                    Navigator.pop(context);
-                  },
-                ),
-                _ThemeColorOption(
-                  color: Colors.blue,
-                  name: 'Blau',
-                  isSelected: theme.accentColor == Colors.blue,
-                  onTap: () {
-                    theme.setAccentColor(Colors.blue);
-                    Navigator.pop(context);
-                  },
-                ),
-                _ThemeColorOption(
-                  color: Colors.purple,
-                  name: 'Lila',
-                  isSelected: theme.accentColor == Colors.purple,
-                  onTap: () {
-                    theme.setAccentColor(Colors.purple);
-                    Navigator.pop(context);
-                  },
-                ),
-                _ThemeColorOption(
-                  color: Colors.pink,
-                  name: 'Pink',
-                  isSelected: theme.accentColor == Colors.pink,
-                  onTap: () {
-                    theme.setAccentColor(Colors.pink);
-                    Navigator.pop(context);
-                  },
-                ),
-                _ThemeColorOption(
-                  color: Colors.red,
-                  name: 'Rot',
-                  isSelected: theme.accentColor == Colors.red,
-                  onTap: () {
-                    theme.setAccentColor(Colors.red);
-                    Navigator.pop(context);
-                  },
-                ),
-                _ThemeColorOption(
-                  color: Colors.orange,
-                  name: 'Orange',
-                  isSelected: theme.accentColor == Colors.orange,
-                  onTap: () {
-                    theme.setAccentColor(Colors.orange);
-                    Navigator.pop(context);
-                  },
-                ),
-                _ThemeColorOption(
-                  color: Colors.teal,
-                  name: 'Teal',
-                  isSelected: theme.accentColor == Colors.teal,
-                  onTap: () {
-                    theme.setAccentColor(Colors.teal);
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 4,
+                mainAxisSpacing: AppSpacing.sm,
+                crossAxisSpacing: AppSpacing.sm,
+                children: [
+                  _ThemeColorOption(
+                    color: AppColors.primary,
+                    name: 'Indigo',
+                    isSelected: theme.accentColor == AppColors.primary,
+                    onTap: () {
+                      theme.setAccentColor(AppColors.primary);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeColorOption(
+                    color: Colors.blue,
+                    name: 'Blau',
+                    isSelected: theme.accentColor == Colors.blue,
+                    onTap: () {
+                      theme.setAccentColor(Colors.blue);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeColorOption(
+                    color: Colors.purple,
+                    name: 'Lila',
+                    isSelected: theme.accentColor == Colors.purple,
+                    onTap: () {
+                      theme.setAccentColor(Colors.purple);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeColorOption(
+                    color: Colors.pink,
+                    name: 'Pink',
+                    isSelected: theme.accentColor == Colors.pink,
+                    onTap: () {
+                      theme.setAccentColor(Colors.pink);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeColorOption(
+                    color: Colors.red,
+                    name: 'Rot',
+                    isSelected: theme.accentColor == Colors.red,
+                    onTap: () {
+                      theme.setAccentColor(Colors.red);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeColorOption(
+                    color: Colors.orange,
+                    name: 'Orange',
+                    isSelected: theme.accentColor == Colors.orange,
+                    onTap: () {
+                      theme.setAccentColor(Colors.orange);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeColorOption(
+                    color: Colors.teal,
+                    name: 'Teal',
+                    isSelected: theme.accentColor == Colors.teal,
+                    onTap: () {
+                      theme.setAccentColor(Colors.teal);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.lg),
           ],
         ),
       ),
@@ -795,10 +813,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showAgentSelector(BuildContext context, AuthProvider auth) {
     final agents = auth.ws.availableAgents;
     
-    showModalBottomSheet(
+    showSmoothBottomSheet(
       context: context,
-      builder: (context) => Container(
+      initialChildSize: 0.5,
+      maxChildSize: 0.7,
+      minChildSize: 0.35,
+      snapSizes: const [0.35, 0.5, 0.7],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => Container(
         padding: const EdgeInsets.all(AppSpacing.md),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.bgDarkSecondary
+            : AppColors.bgLightSecondary,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -811,44 +837,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            if (agents.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(AppSpacing.lg),
-                child: Center(
-                  child: Text('Keine Agents verfügbar'),
-                ),
-              )
-            else
-              ...agents.map((agent) => ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.secondary],
+            Expanded(
+              child: agents.isEmpty
+                  ? const Center(
+                      child: Text('Keine Agents verfügbar'),
+                    )
+                  : ListView.builder(
+                      controller: scrollController,
+                      itemCount: agents.length,
+                      itemBuilder: (context, index) {
+                        final agent = agents[index];
+                        return ListTile(
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [AppColors.primary, AppColors.secondary],
+                              ),
+                              borderRadius: BorderRadius.circular(AppRadius.small),
+                            ),
+                            child: Center(
+                              child: Text(
+                                agent[0].toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          title: Text(agent),
+                          trailing: auth.selectedAgent == agent
+                              ? const Icon(Icons.check_circle, color: AppColors.success)
+                              : null,
+                          onTap: () {
+                            auth.setSelectedAgent(agent);
+                            HapticService.lightImpact();
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
                     ),
-                    borderRadius: BorderRadius.circular(AppRadius.small),
-                  ),
-                  child: Center(
-                    child: Text(
-                      agent[0].toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                title: Text(agent),
-                trailing: auth.selectedAgent == agent
-                    ? const Icon(Icons.check_circle, color: AppColors.success)
-                    : null,
-                onTap: () {
-                  auth.setSelectedAgent(agent);
-                  Navigator.pop(context);
-                },
-              )),
-            const SizedBox(height: AppSpacing.md),
+            ),
           ],
         ),
       ),
@@ -857,104 +888,110 @@ class _SettingsScreenState extends State<SettingsScreen> {
 }
 
 void _showPresetsManager(BuildContext context, AgentPresetsProvider presetsProvider, AuthProvider auth) {
-    showModalBottomSheet(
+    showSmoothBottomSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        builder: (context, scrollController) => Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? AppColors.bgDarkSecondary 
-                : AppColors.bgLightSecondary,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                width: 40, height: 4,
-                margin: const EdgeInsets.only(top: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Agent Presets',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle, color: AppColors.primary),
-                      onPressed: () => _showPresetEditor(context, presetsProvider, auth),
-                    ),
-                  ],
-                ),
-              ),
-              // Presets list
-              Expanded(
-                child: presetsProvider.isLoading
-                    ? const SettingsScreenSkeleton()
-                    : presetsProvider.presets.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.bookmark_border,
-                                  size: 64,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                                Text(
-                                  'Keine Presets vorhanden',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.sm),
-                                TextButton.icon(
-                                  onPressed: () => _showPresetEditor(context, presetsProvider, auth),
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Preset erstellen'),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.builder(
-                            controller: scrollController,
-                            itemCount: presetsProvider.presets.length,
-                            itemBuilder: (context, index) {
-                              final preset = presetsProvider.presets[index];
-                              final modelType = presetsProvider.getPresetModelType(preset);
-                              return _PresetListItem(
-                                preset: preset,
-                                modelType: modelType,
-                                onEdit: () => _showPresetEditor(context, presetsProvider, auth, preset: preset),
-                                onDelete: () => _confirmDeletePreset(context, presetsProvider, preset),
-                              );
-                            },
-                          ),
-              ),
-            ],
-          ),
-        ),
+      initialChildSize: 0.7,
+      maxChildSize: 0.9,
+      minChildSize: 0.5,
+      snapSizes: const [0.5, 0.7, 0.9],
+      builder: (context, scrollController) => _PresetsManagerContent(
+        presetsProvider: presetsProvider,
+        auth: auth,
+        scrollController: scrollController,
       ),
     );
   }
+
+class _PresetsManagerContent extends StatelessWidget {
+  final AgentPresetsProvider presetsProvider;
+  final AuthProvider auth;
+  final ScrollController scrollController;
+
+  const _PresetsManagerContent({
+    required this.presetsProvider,
+    required this.auth,
+    required this.scrollController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+      child: Column(
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Agent Presets',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle, color: AppColors.primary),
+                  onPressed: () => _showPresetEditor(context, presetsProvider, auth),
+                ),
+              ],
+            ),
+          ),
+          // Presets list
+          Expanded(
+            child: presetsProvider.isLoading
+                ? const SettingsScreenSkeleton()
+                : presetsProvider.presets.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.bookmark_border,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              'Keine Presets vorhanden',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            TextButton.icon(
+                              onPressed: () => _showPresetEditor(context, presetsProvider, auth),
+                              icon: const Icon(Icons.add),
+                              label: const Text('Preset erstellen'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: scrollController,
+                        itemCount: presetsProvider.presets.length,
+                        itemBuilder: (context, index) {
+                          final preset = presetsProvider.presets[index];
+                          final modelType = presetsProvider.getPresetModelType(preset);
+                          return _PresetListItem(
+                            preset: preset,
+                            modelType: modelType,
+                            onEdit: () => _showPresetEditor(context, presetsProvider, auth, preset: preset),
+                            onDelete: () => _confirmDeletePreset(context, presetsProvider, preset),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
   void _showPresetEditor(
     BuildContext context, 
@@ -970,38 +1007,28 @@ void _showPresetsManager(BuildContext context, AgentPresetsProvider presetsProvi
       id: '', name: '', agentId: '', createdAt: DateTime.now(),
     ));
 
-    showModalBottomSheet(
+    showSmoothBottomSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
+      initialChildSize: 0.85,
+      maxChildSize: 0.95,
+      minChildSize: 0.6,
+      snapSizes: const [0.6, 0.85, 0.95],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => StatefulBuilder(
         builder: (context, setSheetState) => Container(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? AppColors.bgDarkSecondary 
-                : AppColors.bgLightSecondary,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? AppColors.bgDarkSecondary 
+              : AppColors.bgLightSecondary,
           child: SingleChildScrollView(
+            controller: scrollController,
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Handle bar
-                Center(
-                  child: Container(
-                    width: 40, height: 4,
-                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[400],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
                 // Title
                 Text(
                   isEditing ? 'Preset bearbeiten' : 'Neues Preset',
@@ -1101,6 +1128,7 @@ void _showPresetsManager(BuildContext context, AgentPresetsProvider presetsProvi
                         );
                       }
                       Navigator.pop(context);
+                      HapticService.mediumImpact();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -1446,8 +1474,13 @@ class _VoiceSensitivitySheetState extends State<_VoiceSensitivitySheet> {
 }
 
 void _showVoiceSensitivitySettings(BuildContext context) {
-  showModalBottomSheet(
+  showSmoothBottomSheet(
     context: context,
-    builder: (context) => const _VoiceSensitivitySheet(),
+    initialChildSize: 0.55,
+    maxChildSize: 0.7,
+    minChildSize: 0.4,
+    snapSizes: const [0.4, 0.55, 0.7],
+    animationDuration: const Duration(milliseconds: 200),
+    builder: (context, scrollController) => const _VoiceSensitivitySheet(),
   );
 }
