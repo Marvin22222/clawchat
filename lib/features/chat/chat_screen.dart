@@ -69,6 +69,35 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  bool _isAtBottom() {
+    return _scrollController.hasClients &&
+        _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100;
+  }
+
+  void _scrollToBottom({bool smooth = true}) {
+    if (!_scrollController.hasClients) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        if (smooth) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        } else {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+      }
+    });
+  }
+
+  /// Auto-scroll to bottom only if user is already at bottom (reading history)
+  void _scrollToBottomIfAtBottom() {
+    if (_isAtBottom()) {
+      _scrollToBottom();
+    }
+  }
+
   Future<void> _loadSavedMessages() async {
     final savedMessages = await ChatPersistenceService.loadMessages();
     if (mounted && savedMessages.isNotEmpty) {
@@ -149,7 +178,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _isTyping = false;
           _isStreaming = true;
         });
-        _scrollToBottom();
+        _scrollToBottomIfAtBottom();
       }
     };
 
@@ -181,7 +210,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ));
           }
         });
-        _scrollToBottom();
+        _scrollToBottomIfAtBottom();
       }
     };
 
@@ -214,7 +243,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _showIncomingMessageNotification(finalContent, agentName ?? 'main');
         }
         
-        _scrollToBottom();
+        _scrollToBottomIfAtBottom();
       }
     };
 
@@ -241,18 +270,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         message: content,
       );
     }
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
   }
 
   void _sendMessage(String text, {List<MessageAttachment>? attachments, String? retryId}) {
@@ -309,7 +326,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _updateMessageStatus(messageId, MessageStatus.error);
     });
     
-    _scrollToBottom();
+    _scrollToBottomIfAtBottom();
   }
 
   void _updateMessageStatus(String messageId, MessageStatus status) {
