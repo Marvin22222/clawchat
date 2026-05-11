@@ -1,12 +1,18 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/spacing.dart';
 
 class FullscreenImageViewer extends StatefulWidget {
   final String imagePath;
+  final String? imageUrl; // Remote URL for received images
 
-  const FullscreenImageViewer({super.key, required this.imagePath});
+  const FullscreenImageViewer({
+    super.key,
+    required this.imagePath,
+    this.imageUrl,
+  });
 
   @override
   State<FullscreenImageViewer> createState() => _FullscreenImageViewerState();
@@ -20,6 +26,52 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
   void dispose() {
     _transformationController.dispose();
     super.dispose();
+  }
+
+  Widget _buildImage() {
+    // Prefer URL for remote images, fall back to local file
+    final String? imageSource = widget.imageUrl ?? widget.imagePath;
+    final bool isRemote = widget.imageUrl != null;
+
+    if (isRemote) {
+      return CachedNetworkImage(
+        imageUrl: widget.imageUrl!,
+        fit: BoxFit.contain,
+        placeholder: (context, url) => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+          ),
+        ),
+        errorWidget: (context, url, error) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.broken_image, color: Colors.white54, size: 64),
+              SizedBox(height: AppSpacing.md),
+              Text('Bild konnte nicht geladen werden', style: TextStyle(color: Colors.white54)),
+            ],
+          ),
+        ),
+      );
+    } else {
+      // Local file
+      return Image.file(
+        File(widget.imagePath),
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.broken_image, color: Colors.white54, size: 64),
+                SizedBox(height: AppSpacing.md),
+                Text('Bild konnte nicht geladen werden', style: TextStyle(color: Colors.white54)),
+              ],
+            ),
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -62,22 +114,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
           onInteractionUpdate: (details) {
             setState(() => _currentScale = _transformationController.value.getMaxScaleOnAxis());
           },
-          child: Image.file(
-            File(widget.imagePath),
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.broken_image, color: Colors.white54, size: 64),
-                    SizedBox(height: AppSpacing.md),
-                    Text('Bild konnte nicht geladen werden', style: TextStyle(color: Colors.white54)),
-                  ],
-                ),
-              );
-            },
-          ),
+          child: _buildImage(),
         ),
       ),
       bottomNavigationBar: Container(

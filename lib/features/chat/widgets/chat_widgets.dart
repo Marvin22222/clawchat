@@ -466,34 +466,66 @@ class _ImageAttachment extends StatelessWidget {
 
   const _ImageAttachment({required this.attachment, required this.isUser});
 
-
   void _showFullscreenImage(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => FullscreenImageViewer(imagePath: attachment.path),
+        builder: (context) => FullscreenImageViewer(
+          imagePath: attachment.path,
+          imageUrl: attachment.url,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Use URL if available (received image), otherwise use local file
+    final bool isRemote = attachment.url != null;
+
     return GestureDetector(
       onTap: () => _showFullscreenImage(context),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.medium),
         child: Container(
-          constraints: BoxConstraints(maxWidth: 200, maxHeight: 200),
-          child: Image.file(
-            File(attachment.path),
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: 100, height: 100,
-                color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
-                child: const Icon(Icons.broken_image, color: Colors.grey),
-              );
-            },
-          ),
+          constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
+          child: isRemote
+              ? Image.network(
+                  attachment.url!,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 100, height: 100,
+                      color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isUser ? Colors.white70 : AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 100, height: 100,
+                      color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    );
+                  },
+                )
+              : Image.file(
+                  File(attachment.path),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 100, height: 100,
+                      color: isUser ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    );
+                  },
+                ),
         ),
       ),
     );

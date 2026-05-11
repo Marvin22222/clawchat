@@ -20,6 +20,7 @@ dependencies:
   flutter_highlight: ^0.7.0
   highlight: ^0.7.0
   image_picker: ^1.1.2
+  cached_network_image: ^3.3.1
   speech_to_text: ^7.0.0
   record: ^5.1.2
   audioplayers: ^6.1.0

@@ -7,12 +7,14 @@ class MessageAttachment {
   final String fileName;
   final String mimeType;
   final int? size;
+  final String? url; // Remote URL for received attachments
 
   MessageAttachment({
     required this.path,
     required this.fileName,
     this.mimeType = 'image/jpeg',
     this.size,
+    this.url, // Optional remote URL
   });
 }
 
