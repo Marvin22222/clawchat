@@ -8,6 +8,7 @@ import 'features/home/home_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'features/tasks/providers/task_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/agent_presets_provider.dart';
 
 class ClawChatApp extends StatelessWidget {
   const ClawChatApp({super.key});
@@ -21,6 +22,7 @@ class ClawChatApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => VoiceInputService()),
         ChangeNotifierProvider(create: (_) => TaskProvider()),
         ChangeNotifierProvider(create: (_) => NotificationService()),
+        ChangeNotifierProvider(create: (_) => AgentPresetsProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

@@ -11,6 +11,7 @@ import '../../core/services/chat_persistence_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/agent_presets_provider.dart';
 import '../../models/message.dart';
 import 'widgets/chat_widgets.dart' hide ThinkingIndicator, ToolCallCard;
 import 'widgets/thinking_indicator.dart';
@@ -765,77 +766,294 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _showAgentPicker(BuildContext context, AuthProvider auth) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final presetsProvider = context.read<AgentPresetsProvider>();
     
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
-        ),
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[600] : Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.4,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 12, bottom: AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[600] : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            Text(
-              'Agent auswählen',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: isDark ? AppColors.textDark : AppColors.textLight,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (auth.ws.availableAgents.isEmpty)
+              // Title
               Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Text(
-                  'Keine Agents verfügbar',
-                  style: TextStyle(
-                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Agent auswählen',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: isDark ? AppColors.textDark : AppColors.textLight,
+                      ),
+                    ),
+                    if (presetsProvider.presets.isNotEmpty)
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _showPresetPicker(context, auth, presetsProvider);
+                        },
+                        icon: const Icon(Icons.bookmark, size: 18),
+                        label: const Text('Presets'),
+                      ),
+                  ],
                 ),
-              )
-            else
-              ...auth.ws.availableAgents.map((agent) => ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: agent == _currentAgent 
-                      ? AppColors.primary 
-                      : AppColors.primary.withOpacity(0.3),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              // Agent list
+              Flexible(
+                child: auth.ws.availableAgents.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        child: Text(
+                          'Keine Agents verfügbar',
+                          style: TextStyle(
+                            color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: scrollController,
+                        shrinkWrap: true,
+                        itemCount: auth.ws.availableAgents.length,
+                        itemBuilder: (context, index) {
+                          final agent = auth.ws.availableAgents[index];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: agent == _currentAgent 
+                                  ? AppColors.primary 
+                                  : AppColors.primary.withOpacity(0.3),
+                              child: Text(
+                                agent[0].toUpperCase(),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            title: Text(
+                              agent,
+                              style: TextStyle(
+                                fontWeight: agent == _currentAgent ? FontWeight.bold : FontWeight.normal,
+                                color: isDark ? AppColors.textDark : AppColors.textLight,
+                              ),
+                            ),
+                            trailing: agent == _currentAgent
+                                ? Icon(Icons.check, color: AppColors.primary)
+                                : null,
+                            selected: agent == _currentAgent,
+                            onTap: () {
+                              setState(() => _currentAgent = agent);
+                              auth.ws.switchAgent(agent);
+                              presetsProvider.clearActivePreset();
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+              ),
+              // Presets hint
+              if (presetsProvider.presets.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Text(
-                    agent[0].toUpperCase(),
-                    style: const TextStyle(color: Colors.white),
+                    '${presetsProvider.presets.length} Preset(s) verfügbar - tippe auf "Presets" für mehr',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    ),
                   ),
                 ),
-                title: Text(
-                  agent,
-                  style: TextStyle(
-                    fontWeight: agent == _currentAgent ? FontWeight.bold : FontWeight.normal,
-                    color: isDark ? AppColors.textDark : AppColors.textLight,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPresetPicker(BuildContext context, AuthProvider auth, AgentPresetsProvider presetsProvider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.4,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 12, bottom: AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[600] : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                trailing: agent == _currentAgent
-                    ? Icon(Icons.check, color: AppColors.primary)
-                    : null,
-                selected: agent == _currentAgent,
-                onTap: () {
-                  setState(() => _currentAgent = agent);
-                  auth.ws.switchAgent(agent);
-                  Navigator.pop(context);
-                },
-              )),
-          ],
+              ),
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Presets',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: isDark ? AppColors.textDark : AppColors.textLight,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showAgentPicker(context, auth);
+                      },
+                      icon: const Icon(Icons.arrow_back, size: 18),
+                      label: const Text('Agents'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              // Presets list
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: presetsProvider.presets.length,
+                  itemBuilder: (context, index) {
+                    final preset = presetsProvider.presets[index];
+                    final modelType = presetsProvider.getPresetModelType(preset);
+                    final isActive = presetsProvider.activePresetId == preset.id;
+                    final isCurrentAgent = _currentAgent == preset.agentId;
+                    
+                    return ListTile(
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: isActive
+                              ? LinearGradient(colors: [AppColors.primary, AppColors.secondary])
+                              : null,
+                          color: isActive ? null : AppColors.primary.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
+                        ),
+                        child: Icon(
+                          Icons.bookmark,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        preset.name,
+                        style: TextStyle(
+                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${preset.agentId} • ${modelType.displayName}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                            ),
+                          ),
+                          if (preset.systemPrompt != null && preset.systemPrompt!.isNotEmpty)
+                            Text(
+                              preset.systemPrompt!.length > 40 
+                                  ? '${preset.systemPrompt!.substring(0, 40)}...' 
+                                  : preset.systemPrompt!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                              ),
+                            ),
+                        ],
+                      ),
+                      trailing: isActive
+                          ? Icon(Icons.check_circle, color: AppColors.success)
+                          : (!isCurrentAgent 
+                              ? Chip(
+                                  label: Text(
+                                    preset.agentId,
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
+                                  backgroundColor: AppColors.warning.withOpacity(0.2),
+                                  padding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                )
+                              : null),
+                      onTap: () {
+                        // Switch agent
+                        setState(() => _currentAgent = preset.agentId);
+                        auth.ws.switchAgent(preset.agentId);
+                        
+                        // Apply preset system prompt if present
+                        if (preset.systemPrompt != null && preset.systemPrompt!.isNotEmpty) {
+                          auth.ws.setSystemPrompt(preset.systemPrompt!);
+                        } else {
+                          auth.ws.clearSystemPrompt();
+                        }
+                        
+                        // Set active preset
+                        presetsProvider.setActivePreset(preset.id);
+                        
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+              // Clear preset option
+              if (presetsProvider.activePresetId != null)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        auth.ws.clearSystemPrompt();
+                        presetsProvider.clearActivePreset();
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Preset zurücksetzen'),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

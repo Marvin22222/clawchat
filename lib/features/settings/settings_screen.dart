@@ -6,6 +6,7 @@ import '../../core/constants/spacing.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/agent_presets_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -332,6 +333,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
 
+          // Agent Presets
+          Consumer<AgentPresetsProvider>(
+            builder: (context, presetsProvider, _) => ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+                child: const Icon(Icons.bookmark, color: AppColors.warning, size: 20),
+              ),
+              title: const Text('Agent Presets'),
+              subtitle: Text(
+                '${presetsProvider.presets.length} Preset(s) gespeichert',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showPresetsManager(context, presetsProvider, auth),
+            ),
+          ),
+
           const Divider(),
 
           // About Section
@@ -655,6 +681,374 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               )),
             const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _showPresetsManager(BuildContext context, AgentPresetsProvider presetsProvider, AuthProvider auth) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? AppColors.bgDarkSecondary 
+                : AppColors.bgLightSecondary,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(top: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Agent Presets',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle, color: AppColors.primary),
+                      onPressed: () => _showPresetEditor(context, presetsProvider, auth),
+                    ),
+                  ],
+                ),
+              ),
+              // Presets list
+              Expanded(
+                child: presetsProvider.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : presetsProvider.presets.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.bookmark_border,
+                                  size: 64,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                Text(
+                                  'Keine Presets vorhanden',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                TextButton.icon(
+                                  onPressed: () => _showPresetEditor(context, presetsProvider, auth),
+                                  icon: const Icon(Icons.add),
+                                  label: const Text('Preset erstellen'),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: scrollController,
+                            itemCount: presetsProvider.presets.length,
+                            itemBuilder: (context, index) {
+                              final preset = presetsProvider.presets[index];
+                              final modelType = presetsProvider.getPresetModelType(preset);
+                              return _PresetListItem(
+                                preset: preset,
+                                modelType: modelType,
+                                onEdit: () => _showPresetEditor(context, presetsProvider, auth, preset: preset),
+                                onDelete: () => _confirmDeletePreset(context, presetsProvider, preset),
+                              );
+                            },
+                          ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPresetEditor(
+    BuildContext context, 
+    AgentPresetsProvider presetsProvider, 
+    AuthProvider auth, 
+    {AgentPreset? preset}
+  ) {
+    final isEditing = preset != null;
+    final nameController = TextEditingController(text: preset?.name ?? '');
+    final promptController = TextEditingController(text: preset?.systemPrompt ?? '');
+    String selectedAgent = preset?.agentId ?? auth.selectedAgent ?? 'main';
+    ModelType selectedModel = presetsProvider.getPresetModelType(preset ?? AgentPreset(
+      id: '', name: '', agentId: '', createdAt: DateTime.now(),
+    ));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? AppColors.bgDarkSecondary 
+                : AppColors.bgLightSecondary,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40, height: 4,
+                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                // Title
+                Text(
+                  isEditing ? 'Preset bearbeiten' : 'Neues Preset',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                // Name field
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    hintText: 'z.B. Code-Experte',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // Agent selector
+                DropdownButtonFormField<String>(
+                  value: selectedAgent,
+                  decoration: const InputDecoration(
+                    labelText: 'Agent',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: auth.ws.availableAgents.map((agent) => DropdownMenuItem(
+                    value: agent,
+                    child: Text(agent),
+                  )).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setSheetState(() => selectedAgent = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // Model selector
+                DropdownButtonFormField<ModelType>(
+                  value: selectedModel,
+                  decoration: const InputDecoration(
+                    labelText: 'Modell',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: ModelType.values.map((model) => DropdownMenuItem(
+                    value: model,
+                    child: Text(model.displayName),
+                  )).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setSheetState(() => selectedModel = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // System prompt
+                TextField(
+                  controller: promptController,
+                  decoration: const InputDecoration(
+                    labelText: 'System Prompt (optional)',
+                    hintText: 'Spezielle Anweisungen für diesen Agent...',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 4,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                // Save button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (nameController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Bitte gib einen Namen ein')),
+                        );
+                        return;
+                      }
+                      
+                      if (isEditing) {
+                        presetsProvider.updatePreset(
+                          id: preset!.id,
+                          name: nameController.text.trim(),
+                          agentId: selectedAgent,
+                          systemPrompt: promptController.text.trim().isEmpty 
+                              ? null 
+                              : promptController.text.trim(),
+                          modelType: selectedModel,
+                        );
+                      } else {
+                        presetsProvider.addPreset(
+                          name: nameController.text.trim(),
+                          agentId: selectedAgent,
+                          systemPrompt: promptController.text.trim().isEmpty 
+                              ? null 
+                              : promptController.text.trim(),
+                          modelType: selectedModel,
+                        );
+                      }
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    ),
+                    child: Text(
+                      isEditing ? 'Speichern' : 'Erstellen',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeletePreset(BuildContext context, AgentPresetsProvider presetsProvider, AgentPreset preset) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Preset löschen?'),
+        content: Text('Möchtest du das Preset "${preset.name}" wirklich löschen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () {
+              presetsProvider.deletePreset(preset.id);
+              Navigator.pop(context);
+            },
+            child: const Text('Löschen', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+class _PresetListItem extends StatelessWidget {
+  final AgentPreset preset;
+  final ModelType modelType;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _PresetListItem({
+    required this.preset,
+    required this.modelType,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Card(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primary, AppColors.secondary],
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.small),
+          ),
+          child: const Icon(Icons.bookmark, color: Colors.white, size: 20),
+        ),
+        title: Text(
+          preset.name,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Agent: ${preset.agentId}'),
+            Text(
+              'Modell: ${modelType.displayName}',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+            if (preset.systemPrompt != null && preset.systemPrompt!.isNotEmpty)
+              Text(
+                preset.systemPrompt!.length > 50 
+                    ? '${preset.systemPrompt!.substring(0, 50)}...' 
+                    : preset.systemPrompt!,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit, size: 20),
+              onPressed: onEdit,
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, size: 20, color: AppColors.error),
+              onPressed: onDelete,
+            ),
           ],
         ),
       ),

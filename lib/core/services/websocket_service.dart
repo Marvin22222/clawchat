@@ -10,6 +10,7 @@ class WebSocketService extends ChangeNotifier {
   String? _gatewayUrl;
   String? _token;
   List<String> _availableAgents = [];
+  String? _systemPrompt; // Active system prompt override
   
   // Auto-reconnect settings
   bool _autoReconnect = true;
@@ -163,6 +164,23 @@ class WebSocketService extends ChangeNotifier {
       'agent': agent,
     });
   }
+
+  void setSystemPrompt(String prompt) {
+    _systemPrompt = prompt;
+    _send({
+      'type': 'system_prompt_set',
+      'prompt': prompt,
+    });
+  }
+
+  void clearSystemPrompt() {
+    _systemPrompt = null;
+    _send({
+      'type': 'system_prompt_clear',
+    });
+  }
+
+  String? get systemPrompt => _systemPrompt;
 
   void disconnect() {
     _autoReconnect = false;
