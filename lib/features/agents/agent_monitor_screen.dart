@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/colors.dart';
+import '../../core/constants/typography.dart';
 import '../../core/services/mock_agent_data.dart';
 import '../../models/agent_session.dart';
 import '../../models/agent_status.dart';
@@ -266,11 +267,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
           const SizedBox(width: 12),
           const Text(
             '🔮 Agent Control Center',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTypography.h5,
           ),
         ],
       ),
@@ -329,20 +326,16 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             const SizedBox(height: 24),
             Text(
               'Connection Lost',
-              style: TextStyle(
+              style: AppTypography.h4.copyWith(
                 color: isDark ? AppColors.textDark : AppColors.textLight,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Unable to connect to agent services.',
-              style: TextStyle(
+              style: AppTypography.bodySmall.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-                fontSize: 14,
               ),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
@@ -488,10 +481,8 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             const SizedBox(height: 24),
             Text(
               'No agents found',
-              style: TextStyle(
+              style: AppTypography.h4.copyWith(
                 color: isDark ? AppColors.textDark : AppColors.textLight,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
@@ -499,10 +490,8 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               _selectedFilter == AgentFilter.all
                   ? 'No agents available.'
                   : 'No agents match the selected filter.',
-              style: TextStyle(
-                color:
-                    isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-                fontSize: 14,
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -667,11 +656,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 children: [
                   const Text(
                     '➕ New Task',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTypography.h5,
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -682,11 +667,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               const SizedBox(height: 24),
               const Text(
                 'Agent',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTypography.label,
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
@@ -720,11 +701,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               const SizedBox(height: 16),
               const Text(
                 'Task Description',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTypography.label,
               ),
               const SizedBox(height: 8),
               TextField(
@@ -753,13 +730,9 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Start Task',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTypography.button,
                   ),
                 ),
               ),
@@ -809,11 +782,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               children: [
                 const Text(
                   '📊 Detailed Statistics',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTypography.h4,
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
@@ -908,17 +877,17 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 children: [
                   Icon(Iconsax.speedometer, color: AppColors.primary),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Avg Response Time',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const Spacer(),
                   Text(
                     avgResponseTime,
-                    style: const TextStyle(
+                    style: AppTypography.h4.copyWith(
                       color: AppColors.textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
@@ -959,9 +928,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             const SizedBox(width: 12),
             Text(
               'Message ${agent.name}',
-              style: TextStyle(
-                color: isDark ? AppColors.textDark : AppColors.textLight,
-              ),
+              style: AppTypography.body,
             ),
           ],
         ),
@@ -988,7 +955,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: TextStyle(
+              style: AppTypography.bodySmall.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -1062,18 +1029,13 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
-              color: color,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTypography.h4.copyWith(color: color),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
+            style: AppTypography.caption.copyWith(
               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-              fontSize: 12,
             ),
           ),
         ],
@@ -1102,9 +1064,7 @@ class _AgentHistoryScreen extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               '${agent.name} History',
-              style: TextStyle(
-                color: isDark ? AppColors.textDark : AppColors.textLight,
-              ),
+              style: AppTypography.body,
             ),
           ],
         ),
@@ -1127,11 +1087,7 @@ class _AgentHistoryScreen extends StatelessWidget {
               children: [
                 Text(
                   'Agent Details',
-                  style: TextStyle(
-                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTypography.label,
                 ),
                 const SizedBox(height: 12),
                 _HistoryRow(label: 'Name', value: agent.name),
@@ -1155,11 +1111,7 @@ class _AgentHistoryScreen extends StatelessWidget {
               children: [
                 Text(
                   'Recent Activity',
-                  style: TextStyle(
-                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTypography.label,
                 ),
                 const SizedBox(height: 12),
                 _HistoryRow(label: 'Last Active', value: agent.lastActive?.toString().split('.').first ?? 'Never'),
@@ -1183,11 +1135,7 @@ class _AgentHistoryScreen extends StatelessWidget {
               children: [
                 Text(
                   'Statistics',
-                  style: TextStyle(
-                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTypography.label,
                 ),
                 const SizedBox(height: 12),
                 _HistoryRow(label: 'Messages Processed', value: '42'),
@@ -1219,17 +1167,15 @@ class _HistoryRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: AppTypography.bodySmall.copyWith(
               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-              fontSize: 14,
             ),
           ),
           Text(
             value,
-            style: TextStyle(
-              color: isDark ? AppColors.textDark : AppColors.textLight,
-              fontSize: 14,
+            style: AppTypography.bodySmall.copyWith(
               fontWeight: FontWeight.w500,
+              color: isDark ? AppColors.textDark : AppColors.textLight,
             ),
           ),
         ],
@@ -1239,6 +1185,7 @@ class _HistoryRow extends StatelessWidget {
 }
 
 /// Connection status indicator with reconnect button
+class _ConnectionStatusIndicator extends StatelessWidget {
   final bool isConnected;
   final bool isReconnecting;
   final VoidCallback onReconnect;
@@ -1268,11 +1215,10 @@ class _HistoryRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               'Reconnecting...',
-              style: TextStyle(
+              style: AppTypography.caption.copyWith(
                 color: AppColors.warning,
-                fontSize: 12,
               ),
             ),
           ],

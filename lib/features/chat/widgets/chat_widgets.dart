@@ -10,6 +10,7 @@ import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/atom-one-light.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/constants/typography.dart';
 import '../../../core/constants/spacing.dart';
 import '../../../core/services/voice_input_service.dart';
 import '../../../core/services/voice_message_service.dart';
@@ -128,8 +129,7 @@ class MessageBubble extends StatelessWidget {
                       ),
                       child: Text(
                         agentName!,
-                        style: const TextStyle(
-                          fontSize: 11,
+                        style: AppTypography.captionSmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
@@ -194,9 +194,9 @@ class MessageBubble extends StatelessWidget {
                   // Time
                   Text(
                     DateTimeUtils.formatRelativeTime(timestamp),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: (isUser ? Colors.white : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)).withOpacity(0.6),
+                    style: AppTypography.caption.copyWith(
+                          color: (isUser ? Colors.white : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)).withOpacity(0.6),
+                        )
                     ),
                   ),
                   // Status indicator for user messages
@@ -223,13 +223,12 @@ class MessageBubble extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(e.key, style: const TextStyle(fontSize: 12)),
+                          Text(e.key, style: AppTypography.label),
                           if (e.value > 1) ...[
                             const SizedBox(width: 2),
                             Text(
                               '${e.value}',
-                              style: TextStyle(
-                                fontSize: 10,
+                              style: AppTypography.captionSmall.copyWith(
                                 color: isUser ? Colors.white70 : AppColors.textLightSecondary,
                               ),
                             ),
@@ -252,8 +251,7 @@ class MessageBubble extends StatelessWidget {
                           const SizedBox(width: 2),
                           Text(
                             'Retry',
-                            style: TextStyle(
-                              fontSize: 10,
+                            style: AppTypography.captionSmall.copyWith(
                               color: isUser ? Colors.white70 : AppColors.error,
                               fontWeight: FontWeight.w600,
                             ),
@@ -267,8 +265,7 @@ class MessageBubble extends StatelessWidget {
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       '(bearbeitet)',
-                      style: TextStyle(
-                        fontSize: 9,
+                      style: AppTypography.captionSmall.copyWith(
                         fontStyle: FontStyle.italic,
                         color: isUser ? Colors.white54 : AppColors.textLightSecondary,
                       ),
@@ -346,7 +343,7 @@ class MessageBubble extends StatelessWidget {
               ),
               const Text(
                 'Schnelle Reaktion',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: AppTypography.h5,
               ),
               const SizedBox(height: AppSpacing.md),
               Row(
@@ -407,7 +404,9 @@ class MessageBubble extends StatelessWidget {
                 leading: Icon(Iconsax.copy, color: isDark ? AppColors.textDark : AppColors.textLight),
                 title: Text(
                   'Kopieren',
-                  style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+                  style: AppTypography.body.copyWith(
+                    color: isDark ? AppColors.textDark : AppColors.textLight,
+                  ),
                 ),
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: content));
@@ -427,7 +426,7 @@ class MessageBubble extends StatelessWidget {
                   leading: Icon(Iconsax.edit, color: AppColors.primary),
                   title: Text(
                     'Bearbeiten',
-                    style: TextStyle(color: AppColors.primary),
+                    style: AppTypography.body.copyWith(color: AppColors.primary),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -453,13 +452,17 @@ class MessageBubble extends StatelessWidget {
         backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
         title: Text(
           'Nachricht bearbeiten',
-          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+          style: AppTypography.h4.copyWith(
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        ),
         ),
         content: TextField(
           controller: editController,
           maxLines: 5,
           autofocus: true,
-          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+          style: AppTypography.h4.copyWith(
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        ),
           decoration: InputDecoration(
             hintText: 'Nachricht eingeben...',
             border: OutlineInputBorder(
@@ -473,8 +476,10 @@ class MessageBubble extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Abbrechen',
-              style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+                  'Abbrechen',
+                  style: AppTypography.button.copyWith(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                  ),
             ),
           ),
           ElevatedButton(
@@ -488,7 +493,7 @@ class MessageBubble extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
             ),
-            child: const Text('Speichern', style: TextStyle(color: Colors.white)),
+            child: const Text('Speichern', style: AppTypography.button.copyWith(color: Colors.white)),
           ),
         ],
       ),
@@ -572,7 +577,9 @@ class _ImageAttachment extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               ListTile(
                 leading: Icon(Iconsax.fullscreen, color: isDark ? AppColors.textDark : AppColors.textLight),
-                title: Text('Vollbild', style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight)),
+                title: Text('Vollbild', style: AppTypography.h4.copyWith(
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        )),
                 onTap: () {
                   Navigator.pop(ctx);
                   _showFullscreenImage(context);
@@ -580,7 +587,9 @@ class _ImageAttachment extends StatelessWidget {
               ),
               ListTile(
                 leading: Icon(Iconsax.link, color: isDark ? AppColors.textDark : AppColors.textLight),
-                title: Text('Pfad kopieren', style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight)),
+                title: Text('Pfad kopieren', style: AppTypography.h4.copyWith(
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        )),
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: attachment.url ?? attachment.path));
                   Navigator.pop(ctx);
@@ -1076,9 +1085,8 @@ class _CodeBlock extends StatelessWidget {
                     language: language,
                     theme: isDark ? atomOneDarkTheme : atomOneLightTheme,
                     padding: EdgeInsets.zero,
-                    textStyle: const TextStyle(
+                    textStyle: AppTypography.codeSmall.copyWith(
                       fontFamily: 'monospace',
-                      fontSize: 12,
                       height: 1.4,
                     ),
                   ),
@@ -1269,10 +1277,7 @@ class _ToolCallCardState extends State<ToolCallCard> {
                                 const SizedBox(width: 4),
                                 Text(
                                   _getStatusText(),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: _statusColor,
+                                  style: AppTypography.labelSmall.copyWith(color: _statusColor),
                                   ),
                                 ),
                               ],
@@ -1469,13 +1474,9 @@ class _JsonViewer extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: SelectableText(
           formatted,
-          style: TextStyle(
-            fontFamily: 'monospace',
-            fontSize: 11,
-            color: isError 
-                ? AppColors.error 
-                : (isDark ? AppColors.textDark : AppColors.textLight),
-            height: 1.4,
+          style: AppTypography.codeSmall.copyWith(
+                          color: isError ? AppColors.error : (isDark ? AppColors.textDark : AppColors.textLight),
+                          height: 1.4,
           ),
         ),
       ),

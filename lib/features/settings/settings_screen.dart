@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/spacing.dart';
+import '../../core/constants/typography.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../providers/auth_provider.dart';
@@ -73,8 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Gateway URL'),
             subtitle: Text(
               auth.gatewayUrl ?? 'Nicht verbunden',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.caption.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -98,8 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _showToken 
                   ? (auth.token?.isNotEmpty == true ? auth.token! : 'Nicht gesetzt')
                   : '••••••••••••••••',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.caption.copyWith(
                 fontFamily: _showToken ? null : 'monospace',
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
