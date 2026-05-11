@@ -14,6 +14,7 @@ import '../../core/utils/logger.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
 import '../../models/message.dart';
+import '../../widgets/animations/chat_message_animation.dart';
 import 'widgets/chat_widgets.dart' hide ThinkingIndicator, ToolCallCard;
 import 'widgets/thinking_indicator.dart';
 import 'widgets/tool_execution_card.dart';
@@ -615,7 +616,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               result: msg.toolData!['response']?.toString(),
                             )
                           else
-                            MessageBubble(
+                            AnimatedMessageBubble(
+                              key: ValueKey(msg.id),
+                              animate: true,
+                              child: MessageBubble(
                               content: msg.content,
                               isUser: msg.type == MessageType.user,
                               isDark: isDark,
@@ -631,6 +635,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               onDelete: msg.type == MessageType.user ? () => _deleteMessage(msg.id) : null,
                               messageId: msg.id,
                             ),
+                          ),
                         ],
                       );
                     },
