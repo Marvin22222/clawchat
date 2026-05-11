@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'dart:async';
 import 'dart:io';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
@@ -39,6 +40,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String _currentAgent = 'main';
   bool _isAppInForeground = true;
   bool _isRefreshing = false;
+  
+  // Search state
+  bool _isSearching = false;
+  String _searchQuery = '';
+  final _searchFocusNode = FocusNode();
+  final _searchController = TextEditingController();
+  Timer? _debounceTimer;
+  List<int> _searchResults = [];
 
   @override
   void initState() {
@@ -505,6 +514,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchFocusNode.dispose();
+    _searchController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -514,7 +526,38 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: _isSearching ? AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: _cancelSearch,
+        ),
+        title: TextField(
+          controller: _searchController,
+          focusNode: _searchFocusNode,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: 'Nachrichten durchsuchen...',
+            border: InputBorder.none,
+            hintStyle: TextStyle(
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+            ),
+          ),
+          style: TextStyle(
+            color: isDark ? AppColors.textDark : AppColors.textLight,
+          ),
+          onChanged: _onSearchChanged,
+        ),
+        actions: [
+          if (_searchQuery.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () {
+                _searchController.clear();
+                _onSearchChanged('');
+              },
+            ),
+        ],
+      ) : AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -538,7 +581,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ),
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => _showSearchSheet(context),
+            onPressed: _toggleSearch,
           ),
           IconButton(
             icon: const Icon(Icons.smart_toy_outlined),
@@ -581,23 +624,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
             ),
           
+          // Search Results Overlay
+          if (_isSearching && _searchQuery.isNotEmpty)
+            Expanded(
+              child: Container(
+                color: isDark ? AppColors.bgDark : AppColors.bgLight,
+                child: _buildSearchResultsList(isDark),
+              ),
+            )
           // Messages
-          Expanded(
-            child: Stack(
-              children: [
-                _messages.isEmpty
-                    ? _buildEmptyState(isDark, auth.ws.isConnected)
-                    : RefreshIndicator(
-                        onRefresh: _refresh,
-                        displacement: 50,
-                        backgroundColor: isDark ? AppColors.bgDarkSecondary : Colors.white,
-                        color: AppColors.primary,
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                          itemCount: _messages.length + (_isTyping || _isStreaming ? 1 : 0),
-                          itemBuilder: (context, index) {
+          else
+            Expanded(
+              child: Stack(
+                children: [
+                  _messages.isEmpty
+                      ? _buildEmptyState(isDark, auth.ws.isConnected)
+                      : RefreshIndicator(
+                          onRefresh: _refresh,
+                          displacement: 50,
+                          backgroundColor: isDark ? AppColors.bgDarkSecondary : Colors.white,
+                          color: AppColors.primary,
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                            itemCount: _messages.length + (_isTyping || _isStreaming ? 1 : 0),
+                            itemBuilder: (context, index) {
                           if (index == _messages.length) {
                             // Show typing indicator when agent is thinking or streaming
                             if (_isStreaming && (_messages.isEmpty || _messages.last.content.isEmpty)) {
@@ -806,6 +858,147 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
+  // ========== SEARCH FUNCTIONALITY ==========
+  
+  void _toggleSearch() {
+    setState(() {
+      if (_isSearching) {
+        _cancelSearch();
+      } else {
+        _isSearching = true;
+        _searchFocusNode.requestFocus();
+      }
+    });
+  }
+  
+  void _cancelSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchQuery = '';
+      _searchResults = [];
+      _searchController.clear();
+      _searchFocusNode.unfocus();
+    });
+  }
+  
+  void _onSearchChanged(String query) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      setState(() {
+        _searchQuery = query;
+        if (query.isEmpty) {
+          _searchResults = [];
+        } else {
+          _searchResults = [];
+          final lowerQuery = query.toLowerCase();
+          for (int i = 0; i < _messages.length; i++) {
+            if (_messages[i].content.toLowerCase().contains(lowerQuery)) {
+              _searchResults.add(i);
+            }
+          }
+        }
+      });
+    });
+  }
+  
+  void _scrollToIndex(int index) {
+    // Calculate approximate scroll position based on message index
+    // Each message takes roughly 80 pixels (avatar + padding + text)
+    final offset = index * 80.0;
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        offset.clamp(0.0, _scrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+  
+  String _formatMessageTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 1) return 'Gerade eben';
+    if (diff.inHours < 1) return 'Vor ${diff.inMinutes} Min';
+    if (diff.inDays < 1) return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    if (diff.inDays < 7) return 'Vor ${diff.inDays} Tagen';
+    return '${dt.day}.${dt.month}.${dt.year}';
+  }
+  
+  Widget _buildSearchResultsList(bool isDark) {
+    if (_searchQuery.isEmpty) {
+      return Center(
+        child: Text(
+          'Tippe um zu suchen',
+          style: TextStyle(
+            color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+          ),
+        ),
+      );
+    }
+    
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 48,
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Keine Ergebnisse gefunden',
+              style: TextStyle(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Match count header
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Text(
+            '${_searchResults.length} Treffer für "$_searchQuery"',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              final msgIndex = _searchResults[index];
+              final msg = _messages[msgIndex];
+              return _SearchResultItem(
+                message: msg,
+                query: _searchQuery,
+                isDark: isDark,
+                onTap: () {
+                  _cancelSearch();
+                  _scrollToIndex(msgIndex);
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+  
   Widget _DateSeparator({required DateTime timestamp, required bool isDark}) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -1342,6 +1535,137 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
+  }
+}
+
+// Search result item with highlighted text
+class _SearchResultItem extends StatelessWidget {
+  final ChatMessage message;
+  final String query;
+  final bool isDark;
+  final VoidCallback onTap;
+  
+  const _SearchResultItem({
+    required this.message,
+    required this.query,
+    required this.isDark,
+    required this.onTap,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Avatar
+            CircleAvatar(
+              backgroundColor: message.type == MessageType.user 
+                  ? AppColors.primary 
+                  : AppColors.secondary,
+              radius: 16,
+              child: Icon(
+                message.type == MessageType.user ? Icons.person : Icons.smart_toy,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Message preview with highlighted match
+                  RichText(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                      style: TextStyle(
+                        color: isDark ? AppColors.textDark : AppColors.textLight,
+                        fontSize: 14,
+                      ),
+                      children: _buildHighlightedText(message.content, query),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Timestamp
+                  Text(
+                    _formatMessageTime(message.timestamp),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Navigate icon
+            Icon(
+              Icons.chevron_right,
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  List<TextSpan> _buildHighlightedText(String text, String query) {
+    if (query.isEmpty) {
+      return [TextSpan(text: text)];
+    }
+    
+    final spans = <TextSpan>[];
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    int start = 0;
+    
+    while (true) {
+      final index = lowerText.indexOf(lowerQuery, start);
+      if (index == -1) {
+        // Add remaining text
+        if (start < text.length) {
+          spans.add(TextSpan(text: text.substring(start)));
+        }
+        break;
+      }
+      
+      // Add text before match
+      if (index > start) {
+        spans.add(TextSpan(text: text.substring(start, index)));
+      }
+      
+      // Add highlighted match
+      spans.add(TextSpan(
+        text: text.substring(index, index + query.length),
+        style: TextStyle(
+          backgroundColor: AppColors.primary.withOpacity(0.3),
+          fontWeight: FontWeight.w600,
+        ),
+      ));
+      
+      start = index + query.length;
+    }
+    
+    return spans;
+  }
+  
+  String _formatMessageTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 1) return 'Gerade eben';
+    if (diff.inHours < 1) return 'Vor ${diff.inMinutes} Min';
+    if (diff.inDays < 1) return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    if (diff.inDays < 7) return 'Vor ${diff.inDays} Tagen';
+    return '${dt.day}.${dt.month}.${dt.year}';
   }
 }
 
