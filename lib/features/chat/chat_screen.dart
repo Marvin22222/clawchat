@@ -29,6 +29,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
+  final Set<String> _hapticsTriggeredForMessages = {};
   bool _isTyping = false;
   bool _showScrollToBottom = false;
   String _currentAgent = 'main';
@@ -226,6 +227,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     // Haptic feedback on message send
     HapticService.onMessageSent();
+    // Haptic when message bubble appears (only first time, not on retry)
+    if (!_hapticsTriggeredForMessages.contains(messageId)) {
+      _hapticsTriggeredForMessages.add(messageId);
+      // Delay slightly so user sees the bubble appear first
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) HapticService.lightImpact();
+      });
+    }
 
     // Send with attachments via WebSocket
     auth.ws.sendMessage(
