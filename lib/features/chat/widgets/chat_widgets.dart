@@ -659,6 +659,7 @@ class _ImageAttachment extends StatelessWidget {
 }
 
 /// Image widget with blur placeholder and crossfade transition
+/// Uses CachedNetworkImage for lazy loading - images are loaded only when visible in viewport
 class _ImageWithPlaceholder extends StatefulWidget {
   final String imageUrl;
   final bool isUser;
@@ -683,36 +684,41 @@ class _ImageWithPlaceholderState extends State<_ImageWithPlaceholder> {
         // Blur placeholder (shown while loading or on error)
         if (!_isLoaded)
           const BlurPlaceholder(
-            width: 100,
-            height: 100,
+            width: 200,
+            height: 200,
             borderRadius: AppRadius.medium,
             showShimmer: true,
           ),
         // Actual image with crossfade
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
-          child: Image.network(
-            widget.imageUrl,
-            key: ValueKey(_isLoaded ? widget.imageUrl : 'placeholder'),
+          child: CachedNetworkImage(
+            imageUrl: widget.imageUrl,
+            key: ValueKey(_isLoaded ? widget.imageUrl : 'placeholder_${widget.imageUrl}'),
             fit: BoxFit.cover,
             width: 200,
             height: 200,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) {
-                // Image loaded
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    setState(() => _isLoaded = true);
-                  }
-                });
-                return child;
-              }
-              // Still loading - show placeholder (AnimatedSwitcher will handle crossfade)
-              return const SizedBox.shrink();
-            },
-            errorBuilder: (context, error, stackTrace) {
+            // Enable lazy loading - image loads only when scrolled into viewport
+            lazyLoad: true,
+            fadeInDuration: const Duration(milliseconds: 200),
+            placeholder: (context, url) => const SizedBox.shrink(),
+            errorWidget: (context, url, error) {
               // Error state - keep placeholder visible
               return const SizedBox.shrink();
+            },
+            imageBuilder: (context, imageProvider) {
+              // Image loaded - trigger state update
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && !_isLoaded) {
+                  setState(() => _isLoaded = true);
+                }
+              });
+              return Image(
+                image: imageProvider,
+                fit: BoxFit.cover,
+                width: 200,
+                height: 200,
+              );
             },
           ),
         ),
@@ -746,8 +752,8 @@ class _LocalImageWithPlaceholderState extends State<_LocalImageWithPlaceholder> 
         // Blur placeholder (shown while loading or on error)
         if (!_isLoaded)
           const BlurPlaceholder(
-            width: 100,
-            height: 100,
+            width: 200,
+            height: 200,
             borderRadius: AppRadius.medium,
             showShimmer: true,
           ),
@@ -756,7 +762,7 @@ class _LocalImageWithPlaceholderState extends State<_LocalImageWithPlaceholder> 
           duration: const Duration(milliseconds: 200),
           child: Image.file(
             File(widget.imagePath),
-            key: ValueKey(_isLoaded ? widget.imagePath : 'placeholder'),
+            key: ValueKey(_isLoaded ? widget.imagePath : 'placeholder_${widget.imagePath}'),
             fit: BoxFit.cover,
             width: 200,
             height: 200,
