@@ -43,8 +43,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate after animation
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    // Navigate after animation - reduced from 2000ms to 1500ms for faster startup
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
         widget.onComplete();
       }

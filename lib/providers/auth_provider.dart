@@ -33,10 +33,10 @@ class AuthProvider extends ChangeNotifier {
   bool get isConnected => _ws.isConnected;
 
   AuthProvider() {
-    _loadSavedCredentials();
+    _loadSavedCredentialsAsync();
   }
 
-  Future<void> _loadSavedCredentials() async {
+  Future<void> _loadSavedCredentialsAsync() async {
     _isLoading = true;
     notifyListeners();
 
@@ -51,12 +51,8 @@ class AuthProvider extends ChangeNotifier {
         _api.configure(_gatewayUrl!, _token!);
       }
       
-      // Auto-login if credentials exist
-      if (_gatewayUrl != null && _token != null) {
-        AppLogger.debug('Auto-login with saved credentials...', tag: 'AUTH');
-        await _ws.connect(_gatewayUrl!, _token!);
-        notifyListeners();
-      }
+      // Deferred: Don't block UI with auto-connect on startup
+      // Connect will happen lazily when user interacts or AppWrapper checks connection
     } catch (e) {
       AppLogger.warning('Error loading credentials: $e', tag: 'AUTH');
     }

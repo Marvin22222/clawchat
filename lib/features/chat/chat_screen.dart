@@ -22,6 +22,7 @@ import 'widgets/chat_widgets.dart' hide ThinkingIndicator, ToolCallCard;
 import 'widgets/thinking_indicator.dart';
 import 'widgets/tool_execution_card.dart';
 import 'widgets/agent_typing_indicator.dart';
+import 'providers/lazy_notification_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? initialAgent;
@@ -320,9 +321,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   /// Show notification for incoming message when app is in background
   void _showIncomingMessageNotification(String content, String agentName) {
-    if (!_isAppInForeground && NotificationService().isInitialized) {
-      final notif = NotificationService();
-      // Parse sender from agent name or use default
+    // Lazy access notification service - only initialized when actually needed
+    final notif = context.read<LazyNotificationProvider>();
+    if (!_isAppInForeground && notif.isInitialized) {
       final sender = agentName == 'main' ? 'Assistant' : agentName;
       notif.showMessageNotification(
         sender: sender,

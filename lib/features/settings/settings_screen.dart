@@ -6,8 +6,8 @@ import '../../core/constants/colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/spacing.dart';
 import '../../core/constants/typography.dart';
-import '../../core/services/notification_service.dart';
 import '../../core/services/haptic_service.dart';
+import '../chat/providers/lazy_notification_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
@@ -156,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             title: const Text('Push-Benachrichtigungen'),
             subtitle: const Text('Neue Nachrichten melden'),
-            trailing: Consumer<NotificationService>(
+            trailing: Consumer<LazyNotificationProvider>(
               builder: (context, notif, _) => Switch(
                 value: notif.isEnabled,
                 onChanged: (value) {

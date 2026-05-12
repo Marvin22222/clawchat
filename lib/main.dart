@@ -1,15 +1,11 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'app.dart';
-import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  if (!kIsWeb) {
-    final notificationService = NotificationService();
-    await notificationService.initialize();
-  }
+  // Deferred initialization - non-critical services don't block startup
+  // Critical: None (auth is lazy-loaded on first frame)
   
   runApp(const ClawChatApp());
 }
