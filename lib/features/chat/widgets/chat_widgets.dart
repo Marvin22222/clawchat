@@ -8,7 +8,9 @@ import '../../../core/utils/logger.dart';
 import '../../../core/utils/helpers.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/atom-one-light.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
+import 'image_lazy_loading.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/typography.dart';
 import '../../../core/constants/spacing.dart';
@@ -642,15 +644,19 @@ class _ImageAttachment extends StatelessWidget {
     return GestureDetector(
       onTap: () => _showFullscreenImage(context),
       onLongPress: () => _showImageContextMenu(context),
-      child: Hero(
-        tag: heroTag,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.medium),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
-            child: isRemote
-                ? _ImageWithPlaceholder(imageUrl: attachment.url!, isUser: isUser)
-                : _LocalImageWithPlaceholder(imagePath: attachment.path, isUser: isUser),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
+          child: ImageLazyLoading(
+            imageUrl: isRemote ? attachment.url : null,
+            imagePath: isRemote ? null : attachment.path,
+            width: 200,
+            height: 200,
+            borderRadius: AppRadius.medium,
+            heroTag: 'image_${attachment.path}_${attachment.url ?? ''}',
+            onTap: () => _showFullscreenImage(context),
+            onLongPress: () => _showImageContextMenu(context),
           ),
         ),
       ),
