@@ -750,6 +750,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           child: ListView.builder(
                             controller: _scrollController,
                             physics: const AlwaysScrollableScrollPhysics(),
+                            // Performance: cache items above/below viewport for smoother scrolling
+                            cacheExtent: 200, // Pre-render 200px above and below viewport
                             padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.md),
                             // Item count: messages + loading indicator at top (if loading) + typing indicator at bottom
                             itemCount: _messages.length + (_isLoadingOlder ? 1 : 0) + (_isTyping || _isStreaming ? 1 : 0),
