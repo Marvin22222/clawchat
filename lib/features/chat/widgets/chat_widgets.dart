@@ -75,6 +75,22 @@ class MessageBubble extends StatelessWidget {
     this.isSameSenderAsPrevious = false,
   });
 
+  // Helper for accessibility label
+  String get _accessibilityLabel {
+    final sender = isUser ? 'Du' : (agentName ?? 'Assistant');
+    final time = DateTimeUtils.formatRelativeTime(timestamp);
+    final hasAttachment = attachments != null && attachments!.isNotEmpty;
+    final hasReply = replyToContent != null && replyToContent!.isNotEmpty;
+    
+    String label = 'Nachricht von $sender um $time';
+    if (hasReply) label += ', Antwort auf: ${replyToContent!.length > 30 ? '${replyToContent!.substring(0, 30)}...' : replyToContent}';
+    if (hasAttachment) label += ', mit Anhang';
+    if (isStreaming) label += ', wird noch geschrieben';
+    if (isEdited) label += ', bearbeitet';
+    
+    return label;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Detect if content is JSON or code
@@ -101,7 +117,10 @@ class MessageBubble extends StatelessWidget {
     final double leftMargin = isUser ? AppSpacing.xl : AppSpacing.md;
     final double rightMargin = isUser ? AppSpacing.md : AppSpacing.xl;
     
-    return isUser && onDelete != null
+    return Semantics(
+      label: _accessibilityLabel,
+      hint: isUser ? 'Nachricht, lang drücken für Optionen' : 'Doppelklick zum Öffnen',
+      child: isUser && onDelete != null
         ? Dismissible(
           key: ValueKey(messageId ?? content),
           direction: DismissDirection.endToStart,
@@ -405,6 +424,7 @@ class MessageBubble extends StatelessWidget {
       ),
     );
   }
+);
 
   bool _isJson(String text) {
     try {

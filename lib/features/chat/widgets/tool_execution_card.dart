@@ -102,7 +102,16 @@ class _ToolExecutionCardState extends State<ToolExecutionCard>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    // Check accessibility settings
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    
+    return Semantics(
+      label: 'Werkzeugausführung: ${widget.toolName}',
+      hint: widget.status == ToolStatus.running 
+          ? 'Läuft, tippen für Details' 
+          : 'Tippen für Details',
+      child: Container(
       margin: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
@@ -243,6 +252,7 @@ class _ToolExecutionCardState extends State<ToolExecutionCard>
       ),
     );
   }
+);
 
   Widget _buildExpandedContent() {
     return Container(

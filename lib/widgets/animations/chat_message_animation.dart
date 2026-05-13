@@ -12,6 +12,7 @@ class AnimationConfig {
 
 /// Wrapper widget that applies appear animation to message bubbles
 /// Uses Fade + Slide up effect (20px from bottom)
+/// Respects reduce motion settings for accessibility
 class AnimatedMessageBubble extends StatefulWidget {
   final Widget child;
   final bool animate;
@@ -39,6 +40,10 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
   @override
   void initState() {
     super.initState();
+    
+    // Check for reduce motion preference
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    
     _controller = AnimationController(
       duration: widget.duration,
       vsync: this,
@@ -60,7 +65,7 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
       curve: widget.curve,
     ));
 
-    if (widget.animate) {
+    if (widget.animate && !reduceMotion) {
       _controller.forward();
     } else {
       _controller.value = 1.0; // Already visible, skip animation
@@ -75,6 +80,13 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    
+    // If reduce motion is enabled, just show the child without animation
+    if (reduceMotion) {
+      return widget.child;
+    }
+    
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
