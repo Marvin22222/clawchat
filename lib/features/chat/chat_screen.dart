@@ -30,6 +30,7 @@ import 'widgets/thinking_indicator.dart';
 import 'widgets/tool_execution_card.dart';
 import 'widgets/agent_typing_indicator.dart';
 import 'providers/lazy_notification_provider.dart';
+import 'command_palette.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? initialAgent;
@@ -77,6 +78,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   
   // Export state
   bool _isExportingPdf = false;
+
+  // Command palette state
+  bool _showCommandPalette = false;
 
   @override
   void initState() {
@@ -771,6 +775,174 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
+  void _handleCommand(String command) {
+    switch (command) {
+      case '/new':
+        // Clear messages and start fresh
+        setState(() {
+          _messages.clear();
+          _replyToMessage = null;
+        });
+        ChatPersistenceService.clearMessages();
+        HapticService.mediumImpact();
+        break;
+      case '/agents':
+        final auth = context.read<AuthProvider>();
+        _showAgentPicker(context, auth);
+        break;
+      case '/search':
+        _toggleSearch();
+        break;
+      case '/export':
+        _showExportSheet(context);
+        break;
+      case '/settings':
+        // Navigate to settings - would need navigation context
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Einstellungen demnächst verfügbar'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        break;
+      case '/help':
+        _showHelpSheet(context);
+        break;
+      case '/clear':
+        _showClearChatDialog(context);
+        break;
+    }
+  }
+
+  void _showHelpSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                'Hilfe',
+                style: AppTypography.h5.copyWith(
+                  color: isDark ? AppColors.textDark : AppColors.textLight,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              _HelpItem(
+                icon: Iconsax.command,
+                title: 'Befehlspalette',
+                description: 'Strg+K zum Öffnen drücken',
+                isDark: isDark,
+              ),
+              _HelpItem(
+                icon: Iconsax.search_normal_1,
+                title: 'Suche',
+                description: 'Nachrichten durchsuchen',
+                isDark: isDark,
+              ),
+              _HelpItem(
+                icon: Iconsax.reply,
+                title: 'Antworten',
+                description: 'Auf eine Nachricht antworten',
+                isDark: isDark,
+              ),
+              _HelpItem(
+                icon: Iconsax.react,
+                title: 'Reaktionen',
+                description: 'Doppeltippen zum Reagieren',
+                isDark: isDark,
+              ),
+              _HelpItem(
+                icon: Iconsax.edit,
+                title: 'Bearbeiten',
+                description: 'Nachrichten bearbeiten (lang drücken)',
+                isDark: isDark,
+              ),
+              _HelpItem(
+                icon: Iconsax.cloud_download,
+                title: 'Export',
+                description: 'Chat exportieren',
+                isDark: isDark,
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showClearChatDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        title: Text(
+          'Chat leeren?',
+          style: AppTypography.h5.copyWith(
+            color: isDark ? AppColors.textDark : AppColors.textLight,
+          ),
+        ),
+        content: Text(
+          'Alle Nachrichten werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
+          style: AppTypography.body.copyWith(
+            color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Abbrechen',
+              style: AppTypography.button.copyWith(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _messages.clear();
+                _replyToMessage = null;
+              });
+              ChatPersistenceService.clearMessages();
+              HapticService.mediumImpact();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+            ),
+            child: Text(
+              'Leeren',
+              style: AppTypography.button.copyWith(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -787,8 +959,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final auth = context.watch<AuthProvider>();
     final isDesktop = MediaQuery.of(context).size.width >= AppDimensions.tabletBreakpoint;
 
-    return Scaffold(
-      appBar: _isSearching ? AppBar(
+    return Stack(
+      children: [
+        CallbackShortcuts(
+          bindings: {
+            // Ctrl+K - Open command palette
+            const SingleActivator(LogicalKeyboardKey.keyK, controlPressed: true): () {
+              setState(() => _showCommandPalette = true);
+            },
+          },
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+          appBar: _isSearching ? AppBar(
         leading: IconButton(
           icon: const Icon(Iconsax.arrow_left_1),
           onPressed: _cancelSearch,
@@ -855,6 +1038,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       body: isDesktop 
           ? _buildDesktopChatLayout(context, isDark, auth)
           : _buildMobileChatLayout(context, isDark, auth),
+        ),
+        if (_showCommandPalette)
+          CommandPalette(
+            onCommandSelected: _handleCommand,
+            onClose: () => setState(() => _showCommandPalette = false),
+          ),
+      ],
     );
   }
 
@@ -2595,6 +2785,61 @@ class _DesktopAgentListItemState extends State<_DesktopAgentListItem> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HelpItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final bool isDark;
+
+  const _HelpItem({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppRadius.small),
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.textDark : AppColors.textLight,
+                  ),
+                ),
+                Text(
+                  description,
+                  style: AppTypography.captionSmall.copyWith(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
