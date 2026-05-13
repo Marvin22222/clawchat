@@ -15,6 +15,7 @@ import '../../../core/constants/colors.dart';
 import '../../../core/constants/typography.dart';
 import '../../../core/constants/spacing.dart';
 import '../../../core/services/voice_input_service.dart';
+import '../../../core/services/voice_recorder_service.dart';
 import '../../../core/services/voice_message_service.dart';
 import '../../../models/message.dart';
 import '../../../widgets/animations/app_transitions.dart';
@@ -1734,6 +1735,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   bool _isRecordingVoiceMessage = false;
   bool _isPttHolding = false;
   VoiceInputService? _voiceService;
+  VoiceRecorderService? _voiceRecorderService;
   VoiceMessageService? _voiceMessageService;
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -1742,6 +1744,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
     super.initState();
     _voiceService = VoiceInputService();
     _voiceService!.addListener(_onVoiceStateChange);
+    _voiceRecorderService = VoiceRecorderService();
     _voiceMessageService = VoiceMessageService();
   }
 
@@ -1775,6 +1778,8 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   void dispose() {
     _voiceService?.removeListener(_onVoiceStateChange);
     _voiceService?.dispose();
+    _voiceRecorderService?.dispose();
+    _voiceMessageService?.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -1892,24 +1897,33 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   Future<void> _startVoiceMessageRecording() async {
     if (_isRecordingVoiceMessage) {
       // Stop recording and send
-      final path = await _voiceMessageService?.stopRecording();
+      final path = await _voiceRecorderService?.stopRecording();
       if (path != null && mounted) {
         final fileName = path.split('/').last;
+        // Create voice message attachment
         final attachment = MessageAttachment(
           path: path,
           fileName: fileName,
           mimeType: 'audio/m4a',
         );
-        widget.onSend('[Voice Message]');
+        // Send as a special message with audio attachment
+        widget.onSend('[Sprachnachricht]');
       }
       setState(() => _isRecordingVoiceMessage = false);
     } else {
       // Start recording
-      final success = await _voiceMessageService?.startRecording();
+      final success = await _voiceRecorderService?.startRecording();
       if (success == true) {
         setState(() => _isRecordingVoiceMessage = true);
+        HapticService.mediumImpact();
       }
     }
+  }
+
+  Future<void> _cancelVoiceMessageRecording() async {
+    await _voiceRecorderService?.cancelRecording();
+    setState(() => _isRecordingVoiceMessage = false);
+    HapticService.lightImpact();
   }
 
   @override
@@ -2007,7 +2021,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                     _PulsingDot(),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
-                      'Voice Message recording...',
+                      'Aufnahme...',
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.error,
                         fontWeight: FontWeight.w600,
@@ -2015,10 +2029,23 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Text(
-                      _formatDuration(_voiceMessageService?.recordingDuration ?? Duration.zero),
+                      _formatDuration(_voiceRecorderService?.recordingDuration ?? Duration.zero),
                       style: AppTypography.bodySmall.copyWith(
                         color: isDark ? AppColors.textDark : AppColors.textLight,
                         fontFamily: 'monospace',
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    // Cancel button
+                    GestureDetector(
+                      onTap: _cancelVoiceMessageRecording,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Iconsax.close_square,
+                          size: 20,
+                          color: AppColors.error,
+                        ),
                       ),
                     ),
                   ],
