@@ -4,6 +4,7 @@ import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../core/services/biometric_service.dart';
 import '../../providers/auth_provider.dart';
+import 'biometric_auth_sheet.dart';
 
 enum AgentSystem { openClaw, hermes }
 
@@ -106,37 +107,35 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
 
-    // Authenticate with biometrics
-    final authenticated = await BiometricService.authenticateWithBiometric(
-      reason: 'Authentifiziere dich für ClawChat',
-    );
+    // Show biometric auth sheet
+    final authenticated = await showBiometricAuthSheet(context);
 
-    if (mounted) {
-      setState(() => _isBiometricLoading = false);
+    if (!mounted) return;
 
-      if (authenticated) {
-        // Load saved credentials and login
-        final auth = context.read<AuthProvider>();
-        
-        // Try to get stored credentials
-        final gatewayUrl = _gatewayController.text.isNotEmpty 
-            ? _gatewayController.text 
-            : auth.gatewayUrl;
-        final token = _tokenController.text.isNotEmpty 
-            ? _tokenController.text 
-            : auth.token;
+    setState(() => _isBiometricLoading = false);
 
-        if (gatewayUrl != null && token != null) {
-          final success = await auth.login(gatewayUrl, token, saveCredentials: false);
-          if (!success && mounted) {
-            setState(() => _error = 'Automatische Anmeldung fehlgeschlagen');
-          }
-        } else {
-          setState(() => _error = 'Keine gespeicherten Anmeldedaten gefunden');
+    if (authenticated) {
+      // Load saved credentials and login
+      final auth = context.read<AuthProvider>();
+      
+      // Try to get stored credentials
+      final gatewayUrl = _gatewayController.text.isNotEmpty 
+          ? _gatewayController.text 
+          : auth.gatewayUrl;
+      final token = _tokenController.text.isNotEmpty 
+          ? _tokenController.text 
+          : auth.token;
+
+      if (gatewayUrl != null && token != null) {
+        final success = await auth.login(gatewayUrl, token, saveCredentials: false);
+        if (!success && mounted) {
+          setState(() => _error = 'Automatische Anmeldung fehlgeschlagen');
         }
       } else {
-        setState(() => _error = 'Biometrische Authentifizierung fehlgeschlagen');
+        setState(() => _error = 'Keine gespeicherten Anmeldedaten gefunden');
       }
+    } else {
+      setState(() => _error = 'Biometrische Authentifizierung abgebrochen');
     }
   }
 

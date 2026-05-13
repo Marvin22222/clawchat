@@ -18,6 +18,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _useBiometrics = false;
   bool? _useAutoLock;
+  int? _autoLockMinutes;
   String? _selectedAgent;
   DateTime? _backgroundedAt;
 
@@ -29,6 +30,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _token != null && _gatewayUrl != null;
   bool get useBiometrics => _useBiometrics;
   bool? get useAutoLock => _useAutoLock;
+  int? get autoLockMinutes => _autoLockMinutes;
   String? get selectedAgent => _selectedAgent;
   bool get isConnected => _ws.isConnected;
 
@@ -45,6 +47,7 @@ class AuthProvider extends ChangeNotifier {
       _token = await _secureStorage.read(key: 'gateway_token');
       _useBiometrics = await _getBiometricPreference();
       _useAutoLock = await _getAutoLockPreference();
+      _autoLockMinutes = await _getAutoLockMinutesPreference();
       
       // Configure API service
       if (_gatewayUrl != null && _token != null) {
@@ -69,6 +72,11 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> _getAutoLockPreference() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('use_auto_lock') ?? false;
+  }
+
+  Future<int?> _getAutoLockMinutesPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('auto_lock_minutes');
   }
 
   Future<bool> login(String gatewayUrl, String token, {bool saveCredentials = true}) async {
@@ -116,6 +124,17 @@ class AuthProvider extends ChangeNotifier {
     _useAutoLock = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('use_auto_lock', value);
+    notifyListeners();
+  }
+
+  Future<void> setAutoLockMinutes(int? minutes) async {
+    _autoLockMinutes = minutes;
+    final prefs = await SharedPreferences.getInstance();
+    if (minutes != null) {
+      await prefs.setInt('auto_lock_minutes', minutes);
+    } else {
+      await prefs.remove('auto_lock_minutes');
+    }
     notifyListeners();
   }
 

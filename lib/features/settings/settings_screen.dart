@@ -343,12 +343,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: const Icon(Iconsax.lock, color: AppColors.error, size: 20),
             ),
             title: const Text('Auto-Sperre'),
-            subtitle: const Text('App nach 5 Min. Inaktivität sperren'),
-            value: auth.useAutoLock ?? false,
-            onChanged: (value) => auth.setUseAutoLock(value),
+            subtitle: Text(
+              auth.autoLockMinutes != null
+                  ? 'Nach ${auth.autoLockMinutes} Min. Inaktivität'
+                  : 'Deaktiviert',
+            ),
+            value: auth.autoLockMinutes != null,
+            onChanged: (value) => auth.setAutoLockMinutes(value ? 5 : null),
           ),
-
-          const Divider();
+          
+          // Auto-lock timeout selector
+          if (auth.autoLockMinutes != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 72, right: 16),
+              child: DropdownButtonFormField<int>(
+                value: auth.autoLockMinutes ?? 5,
+                decoration: const InputDecoration(
+                  labelText: 'Automatische Sperre nach',
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 1, child: Text('1 Minute')),
+                  DropdownMenuItem(value: 5, child: Text('5 Minuten')),
+                  DropdownMenuItem(value: 15, child: Text('15 Minuten')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    auth.setAutoLockMinutes(value);
+                  }
+                },
+              ),
+            ),
+          ,
 
           // Voice Settings Section
           _SectionHeader(title: 'Sprache & Audio'),

@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:iconsax/iconsax.dart';
-import 'core/theme/app_theme.dart';
-import 'core/constants/colors.dart';
-import 'core/constants/spacing.dart';
-import 'core/constants/typography.dart';
-import 'features/auth/login_screen.dart';
-import 'features/home/home_screen.dart';
-import 'features/splash/splash_screen.dart';
-import 'features/tasks/providers/task_provider.dart';
-import 'features/chat/providers/lazy_notification_provider.dart';
-import 'providers/auth_provider.dart';
-import 'providers/agent_presets_provider.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/services/voice_input_service.dart';
+import '../../features/auth/biometric_auth_sheet.dart';
+import '../../features/auth/login_screen.dart';
+import '../../features/home/home_screen.dart';
+import '../../features/splash/splash_screen.dart';
+import '../../features/tasks/providers/task_provider.dart';
+import '../../providers/auth_provider.dart';
 
 class ClawChatApp extends StatelessWidget {
   const ClawChatApp({super.key});
@@ -22,29 +18,18 @@ class ClawChatApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        // Deferred: VoiceInputService - only needed when user opens chat
-        // ChangeNotifierProvider(create: (_) => VoiceInputService()),
+        ChangeNotifierProvider(create: (_) => VoiceInputService()),
         ChangeNotifierProvider(create: (_) => TaskProvider()),
-        // Deferred: NotificationService - initialized on first use (lazy)
-        ChangeNotifierProvider(create: (_) => LazyNotificationProvider()),
-        ChangeNotifierProvider(create: (_) => AgentPresetsProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
-          return AnimatedTheme(
-            data: themeProvider.isDarkMode
-                ? AppTheme.darkTheme
-                : AppTheme.lightTheme,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: MaterialApp(
-              title: 'ClawChat',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-              home: const AppWrapper(),
-            ),
+          return MaterialApp(
+            title: 'ClawChat',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            home: const AppWrapper(),
           );
         },
       ),
@@ -59,8 +44,56 @@ class AppWrapper extends StatefulWidget {
   State<AppWrapper> createState() => _AppWrapperState();
 }
 
-class _AppWrapperState extends State<AppWrapper> {
+class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
   bool _showSplash = true;
+  bool _isLocked = false;
+  DateTime? _backgroundedAt;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    final auth = context.read<AuthProvider>();
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // App going to background - start timer
+      if (auth.useAutoLock == true && auth.isLoggedIn) {
+        _backgroundedAt = DateTime.now();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      // App coming to foreground - check if should lock
+      if (auth.useAutoLock == true &&
+          auth.isLoggedIn &&
+          _backgroundedAt != null) {
+        final elapsed = DateTime.now().difference(_backgroundedAt!);
+        final lockMinutes = auth.autoLockMinutes ?? 5;
+        if (elapsed.inMinutes >= lockMinutes) {
+          setState(() {
+            _isLocked = true;
+          });
+        }
+        _backgroundedAt = null;
+      }
+    }
+  }
+
+  void _unlock() {
+    setState(() {
+      _isLocked = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,39 +107,150 @@ class _AppWrapperState extends State<AppWrapper> {
       );
     }
 
+    if (_isLocked) {
+      return _AppLockScreen(
+        onUnlock: _unlock,
+        onLogout: () {
+          context.read<AuthProvider>().logout();
+          setState(() {
+            _isLocked = false;
+          });
+        },
+      );
+    }
+
     return const AuthWrapper();
   }
 }
 
-class AuthWrapper extends StatefulWidget {
-  const AuthWrapper({super.key});
+class _AppLockScreen extends StatefulWidget {
+  final VoidCallback onUnlock;
+  final VoidCallback onLogout;
+
+  const _AppLockScreen({
+    required this.onUnlock,
+    required this.onLogout,
+  });
 
   @override
-  State<AuthWrapper> createState() => _AuthWrapperState();
+  State<_AppLockScreen> createState() => _AppLockScreenState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
-  bool _showOfflineOverlay = false;
+class _AppLockScreenState extends State<_AppLockScreen> {
+  bool _isAuthenticating = false;
+
+  Future<void> _authenticate() async {
+    if (_isAuthenticating) return;
+
+    setState(() {
+      _isAuthenticating = true;
+    });
+
+    final authenticated = await showBiometricAuthSheet(context);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isAuthenticating = false;
+    });
+
+    if (authenticated) {
+      widget.onUnlock();
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    // Listen for connection changes after widget builds
+    // Auto-start authentication
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _setupConnectionListener();
+      _authenticate();
     });
   }
 
-  void _setupConnectionListener() {
-    final auth = context.read<AuthProvider>();
-    auth.ws.connectionStatus.listen((isConnected) {
-      if (mounted) {
-        setState(() {
-          _showOfflineOverlay = !isConnected;
-        });
-      }
-    });
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(),
+
+              // Lock icon
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lock,
+                  color: AppColors.primary,
+                  size: 50,
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Title
+              Text(
+                'ClawChat gesperrt',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+
+              const SizedBox(height: AppSpacing.sm),
+
+              Text(
+                'Authentifiziere dich um fortzufahren',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textDarkSecondary
+                          : AppColors.textLightSecondary,
+                    ),
+              ),
+
+              const Spacer(),
+
+              // Unlock button
+              if (_isAuthenticating)
+                const CircularProgressIndicator()
+              else
+                ElevatedButton.icon(
+                  onPressed: _authenticate,
+                  icon: const Icon(Icons.fingerprint),
+                  label: const Text('Entsperren'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                ),
+
+              const SizedBox(height: AppSpacing.md),
+
+              // Logout button
+              TextButton(
+                onPressed: widget.onLogout,
+                child: const Text('Abmelden'),
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -120,60 +264,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
       );
     }
 
-    return Stack(
-      children: [
-        if (auth.isLoggedIn && auth.ws.isConnected)
-          const HomeScreen()
-        else if (!auth.isLoggedIn)
-          const LoginScreen()
-        else
-          const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        // Global Offline Overlay
-        if (_showOfflineOverlay)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Container(
-                margin: const EdgeInsets.all(AppSpacing.md),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(AppRadius.medium),
-                  border: Border.all(
-                    color: AppColors.warning.withOpacity(0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Iconsax.wifi_slash,
-                      color: AppColors.warning,
-                      size: 18,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      'Offline-Modus',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.warning,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
+    if (auth.isLoggedIn && auth.ws.isConnected) {
+      return const HomeScreen();
+    }
+
+    return const LoginScreen();
   }
 }
