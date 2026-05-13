@@ -1299,43 +1299,176 @@ class _InteractiveTextState extends State<_InteractiveText>
     );
   }
 
+  // Helper class for markdown parsing
+  class _MarkdownMatch {
+    final int start;
+    final int end;
+    final String type;
+    final RegExpMatch match;
+
+    _MarkdownMatch(this.start, this.end, this.type, this.match);
+  }
+
   List<InlineSpan> _buildTextSpans(String text, Color normalColor, Color linkColor) {
     final spans = <InlineSpan>[];
-    final matches = _urlRegex.allMatches(text);
 
+    // Parse markdown and URL patterns together
+    final codeBlockRegex = RegExp(r'''```(\w*)\n([\s\S]*?)```''');
+    final inlineCodeRegex = RegExp(r'`([^`]+)`');
+    final boldRegex = RegExp(r'\*\*([^*]+)\*\*');
+    final italicRegex = RegExp(r'\*([^*]+)\*');
+    final linkRegex = RegExp(r'\[([^\]]+)\]\(([^)]+)\)');
+    final urlRegex = RegExp(
+      r'(?:https?://)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)',
+      caseSensitive: false,
+    );
+
+    // Collect all matches with positions
+    final allMatches = <_MarkdownMatch>[];
+
+    // Code blocks
+    for (final match in codeBlockRegex.allMatches(text)) {
+      allMatches.add(_MarkdownMatch(match.start, match.end, 'codeblock', match));
+    }
+
+    // Inline elements
+    for (final match in inlineCodeRegex.allMatches(text)) {
+      allMatches.add(_MarkdownMatch(match.start, match.end, 'code', match));
+    }
+    for (final match in boldRegex.allMatches(text)) {
+      allMatches.add(_MarkdownMatch(match.start, match.end, 'bold', match));
+    }
+    for (final match in italicRegex.allMatches(text)) {
+      allMatches.add(_MarkdownMatch(match.start, match.end, 'italic', match));
+    }
+    for (final match in linkRegex.allMatches(text)) {
+      allMatches.add(_MarkdownMatch(match.start, match.end, 'link', match));
+    }
+    for (final match in urlRegex.allMatches(text)) {
+      allMatches.add(_MarkdownMatch(match.start, match.end, 'url', match));
+    }
+
+    // Sort by position
+    allMatches.sort((a, b) => a.start.compareTo(b.start));
+
+    // Filter overlapping matches (code blocks take priority)
+    final filtered = <_MarkdownMatch>[];
     int lastEnd = 0;
-    for (final match in matches) {
-      // Add text before URL
-      if (match.start > lastEnd) {
+    for (final m in allMatches) {
+      if (m.start >= lastEnd) {
+        filtered.add(m);
+        if (m.type == 'codeblock') {
+          lastEnd = m.end;
+        }
+      }
+    }
+
+    // Build spans
+    int pos = 0;
+    for (final m in filtered) {
+      if (m.start > pos) {
         spans.add(TextSpan(
-          text: text.substring(lastEnd, match.start),
+          text: text.substring(pos, m.start),
           style: AppTypography.body.copyWith(color: normalColor, height: 1.4),
         ));
       }
 
-      final url = match.group(0)!;
-      spans.add(TextSpan(
-        text: url,
-        style: AppTypography.body.copyWith(
-          color: linkColor,
-          height: 1.4,
-          decoration: TextDecoration.underline,
-        ),
-        recognizer: TapGestureRecognizer()..onTap = () => _openUrl(url),
-      ));
+      switch (m.type) {
+        case 'codeblock':
+          final lang = m.match.group(1) ?? '';
+          final code = m.match.group(2) ?? '';
+          spans.add(WidgetSpan(
+            alignment: PlaceholderAlignment.top,
+            child: _CodeBlock(
+              content: code,
+              isDark: widget.isDark,
+              isJson: lang == 'json' || code.trim().startsWith('{'),
+              language: lang.isEmpty ? _detectLanguage(code) : lang,
+            ),
+          ));
+          break;
+        case 'code':
+          spans.add(TextSpan(
+            text: m.match.group(1),
+            style: AppTypography.body.copyWith(
+              fontFamily: 'monospace',
+              fontSize: 13,
+              backgroundColor: normalColor.withOpacity(0.1),
+              height: 1.4,
+            ),
+          ));
+          break;
+        case 'bold':
+          spans.add(TextSpan(
+            text: m.match.group(1),
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.bold,
+              height: 1.4,
+            ),
+          ));
+          break;
+        case 'italic':
+          spans.add(TextSpan(
+            text: m.match.group(1),
+            style: AppTypography.body.copyWith(
+              fontStyle: FontStyle.italic,
+              height: 1.4,
+            ),
+          ));
+          break;
+        case 'link':
+          final linkText = m.match.group(1) ?? '';
+          final linkUrl = m.match.group(2) ?? '';
+          spans.add(TextSpan(
+            text: linkText,
+            style: AppTypography.body.copyWith(
+              color: linkColor,
+              decoration: TextDecoration.underline,
+              height: 1.4,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => _openUrl(linkUrl),
+          ));
+          break;
+        case 'url':
+          final url = m.match.group(0)!;
+          spans.add(TextSpan(
+            text: url,
+            style: AppTypography.body.copyWith(
+              color: linkColor,
+              height: 1.4,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()..onTap = () => _openUrl(url),
+          ));
+          break;
+      }
 
-      lastEnd = match.end;
+      pos = m.end;
     }
 
-    // Add remaining text
-    if (lastEnd < text.length) {
+    // Remaining text
+    if (pos < text.length) {
       spans.add(TextSpan(
-        text: text.substring(lastEnd),
+        text: text.substring(pos),
         style: AppTypography.body.copyWith(color: normalColor, height: 1.4),
       ));
     }
 
     return spans;
+  }
+
+  String _detectLanguage(String code) {
+    if (code.contains('function') || code.contains('const ') || code.contains('let ')) {
+      return 'javascript';
+    } else if (code.contains('def ') || (code.contains('import ') && code.contains(':'))) {
+      return 'python';
+    } else if (code.contains('class ') && code.contains('extends')) {
+      return 'dart';
+    } else if (code.contains('{') && code.contains(':') && code.contains(',')) {
+      return 'json';
+    }
+    return 'plaintext';
   }
 }
 
@@ -1348,6 +1481,7 @@ class _CodeBlock extends StatelessWidget {
     required this.content,
     required this.isDark,
     required this.isJson,
+    this.language,
   });
 
   @override
@@ -1363,16 +1497,18 @@ class _CodeBlock extends StatelessWidget {
       }
     }
 
-    // Detect language for syntax highlighting
-    String language = 'plaintext';
-    if (isJson) {
-      language = 'json';
-    } else if (content.contains('function') || content.contains('const ') || content.contains('let ')) {
-      language = 'javascript';
-    } else if (content.contains('def ') || content.contains('import ') && content.contains(':')) {
-      language = 'python';
-    } else if (content.contains('class ') && content.contains('extends')) {
-      language = 'dart';
+    // Use provided language or detect
+    String language = this.language ?? 'plaintext';
+    if (language == 'plaintext') {
+      if (isJson || (content.contains('{') && content.contains(':') && content.contains(','))) {
+        language = 'json';
+      } else if (content.contains('function') || content.contains('const ') || content.contains('let ')) {
+        language = 'javascript';
+      } else if (content.contains('def ') || (content.contains('import ') && content.contains(':'))) {
+        language = 'python';
+      } else if (content.contains('class ') && content.contains('extends')) {
+        language = 'dart';
+      }
     }
 
     return GestureDetector(
