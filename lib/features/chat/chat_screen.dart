@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:io';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/utils/responsive.dart';
 import '../../widgets/empty_state.dart';
 import '../../core/constants/typography.dart';
 import '../../core/services/websocket_service.dart';
@@ -775,6 +777,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final auth = context.watch<AuthProvider>();
+    final isDesktop = MediaQuery.of(context).size.width >= AppDimensions.tabletBreakpoint;
 
     return Scaffold(
       appBar: _isSearching ? AppBar(
@@ -841,231 +844,362 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Offline Banner (shown when disconnected but no error banner)
-          if (!auth.ws.isConnected && _messages.isNotEmpty)
-            OfflineBanner(onRetry: () => auth.reconnect()),
-          // Connection Status Bar
-          _buildConnectionStatusBar(
-            isConnected: auth.ws.isConnected,
-            status: auth.ws.status,
-            isDark: isDark,
-          ),
-          // Connection Error Banner (only when no messages yet)
-          if (!auth.ws.isConnected && _messages.isEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.md),
-              color: AppColors.error.withOpacity(0.1),
-              child: Row(
-                children: [
-                  const Icon(Iconsax.wifi_slash, color: AppColors.error, size: 20),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      'Nicht verbunden. Nachricht senden fehlgeschlagen.',
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.error),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => auth.reconnect(),
-                    child: const Text('Erneut'),
-                  ),
-                ],
+      body: isDesktop 
+          ? _buildDesktopChatLayout(context, isDark, auth)
+          : _buildMobileChatLayout(context, isDark, auth),
+    );
+  }
+
+  Widget _buildDesktopChatLayout(BuildContext context, bool isDark, AuthProvider auth) {
+    return Row(
+      children: [
+        // Chat list sidebar
+        Container(
+          width: 280,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+            border: Border(
+              right: BorderSide(
+                color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
               ),
             ),
-          
-          // Search Results Overlay
-          if (_isSearching && _searchQuery.isNotEmpty)
-            Expanded(
-              child: Container(
-                color: isDark ? AppColors.bgDark : AppColors.bgLight,
-                child: _buildSearchResultsList(isDark),
-              ),
-            )
-          // Messages
-          else
-            Expanded(
-              child: Stack(
-                children: [
-                  _messages.isEmpty
-                      ? _buildEmptyState(isDark, auth.ws.isConnected)
-                      : RefreshIndicator(
-                          onRefresh: _refresh,
-                          displacement: 50,
-                          backgroundColor: isDark ? AppColors.bgDarkSecondary : Colors.white,
-                          color: AppColors.primary,
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            // Performance: cache items above/below viewport for smoother scrolling
-                            cacheExtent: 200, // Pre-render 200px above and below viewport
-                            padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.md),
-                            // Item count: messages + loading indicator at top (if loading) + typing indicator at bottom
-                            itemCount: _messages.length + (_isLoadingOlder ? 1 : 0) + (_isTyping || _isStreaming ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              // Loading indicator at top
-                              if (_isLoadingOlder && index == 0) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                                  child: Center(
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
-                                        const SizedBox(width: AppSpacing.sm),
-                                        Text(
-                                          'Loading older messages...',
-                                          style: AppTypography.label.copyWith(
-                                            color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }
-                              
-                              // Adjust index for messages (accounting for loading header)
-                              final messageIndex = _isLoadingOlder ? index - 1 : index;
-                              
-                              // Typing indicator at the end
-                              if (messageIndex == _messages.length) {
-                                if (_isStreaming && (_messages.isEmpty || _messages.last.content.isEmpty)) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: AppSpacing.md),
-                                    child: AgentTypingIndicator(agentName: _currentAgent),
-                                  );
-                                } else if (_isTyping) {
-                                  return const Padding(
-                                    padding: EdgeInsets.only(top: AppSpacing.md),
-                                    child: ThinkingIndicator(),
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              }
-                          
-                      final msg = _messages[messageIndex];
-                      final showDateHeader = messageIndex == 0 ||
-                          !_isSameDay(msg.timestamp, _messages[messageIndex - 1].timestamp);
-                      
-                      return Column(
-                        children: [
-                          if (showDateHeader)
-                            _DateSeparator(timestamp: msg.timestamp, isDark: isDark),
-                          // Render ToolCallCard for tool call messages
-                          if (msg.type == MessageType.toolCall && msg.toolData != null)
-                            ToolExecutionCard(
-                              toolName: msg.toolData!['tool'] ?? 'Unknown',
-                              toolDescription: msg.toolData!['description'],
-                              status: _getToolStatus(msg.toolData!['status'] ?? 'running'),
-                              parameters: msg.toolData!['parameters'],
-                              result: msg.toolData!['response']?.toString(),
-                            )
-                          else
-                            AnimatedMessageBubble(
-                              key: ValueKey(msg.id),
-                              animate: true,
-                              child: MessageBubble(
-                              content: msg.content,
-                              isUser: msg.type == MessageType.user,
-                              isDark: isDark,
-                              agentName: msg.agentName,
-                              timestamp: msg.timestamp,
-                              attachments: msg.attachments,
-                              status: msg.status,
-                              reactions: msg.reactions,
-                              isEdited: msg.isEdited,
-                              isStreaming: msg.isStreaming,
-                              onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
-                              onEdit: msg.type == MessageType.user ? () => _editMessage(msg.id) : null,
-                              onDelete: msg.type == MessageType.user ? () => _deleteMessage(msg.id) : null,
-                              messageId: msg.id,
-                              onReact: (emoji) => _addReaction(msg.id, emoji),
-                              onReply: () => _setReplyTo(msg),
-                              replyToContent: msg.replyToContent,
-                              isFirstInGroup: _isFirstInGroup(messageIndex),
-                              isLastInGroup: _isLastInGroup(messageIndex),
-                              isSameSenderAsPrevious: _isSameSenderAsPrevious(messageIndex),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+          ),
+          child: Column(
+            children: [
+              // Sidebar header
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    Icon(Iconsax.messages_3, color: AppColors.primary),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      'Chats',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textDark : AppColors.textLight,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            // Refresh indicator overlay when refreshing
-            if (_isRefreshing)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  color: AppColors.primary.withOpacity(0.1),
+              const Divider(height: 1),
+              // Agent list
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  itemCount: auth.ws.availableAgents.length,
+                  itemBuilder: (context, index) {
+                    final agent = auth.ws.availableAgents[index];
+                    final isSelected = agent == _currentAgent;
+                    return _DesktopAgentListItem(
+                      agent: agent,
+                      isSelected: isSelected,
+                      onTap: () => setState(() => _currentAgent = agent),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Main chat content
+        Expanded(
+          child: Column(
+            children: [
+              _buildConnectionStatusBar(
+                isConnected: auth.ws.isConnected,
+                status: auth.ws.status,
+                isDark: isDark,
+              ),
+              if (!auth.ws.isConnected && _messages.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  color: AppColors.error.withOpacity(0.1),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.primary,
+                      const Icon(Iconsax.wifi_slash, color: AppColors.error, size: 20),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          'Nicht verbunden.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.error),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        'Loading...',
-                        style: AppTypography.label.copyWith(
-                          color: AppColors.primary,
-                        ),
+                      TextButton(
+                        onPressed: () => auth.reconnect(),
+                        child: const Text('Erneut'),
                       ),
                     ],
                   ),
                 ),
+              Expanded(
+                child: _messages.isEmpty
+                    ? _buildEmptyState(isDark, auth.ws.isConnected)
+                    : ListView.builder(
+                        controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        cacheExtent: 200,
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        itemCount: _messages.length + (_isLoadingOlder ? 1 : 0) + (_isTyping || _isStreaming ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (_isLoadingOlder && index == 0) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(AppSpacing.md),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Text('Loading...', style: AppTypography.label.copyWith(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          final messageIndex = _isLoadingOlder ? index - 1 : index;
+                          if (_isTyping || _isStreaming) {
+                            final typingIndex = _messages.length + (_isLoadingOlder ? 1 : 0);
+                            if (index == typingIndex) {
+                              return _buildDesktopTypingIndicator(isDark);
+                            }
+                          }
+                          return _buildMessageItem(context, _messages[messageIndex], isDark, auth);
+                        },
+                      ),
               ),
-            // Scroll to bottom FAB
-            if (_showScrollToBottom)
-              Positioned(
-                bottom: 80,
-                right: AppSpacing.md,
-                child: FloatingActionButton.small(
-                  onPressed: () {
-                    _scrollController.animateTo(
-                      _scrollController.position.maxScrollExtent,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                    );
-                    HapticService.lightImpact();
-                  },
-                  backgroundColor: isDark ? AppColors.bgDarkTertiary : AppColors.primary,
-                  child: const Icon(Iconsax.arrow_down_1, color: Colors.white),
-                ),
-              ),
-          ],
-        ),
-        // Input
-        ChatInput(
-          onSend: _sendMessage,
-          onImageSelected: _onImageSelected,
-          enabled: auth.ws.isConnected,
-          replyTo: _replyToMessage != null ? {'id': _replyToMessage!.id, 'content': _replyToMessage!.content.length > 50 ? '${_replyToMessage!.content.substring(0, 50)}...' : _replyToMessage!.content} : null,
-          onCancelReply: _replyToMessage != null ? _clearReplyTo : null,
+              _buildMessageInput(isDark),
+            ],
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDesktopTypingIndicator(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _TypingDot(),
+                const SizedBox(width: 4),
+                _TypingDot(delay: 0.2),
+                const SizedBox(width: 4),
+                _TypingDot(delay: 0.4),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageItem(BuildContext context, ChatMessage msg, bool isDark, AuthProvider auth) {
+    final showDateHeader = _messages.indexOf(msg) == 0 ||
+        !_isSameDay(msg.timestamp, _messages[_messages.indexOf(msg) - 1].timestamp);
+    
+    return Column(
+      children: [
+        if (showDateHeader)
+          _DateSeparator(timestamp: msg.timestamp, isDark: isDark),
+        if (msg.type == MessageType.toolCall && msg.toolData != null)
+          ToolExecutionCard(
+            toolName: msg.toolData!['tool'] ?? 'Unknown',
+            toolDescription: msg.toolData!['description'],
+            status: _getToolStatus(msg.toolData!['status'] ?? 'running'),
+            parameters: msg.toolData!['parameters'],
+            result: msg.toolData!['response']?.toString(),
+          )
+        else
+          AnimatedMessageBubble(
+            key: ValueKey(msg.id),
+            animate: true,
+            child: MessageBubble(
+              content: msg.content,
+              isUser: msg.type == MessageType.user,
+              isDark: isDark,
+              agentName: msg.agentName,
+              timestamp: msg.timestamp,
+              attachments: msg.attachments,
+              status: msg.status,
+              reactions: msg.reactions,
+              isEdited: msg.isEdited,
+              isStreaming: msg.isStreaming,
+              onRetry: msg.status == MessageStatus.error ? () => _retryMessage(msg.id) : null,
+              onEdit: msg.type == MessageType.user ? () => _editMessage(msg.id) : null,
+              onDelete: msg.type == MessageType.user ? () => _deleteMessage(msg.id) : null,
+              messageId: msg.id,
+              onReact: (emoji) => _addReaction(msg.id, emoji),
+              onReply: () => _setReplyTo(msg),
+              replyToContent: msg.replyToContent,
+              isFirstInGroup: _isFirstInGroup(_messages.indexOf(msg)),
+              isLastInGroup: _isLastInGroup(_messages.indexOf(msg)),
+              isSameSenderAsPrevious: _isSameSenderAsPrevious(_messages.indexOf(msg)),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildMobileChatLayout(BuildContext context, bool isDark, AuthProvider auth) {
+    return Column(
+      children: [
+        if (!auth.ws.isConnected && _messages.isNotEmpty)
+          OfflineBanner(onRetry: () => auth.reconnect()),
+        _buildConnectionStatusBar(
+          isConnected: auth.ws.isConnected,
+          status: auth.ws.status,
+          isDark: isDark,
+        ),
+        if (!auth.ws.isConnected && _messages.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            color: AppColors.error.withOpacity(0.1),
+            child: Row(
+              children: [
+                const Icon(Iconsax.wifi_slash, color: AppColors.error, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Nicht verbunden. Nachricht senden fehlgeschlagen.',
+                    style: AppTypography.bodySmall.copyWith(color: AppColors.error),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => auth.reconnect(),
+                  child: const Text('Erneut'),
+                ),
+              ],
+            ),
+          ),
+        if (_isSearching && _searchQuery.isNotEmpty)
+          Expanded(
+            child: Container(
+              color: isDark ? AppColors.bgDark : AppColors.bgLight,
+              child: _buildSearchResultsList(isDark),
+            ),
+          )
+        else
+          Expanded(
+            child: Stack(
+              children: [
+                _messages.isEmpty
+                    ? _buildEmptyState(isDark, auth.ws.isConnected)
+                    : RefreshIndicator(
+                        onRefresh: _refresh,
+                        displacement: 50,
+                        backgroundColor: isDark ? AppColors.bgDarkSecondary : Colors.white,
+                        color: AppColors.primary,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          cacheExtent: 200,
+                          padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.md),
+                          itemCount: _messages.length + (_isLoadingOlder ? 1 : 0) + (_isTyping || _isStreaming ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (_isLoadingOlder && index == 0) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                                child: Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Text(
+                                        'Loading older messages...',
+                                        style: AppTypography.label.copyWith(
+                                          color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+                            final messageIndex = _isLoadingOlder ? index - 1 : index;
+                            if (_isTyping || _isStreaming) {
+                              final typingIndex = _messages.length + (_isLoadingOlder ? 1 : 0);
+                              if (index == typingIndex) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                                  child: Row(
+                                    children: [
+                                      AgentTypingIndicator(),
+                                    ],
+                                  ),
+                                );
+                              }
+                              if (index > typingIndex) {
+                                final adjustedIndex = messageIndex - 1;
+                                return _buildMessageBubble(_messages[adjustedIndex], isDark, auth, _scrollController);
+                              }
+                            }
+                            return _buildMessageBubble(_messages[messageIndex], isDark, auth, _scrollController);
+                          },
+                        ),
+                      ),
+                ),
+                if (_showScrollToBottom)
+                  Positioned(
+                    bottom: 80,
+                    right: 16,
+                    child: Material(
+                      color: isDark ? AppColors.bgDarkSecondary : Colors.white,
+                      borderRadius: BorderRadius.circular(AppRadius.large),
+                      elevation: 4,
+                      child: InkWell(
+                        onTap: _scrollToBottom,
+                        borderRadius: BorderRadius.circular(AppRadius.large),
+                        child: Container(
+                          padding: const EdgeInsets.all(AppSpacing.sm),
+                          child: Icon(
+                            Iconsax.arrow_down,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        _buildMessageInput(isDark),
+      ],
+    );
+  }
+
+  Widget _buildMessageInput(bool isDark) {
+    return ChatInput(
+      onSend: _sendMessage,
+      onImageSelected: _onImageSelected,
+      enabled: context.watch<AuthProvider>().ws.isConnected,
+      replyTo: _replyToMessage != null ? {'id': _replyToMessage!.id, 'content': _replyToMessage!.content.length > 50 ? '${_replyToMessage!.content.substring(0, 50)}...' : _replyToMessage!.content} : null,
+      onCancelReply: _replyToMessage != null ? _clearReplyTo : null,
     );
   }
 
@@ -2189,5 +2323,165 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
         setState(() => _isExportingPdf = false);
       }
     }
+  }
+}
+// Desktop helper widgets
+
+class _TypingDot extends StatefulWidget {
+  final double delay;
+
+  const _TypingDot({this.delay = 0});
+
+  @override
+  State<_TypingDot> createState() => _TypingDotState();
+}
+
+class _TypingDotState extends State<_TypingDot> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _animation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    Future.delayed(Duration(milliseconds: (widget.delay * 1000).toInt()), () {
+      if (mounted) {
+        _controller.repeat(reverse: true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary)
+                .withOpacity(0.5 + (_animation.value * 0.5)),
+            shape: BoxShape.circle,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DesktopAgentListItem extends StatefulWidget {
+  final String agent;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DesktopAgentListItem({
+    required this.agent,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_DesktopAgentListItem> createState() => _DesktopAgentListItemState();
+}
+
+class _DesktopAgentListItemState extends State<_DesktopAgentListItem> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+        decoration: BoxDecoration(
+          color: widget.isSelected
+              ? AppColors.primary.withOpacity(0.15)
+              : (_isHovered ? (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)) : Colors.transparent),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          border: widget.isSelected
+              ? Border.all(color: AppColors.primary.withOpacity(0.3))
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.md,
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: widget.isSelected ? AppColors.primary : AppColors.secondary,
+                    child: Text(
+                      widget.agent[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.agent,
+                          style: TextStyle(
+                            fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+                            color: widget.isSelected
+                                ? AppColors.primary
+                                : (isDark ? AppColors.textDark : AppColors.textLight),
+                          ),
+                        ),
+                        if (widget.isSelected)
+                          Text(
+                            'Aktiv',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (widget.isSelected)
+                    Icon(
+                      Iconsax.check,
+                      color: AppColors.primary,
+                      size: 18,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

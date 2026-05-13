@@ -44,6 +44,11 @@ class AppDimensions {
 
   // Bottom nav
   static const double bottomNavHeight = 80.0;
+
+  // Responsive breakpoints
+  static const double mobileBreakpoint = 600;
+  static const double tabletBreakpoint = 900;
+  static const double desktopBreakpoint = 1200;
 }
 
 class AppStrings {
