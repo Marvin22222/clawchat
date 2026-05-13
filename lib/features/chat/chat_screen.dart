@@ -31,6 +31,7 @@ import 'widgets/tool_execution_card.dart';
 import 'widgets/agent_typing_indicator.dart';
 import 'providers/lazy_notification_provider.dart';
 import 'command_palette.dart';
+import '../../widgets/quick_action_fab.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? initialAgent;
@@ -1383,6 +1384,71 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       ),
                     ),
                   ),
+                // Quick action FAB
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: QuickActionFab(
+                    onNewChat: () {
+                      setState(() {
+                        _messages.clear();
+                        _replyToMessage = null;
+                      });
+                      ChatPersistenceService.clearMessages();
+                      HapticService.mediumImpact();
+                    },
+                    onVoiceMessage: () {
+                      // Trigger voice recording via ChatInput
+                      // For now, just show a hint
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(Iconsax.microphone, color: AppColors.error, size: 20),
+                              const SizedBox(width: 8),
+                              const Text('Halte die Mikrofon-Taste gedrückt'),
+                            ],
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    onCamera: () {
+                      // Access ChatInput's camera functionality via context
+                      final chatInputState = context.findAncestorStateOfType<State>();
+                      if (chatInputState != null && chatInputState.mounted) {
+                        // Would need to expose this method - fallback to scaffold
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(Iconsax.camera, color: AppColors.warning, size: 20),
+                              const SizedBox(width: 8),
+                              const Text('Tippe auf das Büroklammer-Symbol'),
+                            ],
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    onSettings: () {
+                      // Navigate to settings
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(Iconsax.setting_2, color: AppColors.info, size: 20),
+                              const SizedBox(width: 8),
+                              const Text('Einstellungen'),
+                            ],
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
