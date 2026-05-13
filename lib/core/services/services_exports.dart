@@ -13,3 +13,4 @@ export 'chat_persistence_service.dart';
 export 'api_service.dart';
 export 'error_handler_service.dart';
 export 'link_preview_service.dart';
+export 'theme_service.dart';

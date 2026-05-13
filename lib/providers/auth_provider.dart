@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/colors.dart';
+import '../../core/services/theme_service.dart';
 import '../../core/services/websocket_service.dart';
 import '../../core/services/api_service.dart';
 import '../../core/utils/logger.dart';
@@ -210,10 +211,19 @@ class AuthProvider extends ChangeNotifier {
 
 class ThemeProvider extends ChangeNotifier {
   bool _isDarkMode = true;
+  bool _useSystemTheme = false;
   Color _accentColor = AppColors.primary;
+  AppThemeType _themeType = AppThemeType.dark;
 
   bool get isDarkMode => _isDarkMode;
+  bool get useSystemTheme => _useSystemTheme;
   Color get accentColor => _accentColor;
+  AppThemeType get themeType => _themeType;
+
+  ThemeMode get themeMode {
+    if (_useSystemTheme) return ThemeMode.system;
+    return _isDarkMode ? ThemeMode.dark : ThemeMode.light;
+  }
 
   ThemeProvider() {
     _loadTheme();
@@ -222,9 +232,14 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     _isDarkMode = prefs.getBool('dark_mode') ?? true;
+    _useSystemTheme = prefs.getBool('use_system_theme') ?? false;
     final accentColorValue = prefs.getInt('accent_color');
     if (accentColorValue != null) {
       _accentColor = Color(accentColorValue);
+    }
+    final themeTypeIndex = prefs.getInt('theme_type_index');
+    if (themeTypeIndex != null && themeTypeIndex < AppThemeType.values.length) {
+      _themeType = AppThemeType.values[themeTypeIndex];
     }
     notifyListeners();
   }
@@ -241,8 +256,20 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setUseSystemTheme(bool value) {
+    _useSystemTheme = value;
+    _saveTheme();
+    notifyListeners();
+  }
+
   void setAccentColor(Color color) {
     _accentColor = color;
+    _saveTheme();
+    notifyListeners();
+  }
+
+  void setThemeType(AppThemeType type) {
+    _themeType = type;
     _saveTheme();
     notifyListeners();
   }
@@ -250,6 +277,8 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> _saveTheme() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('dark_mode', _isDarkMode);
+    await prefs.setBool('use_system_theme', _useSystemTheme);
     await prefs.setInt('accent_color', _accentColor.value);
+    await prefs.setInt('theme_type_index', _themeType.index);
   }
 }

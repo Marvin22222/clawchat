@@ -9,6 +9,7 @@ import '../../core/constants/typography.dart';
 import '../../core/services/haptic_service.dart';
 import '../../core/services/image_compression_service.dart';
 import '../../core/services/notification_settings_service.dart';
+import '../../core/services/theme_service.dart';
 import '../chat/providers/lazy_notification_provider.dart';
 import '../chat/templates/templates_widget.dart';
 import '../../core/services/templates_service.dart';
@@ -261,9 +262,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Appearance Section
           _SectionHeader(title: 'Darstellung'),
           
-          // Dark Mode
-          SwitchListTile(
-            secondary: Container(
+          // Theme Mode (Dark/Light/System)
+          ListTile(
+            leading: Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
@@ -271,23 +272,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(AppRadius.small),
               ),
               child: Icon(
-                theme.isDarkMode ? Iconsax.moon : Iconsax.sun_1,
+                theme.useSystemTheme 
+                    ? Iconsax.mobile 
+                    : (theme.isDarkMode ? Iconsax.moon : Iconsax.sun_1),
                 color: AppColors.info,
                 size: 20,
               ),
             ),
-            title: const Text('Dark Mode'),
+            title: const Text('Theme Modus'),
             subtitle: Text(
-              theme.isDarkMode ? 'Dunkles Theme aktiviert' : 'Helles Theme aktiviert',
+              _getThemeModeName(theme),
               style: AppTypography.caption.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
-            value: theme.isDarkMode,
-            onChanged: (value) => theme.setDarkMode(value),
+            trailing: const Icon(Iconsax.chevron_right),
+            onTap: () => _showThemeModeSelector(context, theme),
           ),
 
-          // Theme Selection
+          // Theme Type Selection
           ListTile(
             leading: Container(
               width: 40,
@@ -298,15 +301,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: const Icon(Iconsax.color_swatch, color: AppColors.warning, size: 20),
             ),
-            title: const Text('Theme Farbe'),
+            title: const Text('Theme Stil'),
             subtitle: Text(
-              _getThemeName(theme.accentColor),
+              theme.themeType.label,
               style: AppTypography.caption.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
             trailing: const Icon(Iconsax.chevron_right),
-            onTap: () => _showThemeSelector(context, theme),
+            onTap: () => _showThemeTypeSelector(context, theme),
+          ),
+
+          // Accent Color Selection
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.accentColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: Icon(Iconsax.color_circle, color: theme.accentColor, size: 20),
+            ),
+            title: const Text('Akzent Farbe'),
+            subtitle: Text(
+              _getAccentColorName(theme.accentColor),
+              style: AppTypography.caption.copyWith(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+            trailing: const Icon(Iconsax.chevron_right),
+            onTap: () => _showAccentColorSelector(context, theme),
           ),
 
           const Divider(),
@@ -789,6 +814,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   String _getThemeName(Color color) {
+    return _getAccentColorName(color);
+  }
+
+  String _getAccentColorName(Color color) {
     if (color == AppColors.primary) return 'Indigo (Standard)';
     if (color == Colors.blue) return 'Blau';
     if (color == Colors.purple) return 'Lila';
@@ -799,7 +828,284 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return 'Indigo';
   }
 
-  void _showGatewayUrlDialog(BuildContext context, AuthProvider auth) {
+  String _getThemeModeName(ThemeProvider theme) {
+    if (theme.useSystemTheme) return 'System';
+    return theme.isDarkMode ? 'Dunkel' : 'Hell';
+  }
+
+  void _showThemeModeSelector(BuildContext context, ThemeProvider theme) {
+    showSmoothBottomSheet(
+      context: context,
+      initialChildSize: 0.35,
+      maxChildSize: 0.4,
+      minChildSize: 0.3,
+      snapSizes: const [0.3, 0.35, 0.4],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.bgDarkSecondary
+            : AppColors.bgLightSecondary,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Theme Modus',
+              style: AppTypography.h5.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _ThemeModeOption(
+              icon: Iconsax.mobile,
+              name: 'System',
+              description: 'Folgt dem iOS/Android System',
+              isSelected: theme.useSystemTheme,
+              onTap: () {
+                theme.setUseSystemTheme(true);
+                HapticService.lightImpact();
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _ThemeModeOption(
+              icon: Iconsax.moon,
+              name: 'Dunkel',
+              description: 'Immer dunkles Theme',
+              isSelected: !theme.useSystemTheme && theme.isDarkMode,
+              onTap: () {
+                theme.setUseSystemTheme(false);
+                theme.setDarkMode(true);
+                HapticService.lightImpact();
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _ThemeModeOption(
+              icon: Iconsax.sun_1,
+              name: 'Hell',
+              description: 'Immer helles Theme',
+              isSelected: !theme.useSystemTheme && !theme.isDarkMode,
+              onTap: () {
+                theme.setUseSystemTheme(false);
+                theme.setDarkMode(false);
+                HapticService.lightImpact();
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showThemeTypeSelector(BuildContext context, ThemeProvider theme) {
+    showSmoothBottomSheet(
+      context: context,
+      initialChildSize: 0.5,
+      maxChildSize: 0.7,
+      minChildSize: 0.35,
+      snapSizes: const [0.35, 0.5, 0.7],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.bgDarkSecondary
+            : AppColors.bgLightSecondary,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Theme Stil',
+              style: AppTypography.h5.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                mainAxisSpacing: AppSpacing.sm,
+                crossAxisSpacing: AppSpacing.sm,
+                childAspectRatio: 1.2,
+                children: [
+                  _ThemeTypeOption(
+                    type: AppThemeType.dark,
+                    isSelected: theme.themeType == AppThemeType.dark,
+                    onTap: () {
+                      theme.setThemeType(AppThemeType.dark);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeTypeOption(
+                    type: AppThemeType.oledBlack,
+                    isSelected: theme.themeType == AppThemeType.oledBlack,
+                    onTap: () {
+                      theme.setThemeType(AppThemeType.oledBlack);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeTypeOption(
+                    type: AppThemeType.purple,
+                    isSelected: theme.themeType == AppThemeType.purple,
+                    onTap: () {
+                      theme.setThemeType(AppThemeType.purple);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeTypeOption(
+                    type: AppThemeType.ocean,
+                    isSelected: theme.themeType == AppThemeType.ocean,
+                    onTap: () {
+                      theme.setThemeType(AppThemeType.ocean);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeTypeOption(
+                    type: AppThemeType.forest,
+                    isSelected: theme.themeType == AppThemeType.forest,
+                    onTap: () {
+                      theme.setThemeType(AppThemeType.forest);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _ThemeTypeOption(
+                    type: AppThemeType.sunset,
+                    isSelected: theme.themeType == AppThemeType.sunset,
+                    onTap: () {
+                      theme.setThemeType(AppThemeType.sunset);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAccentColorSelector(BuildContext context, ThemeProvider theme) {
+    showSmoothBottomSheet(
+      context: context,
+      initialChildSize: 0.5,
+      maxChildSize: 0.6,
+      minChildSize: 0.35,
+      snapSizes: const [0.35, 0.5, 0.6],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.bgDarkSecondary
+            : AppColors.bgLightSecondary,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Akzent Farbe',
+              style: AppTypography.h5.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 4,
+                mainAxisSpacing: AppSpacing.sm,
+                crossAxisSpacing: AppSpacing.sm,
+                children: [
+                  _AccentColorOption(
+                    color: AppColors.primary,
+                    name: 'Indigo',
+                    isSelected: theme.accentColor == AppColors.primary,
+                    onTap: () {
+                      theme.setAccentColor(AppColors.primary);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _AccentColorOption(
+                    color: Colors.blue,
+                    name: 'Blau',
+                    isSelected: theme.accentColor == Colors.blue,
+                    onTap: () {
+                      theme.setAccentColor(Colors.blue);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _AccentColorOption(
+                    color: Colors.purple,
+                    name: 'Lila',
+                    isSelected: theme.accentColor == Colors.purple,
+                    onTap: () {
+                      theme.setAccentColor(Colors.purple);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _AccentColorOption(
+                    color: Colors.pink,
+                    name: 'Pink',
+                    isSelected: theme.accentColor == Colors.pink,
+                    onTap: () {
+                      theme.setAccentColor(Colors.pink);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _AccentColorOption(
+                    color: Colors.red,
+                    name: 'Rot',
+                    isSelected: theme.accentColor == Colors.red,
+                    onTap: () {
+                      theme.setAccentColor(Colors.red);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _AccentColorOption(
+                    color: Colors.orange,
+                    name: 'Orange',
+                    isSelected: theme.accentColor == Colors.orange,
+                    onTap: () {
+                      theme.setAccentColor(Colors.orange);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _AccentColorOption(
+                    color: Colors.teal,
+                    name: 'Teal',
+                    isSelected: theme.accentColor == Colors.teal,
+                    onTap: () {
+                      theme.setAccentColor(Colors.teal);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _AccentColorOption(
+                    color: Colors.green,
+                    name: 'Grün',
+                    isSelected: theme.accentColor == Colors.green,
+                    onTap: () {
+                      theme.setAccentColor(Colors.green);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
     _gatewayUrlController.text = auth.gatewayUrl ?? '';
     
     showDialog(
@@ -2167,6 +2473,236 @@ class _ThemeColorOption extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ThemeModeOption extends StatelessWidget {
+  final IconData icon;
+  final String name;
+  final String description;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeModeOption({
+    required this.icon,
+    required this.name,
+    required this.description,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppColors.primary.withOpacity(0.1) 
+              : (isDark ? AppColors.bgDarkTertiary : AppColors.bgLightTertiary),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected 
+                    ? AppColors.primary.withOpacity(0.2) 
+                    : (isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: Icon(icon, color: isSelected ? AppColors.primary : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary), size: 20),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: AppTypography.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.textDark : AppColors.textLight,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Iconsax.tick_circle, color: AppColors.primary, size: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeTypeOption extends StatelessWidget {
+  final AppThemeType type;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeTypeOption({
+    required this.type,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  Color get _backgroundColor {
+    switch (type) {
+      case AppThemeType.oledBlack:
+        return Colors.black;
+      case AppThemeType.purple:
+        return const Color(0xFF1A1025);
+      case AppThemeType.ocean:
+        return const Color(0xFF0A1628);
+      case AppThemeType.forest:
+        return const Color(0xFF0A1A0A);
+      case AppThemeType.sunset:
+        return const Color(0xFF1A1010);
+      default:
+        return const Color(0xFF0D0D0D);
+    }
+  }
+
+  Color get _accentColor {
+    switch (type) {
+      case AppThemeType.oledBlack:
+        return const Color(0xFF10A37F);
+      case AppThemeType.purple:
+        return const Color(0xFF9333EA);
+      case AppThemeType.ocean:
+        return const Color(0xFF0EA5E9);
+      case AppThemeType.forest:
+        return const Color(0xFF22C55E);
+      case AppThemeType.sunset:
+        return const Color(0xFFEF4444);
+      default:
+        return const Color(0xFF10A37F);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: _backgroundColor,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          border: Border.all(
+            color: isSelected ? _accentColor : Colors.grey.withOpacity(0.3),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: _accentColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: isSelected
+                        ? const Icon(Iconsax.tick_square, color: Colors.white, size: 16)
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    type.label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Icon(Iconsax.check_circle, color: _accentColor, size: 16),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AccentColorOption extends StatelessWidget {
+  final Color color;
+  final String name;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _AccentColorOption({
+    required this.color,
+    required this.name,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? color : Colors.transparent,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+              child: isSelected
+                  ? const Icon(Iconsax.tick_square, color: Colors.white, size: 20)
+                  : null,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              name,
+              style: AppTypography.captionSmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _VoiceSensitivitySheet extends StatefulWidget {
   const _VoiceSensitivitySheet();
