@@ -9,6 +9,7 @@ import '../../core/services/notification_settings_service.dart';
 import '../../core/services/storage_info_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
+import '../../widgets/animated_theme_toggle.dart';
 import '../chat/chat_screen.dart';
 import '../agents/agents_screen.dart';
 import '../tasks/tasks_screen.dart';
@@ -144,12 +145,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Dark/Light mode toggle
-          _QuickToggle(
-            icon: isDark ? Iconsax.moon : Iconsax.sun,
-            isActive: isDark,
-            onTap: () => settings.toggleTheme(),
-            tooltip: isDark ? 'Dark Mode' : 'Light Mode',
+          // Dark/Light mode toggle - Animated sun/moon
+          AnimatedThemeToggle(
+            isDark: isDark,
+            onToggle: () => settings.toggleTheme(),
+            size: 36,
           ),
           const SizedBox(width: AppSpacing.xs),
           // Notification toggle
@@ -171,9 +171,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           const SizedBox(width: AppSpacing.xs),
           // Sound toggle
           _QuickToggle(
-            icon: theme.isDarkMode ? Iconsax.volume_high : Iconsax.volume_slash,
-            isActive: theme.isDarkMode,
-            onTap: () => theme.toggleTheme(),
+            icon: settings.isDarkMode ? Iconsax.volume_high : Iconsax.volume_slash,
+            isActive: settings.isDarkMode,
+            onTap: () => settings.toggleTheme(),
             tooltip: 'Sound',
           ),
           const SizedBox(width: AppSpacing.sm),
