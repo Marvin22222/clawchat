@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/localization_service.dart';
 import '../../core/services/voice_input_service.dart';
 import '../../core/constants/app_config.dart';
 import '../../features/auth/biometric_auth_sheet.dart';
@@ -33,6 +35,13 @@ class ClawChatApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
+            locale: LocalizationService.getCurrentLocale(),
+            supportedLocales: LocalizationService.supportedLocales,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             home: const AppWrapper(),
           );
         },

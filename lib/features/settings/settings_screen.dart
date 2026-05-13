@@ -7,6 +7,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/spacing.dart';
 import '../../core/constants/typography.dart';
 import '../../core/services/haptic_service.dart';
+import '../../core/services/localization_service.dart';
 import '../../core/services/image_compression_service.dart';
 import '../../core/services/notification_settings_service.dart';
 import '../../core/services/theme_service.dart';
@@ -411,6 +412,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             trailing: const Icon(Iconsax.chevron_right),
             onTap: () => _showAccentColorSelector(context, theme),
+          ),
+
+          // Language Selector
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.global, color: AppColors.secondary, size: 20),
+            ),
+            title: const Text('Sprache'),
+            subtitle: Text(
+              LocalizationService.getLanguageName(LocalizationService.currentLocaleCode),
+              style: AppTypography.caption.copyWith(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+            trailing: const Icon(Iconsax.chevron_right),
+            onTap: () => _showLanguageSelector(context),
           ),
 
           const Divider(),
@@ -1508,6 +1531,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageSelector(BuildContext context) {
+    showSmoothBottomSheet(
+      context: context,
+      initialChildSize: 0.35,
+      maxChildSize: 0.4,
+      minChildSize: 0.3,
+      snapSizes: const [0.3, 0.35, 0.4],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.bgDarkSecondary
+            : AppColors.bgLightSecondary,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sprache',
+              style: AppTypography.h5.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _LanguageOption(
+              code: 'system',
+              name: 'System',
+              description: 'Gerätesprache folgen',
+              isSelected: LocalizationService.selectedMode == 'system',
+              onTap: () {
+                LocalizationService.setLocale('system');
+                HapticService.lightImpact();
+                setState(() {});
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _LanguageOption(
+              code: 'de',
+              name: 'Deutsch',
+              description: 'German',
+              isSelected: LocalizationService.selectedMode == 'de',
+              onTap: () {
+                LocalizationService.setLocale('de');
+                HapticService.lightImpact();
+                setState(() {});
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _LanguageOption(
+              code: 'en',
+              name: 'English',
+              description: 'English',
+              isSelected: LocalizationService.selectedMode == 'en',
+              onTap: () {
+                LocalizationService.setLocale('en');
+                HapticService.lightImpact();
+                setState(() {});
+                Navigator.pop(context);
+              },
             ),
           ],
         ),
@@ -3130,4 +3219,98 @@ void _showVoiceSensitivitySettings(BuildContext context) {
     animationDuration: const Duration(milliseconds: 200),
     builder: (context, scrollController) => const _VoiceSensitivitySheet(),
   );
+}
+class _LanguageOption extends StatelessWidget {
+  final String code;
+  final String name;
+  final String description;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LanguageOption({
+    required this.code,
+    required this.name,
+    required this.description,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.small),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.small),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? AppColors.borderDark : AppColors.borderLight),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.primary.withOpacity(0.2)
+                    : AppColors.secondary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: Center(
+                child: Text(
+                  _getFlagEmoji(code),
+                  style: const TextStyle(fontSize: 20),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: AppTypography.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              const Icon(Iconsax.check, color: AppColors.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getFlagEmoji(String code) {
+    switch (code) {
+      case 'system':
+        return '📱';
+      case 'de':
+        return '🇩🇪';
+      case 'en':
+        return '🇬🇧';
+      default:
+        return '🌐';
+    }
+  }
 }

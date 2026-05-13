@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'app.dart';
+import 'core/services/localization_service.dart';
 
 /// Configure cached_network_image memory and disk cache limits
 void _configureImageCache() {
@@ -16,6 +17,9 @@ void _configureImageCache() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize localization
+  await LocalizationService.init();
   
   // Configure image caching
   _configureImageCache();

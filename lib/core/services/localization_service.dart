@@ -1,107 +1,105 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/de.dart';
+import '../l10n/en.dart';
 
 /// Localization service for internationalization
 /// Supports English (default) and German
 class LocalizationService {
-  static const String _defaultLocale = 'en';
-  static Map<String, dynamic>? _translations;
-  static String _currentLocale = _defaultLocale;
+  static const String _keyLocale = 'app_locale';
+  static Locale _currentLocale = const Locale('de');
+  static String? _selectedMode; // 'system', 'de', 'en'
 
-  /// Initialize with device locale or default
+  /// Map of supported locales
+  static const Map<String, Map<String, String>> _translations = {
+    'de': de,
+    'en': en,
+  };
+
+  /// Supported locales
+  static const List<Locale> supportedLocales = [
+    Locale('de'),
+    Locale('en'),
+  ];
+
+  /// Initialize locale from SharedPreferences or system
   static Future<void> init() async {
-    // Could detect device locale here
-    _currentLocale = 'de'; // Default to German for now
-    await _loadTranslations(_currentLocale);
-  }
-
-  /// Load translations for a locale
-  static Future<void> _loadTranslations(String locale) async {
-    try {
-      // In a real app, would load from assets
-      // For now, using embedded translations
-      _translations = _getTranslations(locale);
-    } catch (e) {
-      _translations = _getTranslations(_defaultLocale);
+    final prefs = await SharedPreferences.getInstance();
+    final savedLocale = prefs.getString(_keyLocale);
+    
+    if (savedLocale != null) {
+      _selectedMode = savedLocale;
+      if (savedLocale == 'system') {
+        _currentLocale = WidgetsBinding.instance.platformDispatcher.locale;
+        // Fallback to German if system locale not supported
+        if (!isSupported(_currentLocale)) {
+          _currentLocale = const Locale('de');
+        }
+      } else {
+        _currentLocale = Locale(savedLocale);
+      }
+    } else {
+      // Default to German
+      _selectedMode = 'de';
+      _currentLocale = const Locale('de');
     }
   }
 
-  /// Get a translation by key
-  static String translate(String key) {
-    if (_translations == null) return key;
-    return _translations![key] ?? key;
-  }
-
-  /// Change locale
-  static void setLocale(String locale) {
-    _currentLocale = locale;
-    _loadTranslations(locale);
+  /// Check if a locale is supported
+  static bool isSupported(Locale locale) {
+    return supportedLocales.any((l) => l.languageCode == locale.languageCode);
   }
 
   /// Get current locale
-  static String get currentLocale => _currentLocale;
+  static Locale getCurrentLocale() => _currentLocale;
 
-  /// Get embedded translations
-  static Map<String, dynamic> _getTranslations(String locale) {
-    switch (locale) {
+  /// Get current locale as string
+  static String get currentLocaleCode => _currentLocale.languageCode;
+
+  /// Get selected mode ('system', 'de', 'en')
+  static String? get selectedMode => _selectedMode;
+
+  /// Set locale by language code
+  static Future<void> setLocale(String localeCode) async {
+    _selectedMode = localeCode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyLocale, localeCode);
+    
+    if (localeCode == 'system') {
+      _currentLocale = WidgetsBinding.instance.platformDispatcher.locale;
+      if (!isSupported(_currentLocale)) {
+        _currentLocale = const Locale('de');
+      }
+    } else {
+      _currentLocale = Locale(localeCode);
+    }
+  }
+
+  /// Set locale by Locale object
+  static Future<void> setLocaleByLocale(Locale locale) async {
+    await setLocale(locale.languageCode);
+  }
+
+  /// Get list of supported locales
+  static List<Locale> getSupportedLocales() => supportedLocales;
+
+  /// Get a translation by key
+  static String translate(String key) {
+    final translations = _translations[_currentLocale.languageCode];
+    if (translations == null) return key;
+    return translations[key] ?? key;
+  }
+
+  /// Get language name for display
+  static String getLanguageName(String localeCode) {
+    switch (localeCode) {
       case 'de':
-        return {
-          "appTitle": "ClawChat",
-          "settings": "Einstellungen",
-          "connection": "Verbindung",
-          "appearance": "Darstellung",
-          "security": "Sicherheit",
-          "voiceInput": "Spracheingabe",
-          "agents": "Agents",
-          "about": "Über",
-          "online": "Online",
-          "offline": "Offline",
-          "connecting": "Verbinde...",
-          "sendMessage": "Nachricht senden",
-          "typeMessage": "Nachricht eingeben...",
-          "voiceSensitivity": "Sprach-Empfindlichkeit",
-          "exportChat": "Chat exportieren",
-          "exportAsJson": "Als JSON exportieren",
-          "exportAsText": "Als Text exportieren",
-          "searchChat": "Chat durchsuchen",
-          "editMessage": "Nachricht bearbeiten",
-          "deleteMessage": "Nachricht löschen",
-          "copyMessage": "Nachricht kopieren",
-          "cancel": "Abbrechen",
-          "save": "Speichern",
-          "ok": "OK",
-          "error": "Fehler",
-          "success": "Erfolg",
-        };
+        return 'Deutsch';
+      case 'en':
+        return 'English';
       default:
-        return {
-          "appTitle": "ClawChat",
-          "settings": "Settings",
-          "connection": "Connection",
-          "appearance": "Appearance",
-          "security": "Security",
-          "voiceInput": "Voice Input",
-          "agents": "Agents",
-          "about": "About",
-          "online": "Online",
-          "offline": "Offline",
-          "connecting": "Connecting...",
-          "sendMessage": "Send message",
-          "typeMessage": "Type a message...",
-          "voiceSensitivity": "Voice Sensitivity",
-          "exportChat": "Export Chat",
-          "exportAsJson": "Export as JSON",
-          "exportAsText": "Export as Text",
-          "searchChat": "Search in chat",
-          "editMessage": "Edit message",
-          "deleteMessage": "Delete message",
-          "copyMessage": "Copy message",
-          "cancel": "Cancel",
-          "save": "Save",
-          "ok": "OK",
-          "error": "Error",
-          "success": "Success",
-        };
+        return localeCode;
     }
   }
 }
