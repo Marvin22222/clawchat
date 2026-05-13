@@ -130,7 +130,10 @@ class MessageBubble extends StatelessWidget {
             color: Colors.red,
             child: const Icon(Iconsax.trash, color: Colors.white),
           ),
-          onDismissed: (_) => onDelete?.call(),
+          onDismissed: (_) {
+            HapticService.onDestructiveAction();
+            onDelete?.call();
+          },
           child: Align(
             alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
             child: Container(
@@ -247,10 +250,12 @@ class MessageBubble extends StatelessWidget {
               child: GestureDetector(
                 onDoubleTap: () {
                   if (onReact != null) {
+                    HapticService.onQuickReactionOpened();
                     _showQuickReactionPicker(context);
                   }
                 },
                 onLongPress: () {
+                  HapticService.onContextMenuOpened();
                   _showContextMenu(context);
                 },
                 child: isCode || isJson
@@ -486,7 +491,7 @@ class MessageBubble extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(ctx);
                       onReact?.call(emoji);
-                      HapticService.lightImpact();
+                      HapticService.onReactionAdded();
                     },
                     child: Container(
                       width: 50,

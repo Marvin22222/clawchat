@@ -262,6 +262,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const Divider(),
 
+          // Haptic Feedback Section
+          _SectionHeader(title: 'Haptisches Feedback'),
+          
+          // Haptic Feedback Toggle
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.haptic, color: AppColors.primary, size: 20),
+            ),
+            title: const Text('Haptisches Feedback'),
+            subtitle: const Text('Vibration bei Interaktionen'),
+            trailing: Switch(
+              value: HapticService.intensity != HapticIntensity.off,
+              onChanged: (value) {
+                HapticService.setIntensity(value ? HapticIntensity.medium : HapticIntensity.off);
+                setState(() {});
+                if (value) HapticService.lightImpact();
+              },
+            ),
+            onTap: () {
+              final currentEnabled = HapticService.intensity != HapticIntensity.off;
+              HapticService.setIntensity(currentEnabled ? HapticIntensity.off : HapticIntensity.medium);
+              setState(() {});
+              if (!currentEnabled) HapticService.lightImpact();
+            },
+          ),
+          
+          // Haptic Intensity Selector
+          if (HapticService.intensity != HapticIntensity.off)
+            Padding(
+              padding: const EdgeInsets.only(left: 72, right: 16, bottom: AppSpacing.sm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Intensität',
+                    style: AppTypography.captionSmall.copyWith(
+                      color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: HapticIntensity.values.where((i) => i != HapticIntensity.off).map((intensity) {
+                      final isSelected = HapticService.intensity == intensity;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: AppSpacing.sm),
+                        child: ChoiceChip(
+                          label: Text(_getHapticIntensityLabel(intensity)),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) {
+                              HapticService.setIntensity(intensity);
+                              setState(() {});
+                              HapticService.lightImpact();
+                            }
+                          },
+                          labelStyle: AppTypography.label.copyWith(
+                            color: isSelected 
+                                ? Colors.white 
+                                : (isDark ? AppColors.textDark : AppColors.textLight),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          
+          const Divider(),
+
           // Appearance Section
           _SectionHeader(title: 'Darstellung'),
           
@@ -955,6 +1031,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _getThemeModeName(ThemeProvider theme) {
     if (theme.useSystemTheme) return 'System';
     return theme.isDarkMode ? 'Dunkel' : 'Hell';
+  }
+
+  String _getHapticIntensityLabel(HapticIntensity intensity) {
+    switch (intensity) {
+      case HapticIntensity.light:
+        return 'Leicht';
+      case HapticIntensity.medium:
+        return 'Mittel';
+      case HapticIntensity.heavy:
+        return 'Stark';
+      case HapticIntensity.off:
+        return 'Aus';
+    }
   }
 
   void _showThemeModeSelector(BuildContext context, ThemeProvider theme) {
