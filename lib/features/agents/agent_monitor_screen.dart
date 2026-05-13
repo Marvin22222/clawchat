@@ -4,10 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/typography.dart';
 import '../../core/services/mock_agent_data.dart';
+import '../../core/services/error_handler_service.dart';
 import '../../models/agent_session.dart';
 import '../../models/agent_status.dart';
 import '../../widgets/animations/app_transitions.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/error_state_widget.dart';
 import 'widgets/widgets.dart';
 import '../chat/chat_screen.dart';
 
@@ -303,58 +305,12 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
   }
 
   Widget _buildConnectionError() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Iconsax.cloud_no_update,
-                size: 40,
-                color: AppColors.error,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Connection Lost',
-              style: AppTypography.h4.copyWith(
-                color: isDark ? AppColors.textDark : AppColors.textLight,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Unable to connect to agent services.',
-              style: AppTypography.bodySmall.copyWith(
-                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: _reconnect,
-              icon: const Icon(Iconsax.refresh),
-              label: const Text('Reconnect'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textPrimary,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ErrorStateWidget(
+      message: 'Agent-Verbindung fehlgeschlagen',
+      details: 'Verbindung zum Agenten-Service konnte nicht hergestellt werden',
+      onRetry: _reconnect,
+      icon: Iconsax.cloud_no_update,
+      isDark: Theme.of(context).brightness == Brightness.dark,
     );
   }
 

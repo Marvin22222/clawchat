@@ -10,3 +10,4 @@ export 'local_storage.dart';
 export 'biometric_service.dart';
 export 'chat_persistence_service.dart';
 export 'api_service.dart';
+export 'error_handler_service.dart';

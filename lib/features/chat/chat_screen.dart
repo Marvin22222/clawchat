@@ -16,6 +16,7 @@ import '../../core/services/haptic_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/chat_export_service.dart';
 import '../../core/services/image_compression_service.dart';
+import '../../core/services/error_handler_service.dart';
 import '../../core/utils/logger.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
@@ -327,6 +328,51 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         });
       }
     };
+    
+    // Error callback - show error snackbar when WebSocket has an error
+    auth.ws.onError = (error) {
+      if (mounted) {
+        ErrorHandlerService.showParsedError(
+          context,
+          error,
+          onRetry: () => auth.reconnect(),
+        );
+      }
+    };
+    
+    // Connected callback - show success message (optional, can be noisy)
+    auth.ws.onConnected = () {
+      if (mounted) {
+        // Only show if there are messages (toast might be annoying on initial connect)
+        if (_messages.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Iconsax.tick_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
+                  const Text('Erneut verbunden'),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    };
+    
+    // Disconnected callback - show warning if there are messages
+    auth.ws.onDisconnected = () {
+      if (mounted && _messages.isNotEmpty && _currentStreamingMessageId == null) {
+        ErrorHandlerService.showNetworkError(
+          context,
+          customMessage: 'Verbindung verloren',
+          onRetry: () => auth.reconnect(),
+        );
+      }
+    };
   }
 
   /// Show notification for incoming message when app is in background
@@ -403,6 +449,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }).catchError((error) {
       // Error - mark as error and allow retry
       _updateMessageStatus(messageId, MessageStatus.error);
+      // Show error snackbar to user
+      ErrorHandlerService.showParsedError(context, error, onRetry: () => _retryMessage(messageId));
     });
     
     _scrollToBottomIfAtBottom();
