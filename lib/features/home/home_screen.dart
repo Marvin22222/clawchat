@@ -6,6 +6,7 @@ import '../../core/constants/spacing.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/responsive.dart';
 import '../../core/services/notification_settings_service.dart';
+import '../../core/services/storage_info_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
 import '../chat/chat_screen.dart';
@@ -433,14 +434,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                   SizedBox(
                     width: (constraints.maxWidth - AppSpacing.md) / 2,
-                    child: _DashboardCard(
-                      title: 'Letzter Chat',
-                      value: '-', 
-                      subtitle: '',
-                      icon: Iconsax.clock,
-                      color: AppColors.info,
-                      isDark: isDark,
-                    ),
+                    child: _StorageDashboardCard(isDark: isDark),
                   ),
                   SizedBox(
                     width: (constraints.maxWidth - AppSpacing.md) / 2,
@@ -478,6 +472,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   isDark: isDark,
                   compact: true,
                 ),
+                const SizedBox(height: AppSpacing.sm),
+                _StorageDashboardCard(isDark: isDark, compact: true),
                 const SizedBox(height: AppSpacing.sm),
                 _DashboardCard(
                   title: 'Verbindung',
@@ -1454,6 +1450,152 @@ class _AgentCardState extends State<_AgentCard> {
           ),
         ),
       ),
+    );
+  }
+}
+// Storage dashboard card widget
+class _StorageDashboardCard extends StatefulWidget {
+  final bool isDark;
+  final bool compact;
+
+  const _StorageDashboardCard({
+    required this.isDark,
+    this.compact = false,
+  });
+
+  @override
+  State<_StorageDashboardCard> createState() => _StorageDashboardCardState();
+}
+
+class _StorageDashboardCardState extends State<_StorageDashboardCard> {
+  int _totalSize = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStorageInfo();
+  }
+
+  Future<void> _loadStorageInfo() async {
+    final total = await StorageInfoService.getTotalSize();
+    if (mounted) {
+      setState(() {
+        _totalSize = total;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Navigate to settings storage section
+        Navigator.push(
+          context,
+          AppPageTransitions.fadeSlide(
+            builder: (_) => const SettingsScreen(),
+          ),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.all(widget.compact ? AppSpacing.md : AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: widget.isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+        ),
+        child: widget.compact ? _buildCompactContent() : _buildFullContent(),
+      ),
+    );
+  }
+
+  Widget _buildFullContent() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.info.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+          ),
+          child: Icon(Iconsax.database, color: AppColors.info, size: 24),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Speicher',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: widget.isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                _isLoading ? '...' : StorageInfoService.formatBytes(_totalSize),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: widget.isDark ? AppColors.textDark : AppColors.textLight,
+                ),
+              ),
+              Text(
+                'Cache & Daten',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: widget.isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Icon(
+          Iconsax.chevron_right,
+          color: widget.isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+          size: 20,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactContent() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: AppColors.info.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppRadius.small),
+          ),
+          child: Icon(Iconsax.database, color: AppColors.info, size: 18),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Speicher',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: widget.isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              Text(
+                _isLoading ? '...' : StorageInfoService.formatBytes(_totalSize),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: widget.isDark ? AppColors.textDark : AppColors.textLight,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

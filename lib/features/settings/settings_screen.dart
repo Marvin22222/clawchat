@@ -22,6 +22,8 @@ import '../../widgets/animations/skeleton_loaders.dart';
 import '../agents/agents_screen.dart';
 import '../notifications/notification_sheet.dart';
 import 'chat_export_screen.dart';
+import '../../core/services/storage_info_service.dart';
+import '../../core/services/app_data_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -720,6 +722,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: const Icon(Iconsax.chevron_right),
             onTap: () => _showRestoreBackupDialog(context),
           ),
+          
+          // Speicher Section
+          _SectionHeader(title: 'Speicher'),
+          
+          FutureBuilder<Map<String, int>>(
+            future: _getStorageBreakdown(),
+            builder: (context, snapshot) {
+              final total = snapshot.data?['total'] ?? 0;
+              final cache = snapshot.data?['cache'] ?? 0;
+              final messages = snapshot.data?['messages'] ?? 0;
+              final attachments = snapshot.data?['attachments'] ?? 0;
+              
+              return Column(
+                children: [
+                  ListTile(
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppRadius.small),
+                      ),
+                      child: const Icon(Iconsax.database, color: AppColors.primary, size: 20),
+                    ),
+                    title: const Text('Speicherplatz'),
+                    subtitle: Text(
+                      '${StorageInfoService.formatBytes(total)} verwendet',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                      ),
+                    ),
+                    trailing: const Icon(Iconsax.chevron_right),
+                    onTap: () => _showStorageDetails(context, cache, messages, attachments),
+                  ),
+                  // Storage progress bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    child: _StorageUsageBar(
+                      cacheSize: cache,
+                      messagesSize: messages,
+                      attachmentsSize: attachments,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.trash, color: AppColors.info, size: 20),
+            ),
+            title: const Text('Cache leeren'),
+            subtitle: const Text('Temporäre Dateien entfernen'),
+            onTap: () => _showClearCacheDialog(context),
+          ),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.ban, color: AppColors.error, size: 20),
+            ),
+            title: const Text(
+              'Alle Daten löschen',
+              style: TextStyle(color: AppColors.error),
+            ),
+            subtitle: const Text('Chats, Anhänge und Cache entfernen'),
+            onTap: () => _showDeleteAllDataDialog(context),
+          ),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.export, color: AppColors.success, size: 20),
+            ),
+            title: const Text('Daten exportieren'),
+            subtitle: const Text('Vollständiges Backup als JSON'),
+            onTap: () => _exportData(context),
+          ),
+          
+          // Auto-Cleanup Settings
+          _buildAutoCleanupTile(context),
 
           const Divider(),
 

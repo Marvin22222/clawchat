@@ -14,3 +14,5 @@ export 'api_service.dart';
 export 'error_handler_service.dart';
 export 'link_preview_service.dart';
 export 'theme_service.dart';
+export 'storage_info_service.dart';
+export 'app_data_manager.dart';
