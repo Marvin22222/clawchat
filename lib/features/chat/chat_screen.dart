@@ -63,6 +63,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _searchController = TextEditingController();
   Timer? _debounceTimer;
   List<int> _searchResults = [];
+  
+  // Search filter state
+  enum SearchFilter { all, fromUser, fromAgent }
+  SearchFilter _searchFilter = SearchFilter.all;
+  
+  // Message highlight state (for jump-to-message)
+  int? _highlightedMessageIndex;
+  bool _shouldHighlight = false;
 
   // Reply state
   ChatMessage? _replyToMessage;
@@ -1334,6 +1342,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _isSearching = false;
       _searchQuery = '';
       _searchResults = [];
+      _searchFilter = SearchFilter.all;
+      _highlightedMessageIndex = null;
+      _shouldHighlight = false;
       _searchController.clear();
       _searchFocusNode.unfocus();
     });
@@ -1351,13 +1362,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _searchResults = [];
           final lowerQuery = query.toLowerCase();
           for (int i = 0; i < _messages.length; i++) {
-            if (_messages[i].content.toLowerCase().contains(lowerQuery)) {
+            final msg = _messages[i];
+            final matchesContent = msg.content.toLowerCase().contains(lowerQuery);
+            final matchesFilter = _searchFilter == SearchFilter.all ||
+                (_searchFilter == SearchFilter.fromUser && msg.type == MessageType.user) ||
+                (_searchFilter == SearchFilter.fromAgent && msg.type != MessageType.user);
+            if (matchesContent && matchesFilter) {
               _searchResults.add(i);
             }
           }
         }
       });
     });
+  }
+  
+  void _setSearchFilter(SearchFilter filter) {
+    setState(() {
+      _searchFilter = filter;
+    });
+    // Re-run search with new filter
+    _onSearchChanged(_searchQuery);
   }
   
   void _scrollToIndex(int index) {
@@ -1386,11 +1410,29 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget _buildSearchResultsList(bool isDark) {
     if (_searchQuery.isEmpty) {
       return Center(
-        child: Text(
-          'Tippe um zu suchen',
-          style: AppTypography.body.copyWith(
-            color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Iconsax.search_normal_1,
+              size: 48,
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Suche in Chat',
+              style: AppTypography.body.copyWith(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Tippe um zu suchen',
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -1407,8 +1449,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Keine Ergebnisse gefunden',
-              style: AppTypography.bodySmall.copyWith(
+              'Keine Ergebnisse',
+              style: AppTypography.body.copyWith(
                 color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
               ),
             ),
@@ -1420,16 +1462,50 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Search filters
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          child: Row(
+            children: [
+              _buildFilterChip(
+                label: 'Alle',
+                isSelected: _searchFilter == SearchFilter.all,
+                onTap: () => _setSearchFilter(SearchFilter.all),
+                isDark: isDark,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              _buildFilterChip(
+                label: 'Von mir',
+                isSelected: _searchFilter == SearchFilter.fromUser,
+                onTap: () => _setSearchFilter(SearchFilter.fromUser),
+                isDark: isDark,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              _buildFilterChip(
+                label: 'Vom Agent',
+                isSelected: _searchFilter == SearchFilter.fromAgent,
+                onTap: () => _setSearchFilter(SearchFilter.fromAgent),
+                isDark: isDark,
+              ),
+            ],
+          ),
+        ),
         // Match count header
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
+            vertical: AppSpacing.xs,
           ),
           child: Text(
-            '${_searchResults.length} Treffer für "$_searchQuery"',
-            style: AppTypography.label.copyWith(
-              color: AppColors.primary,
+            _searchResults.length == 1 
+                ? '1 Ergebnis' 
+                : '${_searchResults.length} Ergebnisse',
+            style: AppTypography.caption.copyWith(
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
             ),
           ),
         ),
@@ -1446,6 +1522,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 onTap: () {
                   _cancelSearch();
                   _scrollToIndex(msgIndex);
+                  _highlightMessage(msgIndex);
                 },
               );
             },
@@ -1453,6 +1530,43 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ),
       ],
     );
+  }
+  
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppColors.primary 
+              : (isDark ? AppColors.bgDarkSecondary : Colors.grey[200]),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.label.copyWith(
+            color: isSelected 
+                ? Colors.white 
+                : (isDark ? AppColors.textDark : AppColors.textLight),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  void _highlightMessage(int index) {
+    // This will be handled by the main chat list's message highlight state
+    // For now, just scroll - the message will be visible
   }
   
   Widget _DateSeparator({required DateTime timestamp, required bool isDark}) {
@@ -2069,7 +2183,7 @@ class _SearchResultItem extends StatelessWidget {
       spans.add(TextSpan(
         text: text.substring(index, index + query.length),
         style: TextStyle(
-          backgroundColor: AppColors.primary.withOpacity(0.3),
+          backgroundColor: Colors.yellow.withOpacity(0.5),
           fontWeight: FontWeight.w600,
         ),
       ));
