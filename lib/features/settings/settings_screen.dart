@@ -7,6 +7,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/spacing.dart';
 import '../../core/constants/typography.dart';
 import '../../core/services/haptic_service.dart';
+import '../../core/services/image_compression_service.dart';
 import '../chat/providers/lazy_notification_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
@@ -489,6 +490,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
 
           const Divider(),
+
+          // Media & Image Section
+          _SectionHeader(title: 'Medien & Bilder'),
+          
+          // Image Quality
+          FutureBuilder<ImageQualityPreset>(
+            future: ImageCompressionService.getQualityPreset(),
+            builder: (context, snapshot) {
+              final preset = snapshot.data ?? ImageQualityPreset.medium;
+              return ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
+                  ),
+                  child: const Icon(Iconsax.image, color: AppColors.primary, size: 20),
+                ),
+                title: const Text('Bildqualität'),
+                subtitle: Text(
+                  preset.displayName,
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                  ),
+                ),
+                trailing: const Icon(Iconsax.chevron_right),
+                onTap: () => _showImageQualitySelector(context, preset),
+              );
+            },
+          ),
+
+          const Divider();
 
           // Data & Export Section
           _SectionHeader(title: 'Daten & Export'),
@@ -1392,6 +1426,126 @@ class _PresetListItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+  void _showImageQualitySelector(BuildContext context, ImageQualityPreset currentPreset) {
+    showSmoothBottomSheet(
+      context: context,
+      initialChildSize: 0.4,
+      maxChildSize: 0.5,
+      minChildSize: 0.3,
+      snapSizes: const [0.3, 0.4, 0.5],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.bgDarkSecondary
+            : AppColors.bgLightSecondary,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Bildqualität',
+              style: AppTypography.h5.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(
+              child: ListView(
+                children: [
+                  _ImageQualityOption(
+                    preset: ImageQualityPreset.high,
+                    isSelected: currentPreset == ImageQualityPreset.high,
+                    onTap: () async {
+                      await ImageCompressionService.setQualityPreset(ImageQualityPreset.high);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                      setState(() {}); // Refresh to update UI
+                    },
+                  ),
+                  _ImageQualityOption(
+                    preset: ImageQualityPreset.medium,
+                    isSelected: currentPreset == ImageQualityPreset.medium,
+                    onTap: () async {
+                      await ImageCompressionService.setQualityPreset(ImageQualityPreset.medium);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                      setState(() {});
+                    },
+                  ),
+                  _ImageQualityOption(
+                    preset: ImageQualityPreset.low,
+                    isSelected: currentPreset == ImageQualityPreset.low,
+                    onTap: () async {
+                      await ImageCompressionService.setQualityPreset(ImageQualityPreset.low);
+                      HapticService.lightImpact();
+                      Navigator.pop(context);
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ImageQualityOption extends StatelessWidget {
+  final ImageQualityPreset preset;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ImageQualityOption({
+    required this.preset,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    String subtitle;
+    switch (preset) {
+      case ImageQualityPreset.high:
+        subtitle = 'Max. ${preset.maxSizeKb ~/ 1024}MB, ${preset.maxDimension}px';
+        break;
+      case ImageQualityPreset.medium:
+        subtitle = 'Max. ${preset.maxSizeKb}KB, ${preset.maxDimension}px';
+        break;
+      case ImageQualityPreset.low:
+        subtitle = 'Max. ${preset.maxSizeKb}KB, ${preset.maxDimension}px';
+        break;
+    }
+    
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withOpacity(0.2)
+              : AppColors.surfaceDark.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(AppRadius.small),
+        ),
+        child: Icon(
+          Iconsax.image,
+          color: isSelected ? AppColors.primary : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+          size: 20,
+        ),
+      ),
+      title: Text(preset.displayName),
+      subtitle: Text(subtitle),
+      trailing: isSelected
+          ? const Icon(Iconsax.tick_circle, color: AppColors.primary)
+          : null,
+      onTap: onTap,
     );
   }
 }

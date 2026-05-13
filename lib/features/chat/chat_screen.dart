@@ -15,6 +15,7 @@ import '../../core/services/chat_persistence_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/chat_export_service.dart';
+import '../../core/services/image_compression_service.dart';
 import '../../core/utils/logger.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
@@ -598,15 +599,81 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
-  void _onImageSelected(String filePath) {
-    // Create attachment from file path
-    final fileName = filePath.split('/').last;
-    final attachment = MessageAttachment(
-      path: filePath,
-      fileName: fileName,
-      mimeType: 'image/jpeg',
+  void _onImageSelected(String filePath) async {
+    // Show compressing indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? AppColors.textDark 
+                  : AppColors.textLight,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Komprimiere Bild...'),
+          ],
+        ),
+        duration: const Duration(seconds: 10),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
-    _sendMessage('[Bild]', attachments: [attachment]);
+
+    // Compress image before upload
+    final result = await ImageCompressionService.compress(filePath);
+    
+    // Hide snackbar
+    if (mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    }
+    
+    if (result != null && mounted) {
+      // Show size reduction info
+      if (result.compressionRatio < 1.0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${result.formattedOriginal} → ${result.formattedCompressed}',
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      
+      // Create attachment from compressed file
+      final fileName = result.compressedFile.path.split('/').last;
+      final attachment = MessageAttachment(
+        path: result.compressedFile.path,
+        fileName: fileName,
+        mimeType: 'image/jpeg',
+      );
+      _sendMessage('[Bild]', attachments: [attachment]);
+    } else {
+      // Fallback to original if compression failed
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Bild zu groß - komprimiere automatisch'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        
+        final fileName = filePath.split('/').last;
+        final attachment = MessageAttachment(
+          path: filePath,
+          fileName: fileName,
+          mimeType: 'image/jpeg',
+        );
+        _sendMessage('[Bild]', attachments: [attachment]);
+      }
+    }
   }
 
   void _addReaction(String messageId, String emoji) {

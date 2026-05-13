@@ -4,6 +4,7 @@ export 'voice_input_service.dart';
 export 'voice_recorder_service.dart';
 export 'voice_message_service.dart';
 export 'image_upload_service.dart';
+export 'image_compression_service.dart';
 export 'notification_service.dart';
 export 'local_storage.dart';
 export 'biometric_service.dart';
