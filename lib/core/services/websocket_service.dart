@@ -1,6 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+/// Batch duration for UI updates (ms) - prevents excessive rebuilds
+const int _kMessageBatchDurationMs = 16; // ~60fps max
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
 
@@ -27,6 +31,11 @@ class WebSocketService extends ChangeNotifier {
   Function()? onStreamingStart;  // New: called when assistant starts streaming
   Function()? onStreamingEnd;    // New: called when streaming is complete
   Function(String messageId)? onMessageRead;  // Called when a message read receipt is received
+
+  // Message batching for UI performance
+  Timer? _messageBatchTimer;
+  String _pendingMessageContent = '';
+  String? _pendingStreamingId;
 
   ConnectionStatus get status => _status;
   List<String> get availableAgents => _availableAgents;
@@ -112,9 +121,17 @@ class WebSocketService extends ChangeNotifier {
         case 'message_stream_start':
           onStreamingStart?.call();
           break;
-        case 'message_chunk':
-          onMessage?.call(message['content'] ?? '');
+        case 'message_chunk': {
+          // Batch rapid messages together to reduce UI rebuilds
+          final content = message['content'] ?? '';
+          final streamingId = message['streamingId'];
+          if (streamingId != null) {
+            _pendingStreamingId = streamingId;
+          }
+          _pendingMessageContent += content;
+          _scheduleMessageBatch();
           break;
+        }
         case 'message_stream_end':
           onStreamingEnd?.call();
           break;
@@ -213,8 +230,25 @@ class WebSocketService extends ChangeNotifier {
     return await connect(_gatewayUrl!, _token!);
   }
 
+  void _scheduleMessageBatch() {
+    _messageBatchTimer?.cancel();
+    _messageBatchTimer = Timer(
+      const Duration(milliseconds: _kMessageBatchDurationMs),
+      _flushMessageBatch,
+    );
+  }
+
+  void _flushMessageBatch() {
+    if (_pendingMessageContent.isNotEmpty) {
+      onMessage?.call(_pendingMessageContent);
+      _pendingMessageContent = '';
+      _pendingStreamingId = null;
+    }
+  }
+
   @override
   void dispose() {
+    _messageBatchTimer?.cancel();
     _channel?.sink.close();
     _channel = null;
     super.dispose();
