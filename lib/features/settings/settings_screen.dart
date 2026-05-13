@@ -9,6 +9,9 @@ import '../../core/constants/typography.dart';
 import '../../core/services/haptic_service.dart';
 import '../../core/services/image_compression_service.dart';
 import '../chat/providers/lazy_notification_provider.dart';
+import '../chat/templates/templates_widget.dart';
+import '../../core/services/templates_service.dart';
+import '../../models/message_template.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
@@ -584,6 +587,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const Divider(),
 
+          // Message Templates Section
+          _SectionHeader(title: 'Nachrichten-Vorlagen'),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.template, color: AppColors.primary, size: 20),
+            ),
+            title: const Text('Vorlagen verwalten'),
+            subtitle: const Text('Schnellantworten und Textbausteine'),
+            trailing: const Icon(Iconsax.chevron_right),
+            onTap: () => _showTemplatesManager(context),
+          ),
+
+          const Divider(),
+
           // About Section
           _SectionHeader(title: 'Über'),
           
@@ -1072,6 +1096,409 @@ void _showRestoreBackupDialog(BuildContext context) {
       ],
     ),
   );
+}
+
+void _showTemplatesManager(BuildContext context) {
+  showSmoothBottomSheet(
+    context: context,
+    initialChildSize: 0.7,
+    maxChildSize: 0.9,
+    minChildSize: 0.5,
+    snapSizes: const [0.5, 0.7, 0.9],
+    animationDuration: const Duration(milliseconds: 200),
+    builder: (context, scrollController) => _TemplatesManagerContent(
+      scrollController: scrollController,
+    ),
+  );
+}
+
+class _TemplatesManagerContent extends StatefulWidget {
+  final ScrollController scrollController;
+
+  const _TemplatesManagerContent({required this.scrollController});
+
+  @override
+  State<_TemplatesManagerContent> createState() => _TemplatesManagerContentState();
+}
+
+class _TemplatesManagerContentState extends State<_TemplatesManagerContent> {
+  List<MessageTemplate> _customTemplates = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTemplates();
+  }
+
+  Future<void> _loadTemplates() async {
+    final templates = await TemplatesService.getCustomTemplates();
+    if (mounted) {
+      setState(() {
+        _customTemplates = templates;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+      child: Column(
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Nachrichten-Vorlagen',
+                  style: AppTypography.h4.copyWith(
+                    color: isDark ? AppColors.textDark : AppColors.textLight,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Iconsax.add_circle, color: AppColors.primary),
+                  onPressed: () => _showAddTemplateDialog(),
+                ),
+              ],
+            ),
+          ),
+          // Custom templates list
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _customTemplates.isEmpty
+                    ? _buildEmptyState(isDark)
+                    : ListView.builder(
+                        controller: widget.scrollController,
+                        itemCount: _customTemplates.length,
+                        itemBuilder: (context, index) {
+                          final template = _customTemplates[index];
+                          return _TemplateListItem(
+                            template: template,
+                            onEdit: () => _showEditTemplateDialog(template),
+                            onDelete: () => _confirmDeleteTemplate(template),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Iconsax.template,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Keine eigenen Vorlagen',
+            style: AppTypography.body.copyWith(
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextButton.icon(
+            onPressed: _showAddTemplateDialog,
+            icon: const Icon(Iconsax.add),
+            label: const Text('Vorlage erstellen'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddTemplateDialog() {
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    final shortcutController = TextEditingController();
+    String selectedCategory = 'quick';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          title: const Text('Neue Vorlage'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Titel',
+                    hintText: 'z.B. Begrüßung',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'Kategorie',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'quick', child: Text('Schnellantworten')),
+                    DropdownMenuItem(value: 'code', child: Text('Code')),
+                    DropdownMenuItem(value: 'links', child: Text('Links')),
+                    DropdownMenuItem(value: 'custom', child: Text('Custom')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setDialogState(() => selectedCategory = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: shortcutController,
+                  decoration: const InputDecoration(
+                    labelText: 'Shortcut (optional, z.B. /hi)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: contentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Inhalt',
+                    hintText: 'Vorlagen-Text hier eingeben...',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 4,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Abbrechen'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (titleController.text.trim().isEmpty || contentController.text.trim().isEmpty) {
+                  return;
+                }
+                
+                final template = MessageTemplate(
+                  id: TemplatesService.generateId(),
+                  title: titleController.text.trim(),
+                  content: contentController.text.trim(),
+                  shortcut: shortcutController.text.trim().isEmpty ? null : shortcutController.text.trim(),
+                  isCustom: true,
+                  category: selectedCategory,
+                );
+                
+                await TemplatesService.saveTemplate(template);
+                if (context.mounted) Navigator.pop(context);
+                _loadTemplates();
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text('Erstellen', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditTemplateDialog(MessageTemplate template) {
+    final titleController = TextEditingController(text: template.title);
+    final contentController = TextEditingController(text: template.content);
+    final shortcutController = TextEditingController(text: template.shortcut ?? '');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        title: const Text('Vorlage bearbeiten'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Titel',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: shortcutController,
+                decoration: const InputDecoration(
+                  labelText: 'Shortcut (z.B. /hello)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: contentController,
+                decoration: const InputDecoration(
+                  labelText: 'Inhalt',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 4,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (titleController.text.trim().isEmpty || contentController.text.trim().isEmpty) {
+                return;
+              }
+              
+              final updated = template.copyWith(
+                title: titleController.text.trim(),
+                content: contentController.text.trim(),
+                shortcut: shortcutController.text.trim().isEmpty ? null : shortcutController.text.trim(),
+              );
+              
+              await TemplatesService.updateTemplate(updated);
+              if (context.mounted) Navigator.pop(context);
+              _loadTemplates();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Speichern', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteTemplate(MessageTemplate template) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Vorlage löschen?'),
+        content: Text('Möchtest du die Vorlage "${template.title}" wirklich löschen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await TemplatesService.deleteTemplate(template.id);
+              if (context.mounted) Navigator.pop(context);
+              _loadTemplates();
+            },
+            child: const Text('Löschen', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TemplateListItem extends StatelessWidget {
+  final MessageTemplate template;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _TemplateListItem({
+    required this.template,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  IconData _getCategoryIcon() {
+    switch (template.category) {
+      case 'code':
+        return Iconsax.code;
+      case 'links':
+        return Iconsax.link_21;
+      case 'custom':
+        return Iconsax.star;
+      default:
+        return Iconsax.flash;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Card(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppRadius.small),
+          ),
+          child: Icon(_getCategoryIcon(), color: AppColors.primary, size: 20),
+        ),
+        title: Text(
+          template.title,
+          style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (template.shortcut != null)
+              Text(
+                template.shortcut!,
+                style: AppTypography.captionSmall.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
+            Text(
+              template.content.length > 50
+                  ? '${template.content.substring(0, 50)}...'
+                  : template.content,
+              style: AppTypography.captionSmall.copyWith(
+                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Iconsax.edit, size: 20),
+              onPressed: onEdit,
+            ),
+            IconButton(
+              icon: const Icon(Iconsax.trash, size: 20, color: AppColors.error),
+              onPressed: onDelete,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 void _showPresetsManager(BuildContext context, AgentPresetsProvider presetsProvider, AuthProvider auth) {

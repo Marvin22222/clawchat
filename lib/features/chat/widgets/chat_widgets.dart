@@ -20,6 +20,8 @@ import '../../../core/services/voice_message_service.dart';
 import '../../../models/message.dart';
 import '../../../widgets/animations/app_transitions.dart';
 import 'streaming_text.dart';
+import '../../core/services/templates_service.dart';
+import '../chat/templates/templates_widget.dart';
 import 'fullscreen_image_viewer.dart';
 import 'video_player_widget.dart';
 import 'package:flutter/gestures.dart';
@@ -1919,6 +1921,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   bool _isRecording = false;
   bool _isRecordingVoiceMessage = false;
   bool _isPttHolding = false;
+  bool _showQuickTemplates = false;
   VoiceInputService? _voiceService;
   VoiceRecorderService? _voiceRecorderService;
   VoiceMessageService? _voiceMessageService;
@@ -1997,6 +2000,39 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
       widget.onSend(text);
       _controller.clear();
     }
+  }
+
+  void _insertTemplate(String content) {
+    final currentText = _controller.text;
+    final selection = _controller.selection;
+    
+    if (selection.isValid && selection.start != selection.end) {
+      // Replace selection with template
+      final newText = currentText.replaceRange(selection.start, selection.end, content);
+      _controller.text = newText;
+      _controller.selection = TextSelection.collapsed(offset: selection.start + content.length);
+    } else {
+      // Insert at cursor position
+      final cursorPos = selection.baseOffset >= 0 ? selection.baseOffset : currentText.length;
+      final newText = currentText.substring(0, cursorPos) + content + currentText.substring(cursorPos);
+      _controller.text = newText;
+      _controller.selection = TextSelection.collapsed(offset: cursorPos + content.length);
+    }
+    
+    setState(() => _showQuickTemplates = false);
+    _focusNode.requestFocus();
+  }
+
+  void _showTemplatesSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => TemplatesWidget(
+        onTemplateSelected: _insertTemplate,
+        onClose: () => Navigator.pop(context),
+      ),
+    );
   }
 
   String _formatDuration(Duration duration) {
@@ -2275,6 +2311,14 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                   ],
                 ),
               ),
+            // Quick Templates Bar
+            if (_showQuickTemplates)
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: QuickTemplatesBar(
+                  onTemplateSelected: _insertTemplate,
+                ),
+              ),
             // Main input row
             Row(
               children: [
@@ -2295,6 +2339,14 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                   icon: const Icon(Iconsax.attach_2, color: AppColors.primary),
                   onPressed: widget.enabled ? _showAttachmentOptions : null,
                   tooltip: 'Add attachment',
+                ),
+                IconButton(
+                  icon: Icon(
+                    _showQuickTemplates ? Iconsax.template : Iconsax.element_2,
+                    color: _showQuickTemplates ? AppColors.secondary : AppColors.primary,
+                  ),
+                  onPressed: widget.enabled ? () => setState(() => _showQuickTemplates = !_showQuickTemplates) : null,
+                  tooltip: 'Templates',
                 ),
                 Expanded(
                   child: CallbackShortcuts(
