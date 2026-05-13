@@ -7,6 +7,7 @@ import '../../core/services/mock_agent_data.dart';
 import '../../models/agent_session.dart';
 import '../../models/agent_status.dart';
 import '../../widgets/animations/app_transitions.dart';
+import '../../widgets/empty_state.dart';
 import 'widgets/widgets.dart';
 import '../chat/chat_screen.dart';
 
@@ -464,69 +465,36 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
 
   Widget _buildEmptyState() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final String title;
+    final String subtitle;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Iconsax.emoji_happy,
-              size: 80,
-              color: isDark
-                  ? AppColors.textDarkSecondary.withValues(alpha: 0.3)
-                  : AppColors.textLightSecondary.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No agents found',
-              style: AppTypography.h4.copyWith(
-                color: isDark ? AppColors.textDark : AppColors.textLight,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _selectedFilter == AgentFilter.all
-                  ? 'No agents available.'
-                  : 'No agents match the selected filter.',
-              style: AppTypography.bodySmall.copyWith(
-                color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            if (_selectedFilter != AgentFilter.all)
-              ElevatedButton.icon(
-                onPressed: () => _onFilterChanged(AgentFilter.all),
-                icon: const Icon(Iconsax.close_square),
-                label: const Text('Clear Filter'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              )
-            else
-              ElevatedButton.icon(
-                onPressed: _showNewTaskModal,
-                icon: const Icon(Iconsax.add),
-                label: const Text('Start New Task'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+    if (_selectedFilter == AgentFilter.all) {
+      title = 'Keine Agents verfügbar';
+      subtitle = 'Deine Agents werden hier erscheinen';
+    } else {
+      title = 'Keine Agents gefunden';
+      subtitle = 'Keine Agents entsprechen dem Filter';
+    }
+
+    if (_selectedFilter != AgentFilter.all) {
+      return BetterEmptyState(
+        icon: Iconsax.emoji_happy,
+        title: title,
+        subtitle: subtitle,
+        actionLabel: 'Filter löschen',
+        onAction: () => _onFilterChanged(AgentFilter.all),
+        isDark: isDark,
+        animationType: BetterEmptyStateAnimationType.pulse,
+      );
+    }
+    return BetterEmptyState(
+      icon: Iconsax.emoji_happy,
+      title: title,
+      subtitle: subtitle,
+      actionLabel: 'Neue Aufgabe starten',
+      onAction: _showNewTaskModal,
+      isDark: isDark,
+      animationType: BetterEmptyStateAnimationType.pulse,
     );
   }
 

@@ -6,6 +6,7 @@ import '../../core/services/agent_preset_service.dart';
 import '../../models/message.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
+import '../../widgets/empty_state.dart';
 import '../chat/chat_screen.dart';
 
 class AgentsScreen extends StatefulWidget {
@@ -380,61 +381,18 @@ class _EmptyState extends StatelessWidget {
   final bool isDark;
   final VoidCallback onRefresh;
 
-
   const _EmptyState({required this.isDark, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Iconsax.robot_outlined,
-                size: 48,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Keine Agents verfügbar',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: isDark
-                    ? AppColors.textDark
-                    : AppColors.textLight,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Verbinde dich mit dem Gateway um\nverfügbare Agents zu sehen',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark
-                    ? AppColors.textDarkSecondary
-                    : AppColors.textLightSecondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            FilledButton.icon(
-              onPressed: onRefresh,
-              icon: const Icon(Iconsax.refresh),
-              label: const Text('Erneut versuchen'),
-            ),
-          ],
-        ),
-      ),
+    return BetterEmptyState(
+      icon: Iconsax.robot_outlined,
+      title: 'Verbinde dich mit einem Gateway um Agenten zu sehen',
+      subtitle: 'Deine verfügbaren Agents erscheinen hier',
+      actionLabel: 'Erneut versuchen',
+      onAction: onRefresh,
+      isDark: isDark,
+      animationType: BetterEmptyStateAnimationType.bounce,
     );
   }
 }

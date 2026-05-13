@@ -31,6 +31,8 @@ class ChatMessage {
   final bool isStreaming; // true while assistant is streaming this message
   final List<String>? streamingChunks; // accumulated chunks for display
   final bool isEdited; // true if message was edited
+  final String? replyToId; // ID of the message being replied to
+  final String? replyToContent; // Preview of the message being replied to
 
   ChatMessage({
     required this.id,
@@ -45,6 +47,8 @@ class ChatMessage {
     this.isStreaming = false,
     this.streamingChunks,
     this.isEdited = false,
+    this.replyToId,
+    this.replyToContent,
   });
 
   ChatMessage copyWith({
@@ -56,6 +60,8 @@ class ChatMessage {
     bool? isStreaming,
     List<String>? streamingChunks,
     bool? isEdited,
+    String? replyToId,
+    String? replyToContent,
   }) {
     return ChatMessage(
       id: id,
@@ -70,6 +76,8 @@ class ChatMessage {
       isStreaming: isStreaming ?? this.isStreaming,
       streamingChunks: streamingChunks ?? this.streamingChunks,
       isEdited: isEdited ?? this.isEdited,
+      replyToId: replyToId ?? this.replyToId,
+      replyToContent: replyToContent ?? this.replyToContent,
     );
   }
 }

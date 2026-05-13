@@ -3,6 +3,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
+import '../../widgets/empty_state.dart';
 import 'models/task_model.dart';
 import 'providers/task_provider.dart';
 import '../../widgets/animations/skeleton_loaders.dart';
@@ -103,30 +104,21 @@ class _TasksScreenState extends State<TasksScreen> {
     final tasks = taskProvider.tasks;
 
     if (tasks.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Iconsax.task_alt,
-              size: 64,
-              color: isDark
-                  ? AppColors.textDarkSecondary
-                  : AppColors.textLightSecondary,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              taskProvider.filterStatus != null
-                  ? 'Keine Aufgaben'
-                  : 'Alle erledigt! 🎉',
-              style: TextStyle(
-                color: isDark
-                    ? AppColors.textDarkSecondary
-                    : AppColors.textLightSecondary,
-              ),
-            ),
-          ],
-        ),
+      String title;
+      String subtitle;
+      if (taskProvider.filterStatus != null) {
+        title = 'Keine Aufgaben';
+        subtitle = 'Versuche einen anderen Filter';
+      } else {
+        title = 'Alle erledigt! 🎉';
+        subtitle = 'Deine geplanten Tasks erscheinen hier';
+      }
+      return BetterEmptyState(
+        icon: Iconsax.task_alt,
+        title: title,
+        subtitle: subtitle,
+        isDark: isDark,
+        animationType: BetterEmptyStateAnimationType.pulse,
       );
     }
 

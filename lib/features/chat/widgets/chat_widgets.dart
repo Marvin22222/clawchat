@@ -35,6 +35,7 @@ class MessageBubble extends StatelessWidget {
   final VoidCallback? onRetry;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onReply; // Callback for reply action
   final String? messageId;
   final Map<String, int>? reactions;
   final bool isStreaming; // true while text is being streamed
@@ -450,6 +451,20 @@ class MessageBubble extends StatelessWidget {
                   HapticService.lightImpact();
                 },
               ),
+              // Reply option (always available)
+              if (onReply != null) ...[
+                ListTile(
+                  leading: Icon(Iconsax.reply, color: AppColors.primary),
+                  title: Text(
+                    'Antworten',
+                    style: AppTypography.body.copyWith(color: AppColors.primary),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    onReply?.call();
+                  },
+                ),
+              ],
               // Edit option (only for user messages)
               if (isUser && onEdit != null) ...[
                 ListTile(

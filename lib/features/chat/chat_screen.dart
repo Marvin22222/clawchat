@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
+import '../../widgets/empty_state.dart';
 import '../../core/constants/typography.dart';
 import '../../core/services/websocket_service.dart';
 import '../../core/services/chat_persistence_service.dart';
@@ -56,6 +57,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _searchController = TextEditingController();
   Timer? _debounceTimer;
   List<int> _searchResults = [];
+
+  // Reply state
+  ChatMessage? _replyToMessage;
 
   @override
   void initState() {
@@ -616,6 +620,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     HapticService.mediumImpact();
   }
 
+  void _setReplyTo(ChatMessage message) {
+    setState(() {
+      _replyToMessage = message;
+    });
+  }
+
+  void _clearReplyTo() {
+    setState(() {
+      _replyToMessage = null;
+    });
+  }
+
 
   @override
   void dispose() {
@@ -842,6 +858,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               onDelete: msg.type == MessageType.user ? () => _deleteMessage(msg.id) : null,
                               messageId: msg.id,
                               onReact: (emoji) => _addReaction(msg.id, emoji),
+                              onReply: () => _setReplyTo(msg),
                               isFirstInGroup: _isFirstInGroup(messageIndex),
                               isLastInGroup: _isLastInGroup(messageIndex),
                               isSameSenderAsPrevious: _isSameSenderAsPrevious(messageIndex),
@@ -1205,52 +1222,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildEmptyState(bool isDark, bool isConnected) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isConnected ? Iconsax.arrow_up_2 : Iconsax.wifi_slash,
-              size: 64,
-              color: isDark 
-                  ? AppColors.textDarkSecondary 
-                  : AppColors.textLightSecondary,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              isConnected ? 'Starte die Konversation' : 'Nicht verbunden',
-              style: AppTypography.h5.copyWith(
-                color: isDark ? AppColors.textDark : AppColors.textLight,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              isConnected 
-                  ? 'Schreib eine Nachricht' 
-                  : 'Verbinde dich mit dem Gateway',
-              style: AppTypography.bodySmall.copyWith(
-                color: isDark 
-                    ? AppColors.textDarkSecondary 
-                    : AppColors.textLightSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (isConnected) ...[
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _HintChip(icon: Iconsax.microphone, label: 'Voice', isDark: isDark),
-                  const SizedBox(width: AppSpacing.sm),
-                  _HintChip(icon: Iconsax.attach_2, label: 'Image', isDark: isDark),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
+    if (isConnected) {
+      return BetterEmptyState(
+        icon: Iconsax.arrow_up_2,
+        title: 'Starte ein Gespräch mit deinem Agent!',
+        subtitle: 'Schreib eine Nachricht oder nutze Voice/Image',
+        isDark: isDark,
+        animationType: BetterEmptyStateAnimationType.pulse,
+      );
+    }
+    return BetterEmptyState(
+      icon: Iconsax.wifi_slash,
+      title: 'Nicht verbunden',
+      subtitle: 'Verbinde dich mit dem Gateway',
+      isDark: isDark,
+      animationType: BetterEmptyStateAnimationType.fade,
     );
   }
 
