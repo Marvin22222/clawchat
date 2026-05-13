@@ -29,6 +29,9 @@ dependencies:
   # HTTP client for REST API calls (message editing)
   http: ^1.2.0
   
+  # URL launcher for opening links in browser
+  url_launcher: ^6.2.5
+  
   # PDF Export
   pdf: ^3.11.0
   printing: ^5.13.0

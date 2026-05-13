@@ -25,6 +25,7 @@ import '../chat/templates/templates_widget.dart';
 import 'fullscreen_image_viewer.dart';
 import 'video_player_widget.dart';
 import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../widgets/animations/skeleton_loaders.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -1225,6 +1226,12 @@ class _InteractiveTextState extends State<_InteractiveText>
     with SingleTickerProviderStateMixin {
   late AnimationController _cursorController;
 
+  // Regex for URL detection
+  static final RegExp _urlRegex = RegExp(
+    r'(?:https?://)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)',
+    caseSensitive: false,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -1240,44 +1247,95 @@ class _InteractiveTextState extends State<_InteractiveText>
     super.dispose();
   }
 
+  Future<void> _openUrl(String url) async {
+    final normalizedUrl = url.startsWith('http') ? url : 'https://$url';
+    final uri = Uri.parse(normalizedUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final textColor = widget.isUser
         ? Colors.white
         : (widget.isDark ? AppColors.textDark : AppColors.textLight);
 
+    final linkColor = widget.isUser
+        ? Colors.white.withOpacity(0.9)
+        : AppColors.primary;
+
+    // Parse content for URLs and build text spans
+    final spans = _buildTextSpans(widget.content, textColor, linkColor);
+
+    // Add streaming cursor if needed
+    if (widget.isStreaming) {
+      spans.add(
+        WidgetSpan(
+          alignment: PlaceholderAlignment.baseline,
+          baseline: TextBaseline.alphabetic,
+          child: AnimatedBuilder(
+            animation: _cursorController,
+            builder: (context, child) {
+              return Opacity(
+                opacity: _cursorController.value,
+                child: Container(
+                  width: 2,
+                  height: 16,
+                  margin: const EdgeInsets.only(left: 2, right: 2),
+                  color: textColor,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
     return SelectableText.rich(
       TextSpan(
-        children: [
-          TextSpan(
-            text: widget.content,
-            style: AppTypography.body.copyWith(
-              color: textColor,
-              height: 1.4,
-            ),
-          ),
-          if (widget.isStreaming)
-            WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: AnimatedBuilder(
-                animation: _cursorController,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _cursorController.value,
-                    child: Container(
-                      width: 2,
-                      height: 16,
-                      margin: const EdgeInsets.only(left: 2, right: 2),
-                      color: textColor,
-                    ),
-                  );
-                },
-              ),
-            ),
-        ],
+        children: spans,
       ),
     );
+  }
+
+  List<InlineSpan> _buildTextSpans(String text, Color normalColor, Color linkColor) {
+    final spans = <InlineSpan>[];
+    final matches = _urlRegex.allMatches(text);
+
+    int lastEnd = 0;
+    for (final match in matches) {
+      // Add text before URL
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastEnd, match.start),
+          style: AppTypography.body.copyWith(color: normalColor, height: 1.4),
+        ));
+      }
+
+      final url = match.group(0)!;
+      spans.add(TextSpan(
+        text: url,
+        style: AppTypography.body.copyWith(
+          color: linkColor,
+          height: 1.4,
+          decoration: TextDecoration.underline,
+        ),
+        recognizer: TapGestureRecognizer()..onTap = () => _openUrl(url),
+      ));
+
+      lastEnd = match.end;
+    }
+
+    // Add remaining text
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastEnd),
+        style: AppTypography.body.copyWith(color: normalColor, height: 1.4),
+      ));
+    }
+
+    return spans;
   }
 }
 
