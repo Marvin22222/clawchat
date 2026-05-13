@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/spacing.dart';
 
-/// "Agent schreibt..." indicator shown below the last assistant message
-/// during streaming. Shows animated bouncing dots with "schreibt..." text.
+/// "Agent tippt..." indicator shown during streaming.
+/// Features smooth bouncing dots animation with bubble styling.
 class AgentTypingIndicator extends StatefulWidget {
   /// The name of the agent that is typing
   final String? agentName;
+  
+  /// Custom text to display (default: "tippt...")
+  final String? statusText;
 
   const AgentTypingIndicator({
     super.key,
     this.agentName,
+    this.statusText,
   });
 
   @override
@@ -26,7 +30,7 @@ class _AgentTypingIndicatorState extends State<AgentTypingIndicator>
   void initState() {
     super.initState();
     _bounceController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 600), // Faster, snappier
       vsync: this,
     )..repeat();
 
@@ -44,20 +48,22 @@ class _AgentTypingIndicatorState extends State<AgentTypingIndicator>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final agentInitial = (widget.agentName ?? 'Agent')[0].toUpperCase();
+    final statusText = widget.statusText ?? 'tippt';
     
     return Container(
       margin: const EdgeInsets.only(
         left: AppSpacing.md,
         right: AppSpacing.xl,
-        bottom: AppSpacing.sm,
+        bottom: AppSpacing.md,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Agent avatar placeholder
+          // Agent avatar
           Container(
-            width: 28,
-            height: 28,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [AppColors.primary, AppColors.secondary],
@@ -68,9 +74,9 @@ class _AgentTypingIndicatorState extends State<AgentTypingIndicator>
             ),
             child: Center(
               child: Text(
-                (widget.agentName ?? 'A')[0].toUpperCase(),
+                agentInitial,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -82,8 +88,8 @@ class _AgentTypingIndicatorState extends State<AgentTypingIndicator>
           // Typing indicator bubble
           Container(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
+              horizontal: AppSpacing.md + 4,
+              vertical: AppSpacing.sm + 2,
             ),
             decoration: BoxDecoration(
               color: isDark 
@@ -92,48 +98,38 @@ class _AgentTypingIndicatorState extends State<AgentTypingIndicator>
               borderRadius: BorderRadius.circular(AppRadius.large).copyWith(
                 bottomLeft: const Radius.circular(4),
               ),
+              boxShadow: isDark
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Animated bouncing dots
-                ...List.generate(3, (index) {
-                  return AnimatedBuilder(
-                    animation: _bounceAnimation,
-                    builder: (context, child) {
-                      // Staggered animation: dot 0 at 0ms, dot 1 at 200ms, dot 2 at 400ms
-                      final delay = index * 0.167; // ~200ms at 1200ms duration
-                      final progress = (_bounceAnimation.value + delay) % 1.0;
-                      
-                      // Bounce up and down
-                      final bounce = _calculateBounce(progress);
-                      
-                      return Transform.translate(
-                        offset: Offset(0, -bounce * 4),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.4 + (bounce * 0.6)),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }),
-                const SizedBox(width: AppSpacing.sm),
+                // Animated bouncing dots (larger: 10px)
+                _BouncingDots(
+                  dotSize: 10,
+                  color: AppColors.primary,
+                  spacing: 5,
+                  animation: _bounceAnimation,
+                ),
+                const SizedBox(width: AppSpacing.sm + 2),
                 
-                // "schreibt..." text
+                // Status text
                 Text(
-                  'schreibt',
+                  statusText,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: isDark 
                         ? AppColors.textDarkSecondary 
                         : AppColors.textLightSecondary,
                     fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -143,21 +139,83 @@ class _AgentTypingIndicatorState extends State<AgentTypingIndicator>
       ),
     );
   }
+}
 
-  double _calculateBounce(double progress) {
-    // Smooth bounce: 0 -> 1 -> 0 over the progress
-    // Using sine curve for smooth up and down
-    if (progress < 0.5) {
-      // Going up
-      return progress * 2;
-    } else {
-      // Coming down
-      return (1 - progress) * 2;
-    }
+/// Animated bouncing dots with smooth wave animation
+class _BouncingDots extends StatelessWidget {
+  final double dotSize;
+  final Color color;
+  final double spacing;
+  final Animation<double> animation;
+
+  const _BouncingDots({
+    required this.dotSize,
+    required this.color,
+    required this.spacing,
+    required this.animation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (index) {
+            // Staggered animation: each dot starts 150ms behind the previous
+            final delay = index * 0.25; // 25% offset per dot (600ms * 0.25 = 150ms)
+            final progress = (animation.value + delay) % 1.0;
+            
+            // Smooth bounce calculation using sine wave
+            final bounce = _smoothBounce(progress);
+            final translateY = -bounce * 6; // Move up by 6px max
+            
+            // Opacity pulse: dots get brighter at the top of the bounce
+            final opacity = 0.5 + (bounce * 0.5);
+            
+            return Container(
+              margin: EdgeInsets.symmetric(horizontal: spacing / 2),
+              child: Transform.translate(
+                offset: Offset(0, translateY),
+                child: Opacity(
+                  opacity: opacity.clamp(0.0, 1.0),
+                  child: Container(
+                    width: dotSize,
+                    height: dotSize,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.7 + (bounce * 0.3)),
+                      shape: BoxShape.circle,
+                      boxShadow: bounce > 0.5 
+                          ? [
+                              BoxShadow(
+                                color: color.withOpacity(0.3),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  /// Smooth sine-based bounce: 0 -> 1 -> 0 over full cycle
+  double _smoothBounce(double progress) {
+    // Use half sine wave for smooth up and down
+    // progress 0.0 -> 0.5: goes up (0 -> 1)
+    // progress 0.5 -> 1.0: comes down (1 -> 0)
+    return (1 - (2 * progress - 1).abs());
   }
 }
 
-/// Animated bouncing dots for typing indicator
+/// Standalone bouncing dots widget for reuse
 class BouncingDots extends StatefulWidget {
   final double dotSize;
   final Color color;
@@ -167,7 +225,7 @@ class BouncingDots extends StatefulWidget {
 
   const BouncingDots({
     super.key,
-    this.dotSize = 6,
+    this.dotSize = 8,
     this.color = AppColors.primary,
     this.dotCount = 3,
     this.duration = const Duration(milliseconds: 1200),
@@ -181,6 +239,7 @@ class BouncingDots extends StatefulWidget {
 class _BouncingDotsState extends State<BouncingDots>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _animation;
 
   @override
   void initState() {
@@ -189,6 +248,10 @@ class _BouncingDotsState extends State<BouncingDots>
       duration: widget.duration,
       vsync: this,
     )..repeat();
+
+    _animation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -200,30 +263,28 @@ class _BouncingDotsState extends State<BouncingDots>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _controller,
+      animation: _animation,
       builder: (context, child) {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(widget.dotCount, (index) {
-            // Staggered delay
-            final delay = index * 0.167; // ~200ms stagger
-            final progress = (_controller.value + delay) % 1.0;
-            
-            // Bounce calculation with opacity
-            final bounce = _calculateBounce(progress);
-            final opacity = 0.3 + (bounce * 0.7);
+            final delay = index * 0.25;
+            final progress = (_animation.value + delay) % 1.0;
+            final bounce = (1 - (2 * progress - 1).abs());
+            final translateY = -bounce * 5;
+            final opacity = 0.5 + (bounce * 0.5);
             
             return Container(
               margin: EdgeInsets.symmetric(horizontal: widget.spacing / 2),
               child: Transform.translate(
-                offset: Offset(0, -bounce * 4),
+                offset: Offset(0, translateY),
                 child: Opacity(
                   opacity: opacity.clamp(0.0, 1.0),
                   child: Container(
                     width: widget.dotSize,
                     height: widget.dotSize,
                     decoration: BoxDecoration(
-                      color: widget.color,
+                      color: widget.color.withOpacity(0.5 + (bounce * 0.5)),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -234,13 +295,5 @@ class _BouncingDotsState extends State<BouncingDots>
         );
       },
     );
-  }
-
-  double _calculateBounce(double progress) {
-    if (progress < 0.5) {
-      return progress * 2;
-    } else {
-      return (1 - progress) * 2;
-    }
   }
 }
