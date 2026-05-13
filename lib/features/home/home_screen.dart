@@ -14,42 +14,237 @@ import '../tasks/tasks_screen.dart';
 import '../settings/settings_screen.dart';
 import '../notifications/notification_sheet.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _welcomeAnimController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  bool _showWelcomeBack = false;
+  int _messagesToday = 12; // Mock data - in real app would come from stats service
+  
+  @override
+  void initState() {
+    super.initState();
+    _welcomeAnimController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _welcomeAnimController, curve: Curves.easeOut),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1).animate(
+      CurvedAnimation(parent: _welcomeAnimController, curve: Curves.elasticOut),
+    );
+    
+    // Check if should show welcome back (after 30 min away - simplified for demo)
+    _checkWelcomeBack();
+  }
+
+  void _checkWelcomeBack() {
+    // In a real app, you'd track last active time
+    // For now, we'll show it randomly or based on time
+    final hour = DateTime.now().hour;
+    if (hour >= 18 || hour < 8) {
+      setState(() => _showWelcomeBack = true);
+      _welcomeAnimController.forward();
+    }
+  }
+
+  void _dismissWelcomeBack() {
+    _welcomeAnimController.reverse().then((_) {
+      if (mounted) setState(() => _showWelcomeBack = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _welcomeAnimController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final auth = context.watch<AuthProvider>();
+    final theme = context.watch<ThemeProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ClawChat'),
-        actions: [
-          _buildNotificationBell(context),
-          IconButton(
-            icon: const Icon(Iconsax.setting_2),
-            onPressed: () {
-              Navigator.push(
-                context,
-                AppPageTransitions.fadeSlide(
-                  builder: (_) => const SettingsScreen(),
-                ),
+      appBar: _buildAppBar(context, isDark, settings),
+      body: Stack(
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isDesktop = constraints.maxWidth >= AppDimensions.tabletBreakpoint;
+              
+              if (isDesktop) {
+                return _buildDesktopLayout(context, isDark, auth, settings);
+              }
+              return _buildMobileLayout(context, isDark, auth, settings);
+            },
+          ),
+          // Welcome back overlay
+          if (_showWelcomeBack) _buildWelcomeBackOverlay(context, isDark),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context, bool isDark, ThemeProvider theme) {
+    return AppBar(
+      title: Row(
+        children: [
+          Hero(
+            tag: 'app_logo',
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Iconsax.claw, color: AppColors.primary, size: 24),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          const Text('ClawChat'),
+        ],
+      ),
+      actions: [
+        _buildQuickSettingsRow(context, isDark, settings),
+        _buildNotificationBell(context),
+        IconButton(
+          icon: const Icon(Iconsax.setting_2),
+          onPressed: () {
+            Navigator.push(
+              context,
+              AppPageTransitions.fadeSlide(
+                builder: (_) => const SettingsScreen(),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickSettingsRow(BuildContext context, bool isDark, ThemeProvider settings) {
+    return Container(
+      margin: const EdgeInsets.only(right: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Dark/Light mode toggle
+          _QuickToggle(
+            icon: isDark ? Iconsax.moon : Iconsax.sun,
+            isActive: isDark,
+            onTap: () => settings.toggleTheme(),
+            tooltip: isDark ? 'Dark Mode' : 'Light Mode',
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          // Notification toggle
+          FutureBuilder<bool>(
+            future: NotificationSettingsService.getNotificationsEnabled(),
+            builder: (context, snapshot) {
+              final notifEnabled = snapshot.data ?? true;
+              return _QuickToggle(
+                icon: notifEnabled ? Iconsax.notification : Iconsax.notification_slash,
+                isActive: notifEnabled,
+                onTap: () async {
+                  await NotificationSettingsService.setNotificationsEnabled(!notifEnabled);
+                  if (mounted) setState(() {});
+                },
+                tooltip: notifEnabled ? 'Notifications An' : 'Notifications Aus',
               );
             },
           ),
+          const SizedBox(width: AppSpacing.xs),
+          // Sound toggle
+          _QuickToggle(
+            icon: theme.isDarkMode ? Iconsax.volume_high : Iconsax.volume_slash,
+            isActive: theme.isDarkMode,
+            onTap: () => theme.toggleTheme(),
+            tooltip: 'Sound',
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          // Agent selector dropdown
+          _buildAgentSelector(context, isDark),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isDesktop = constraints.maxWidth >= AppDimensions.tabletBreakpoint;
-          
-          if (isDesktop) {
-            return _buildDesktopLayout(context, isDark, auth);
-          }
-          return _buildMobileLayout(context, isDark, auth);
-        },
+    );
+  }
+
+  Widget _buildAgentSelector(BuildContext context, bool isDark) {
+    final auth = context.read<AuthProvider>();
+    final agents = auth.ws.availableAgents;
+    
+    return PopupMenuButton<String>(
+      tooltip: 'Agent wechseln',
+      offset: const Offset(0, 40),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(AppRadius.small),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Iconsax.robot, size: 16, color: AppColors.primary),
+            const SizedBox(width: AppSpacing.xs),
+            const Text('Agent', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            const SizedBox(width: AppSpacing.xs),
+            Icon(Iconsax.arrow_down_1, size: 12, color: AppColors.primary),
+          ],
+        ),
+      ),
+      itemBuilder: (context) => [
+        if (agents.isEmpty)
+          const PopupMenuItem(
+            enabled: false,
+            child: Text('Keine Agents verfügbar'),
+          )
+        else
+          ...agents.map((agent) => PopupMenuItem(
+            value: agent,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    agent[0].toUpperCase(),
+                    style: const TextStyle(color: Colors.white, fontSize: 10),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(agent),
+              ],
+            ),
+          )),
+      ],
+      onSelected: (agent) {
+        if (auth.ws.isConnected) {
+          Navigator.push(
+            context,
+            AppPageTransitions.fadeSlide(
+              builder: (_) => ChatScreen(initialAgent: agent),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -87,16 +282,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, bool isDark, AuthProvider auth) {
+  Widget _buildMobileLayout(BuildContext context, bool isDark, AuthProvider auth, ThemeProvider settings) {
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildConnectionStatus(context, auth),
             const SizedBox(height: AppSpacing.lg),
-            _buildQuickActions(context, isDark, auth),
+            _buildAppShortcuts(context, isDark, auth),
+            const SizedBox(height: AppSpacing.xl),
+            _buildDashboardCards(context, isDark, auth),
             const SizedBox(height: AppSpacing.xl),
             _buildAgentsSection(context, isDark, auth),
           ],
@@ -105,7 +302,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, bool isDark, AuthProvider auth) {
+  Widget _buildDesktopLayout(BuildContext context, bool isDark, AuthProvider auth, ThemeProvider settings) {
     return SafeArea(
       child: Padding(
         padding: Responsive.padding(context),
@@ -121,6 +318,8 @@ class HomeScreen extends StatelessWidget {
                   _buildConnectionStatusCard(context, auth),
                   const SizedBox(height: AppSpacing.lg),
                   _buildDesktopNavigation(context, isDark, auth),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildAppShortcuts(context, isDark, auth),
                 ],
               ),
             ),
@@ -130,9 +329,9 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildAgentsSection(context, isDark, auth),
+                  _buildDashboardCards(context, isDark, auth),
                   const SizedBox(height: AppSpacing.xl),
-                  _buildDesktopWelcomeCard(context, isDark),
+                  _buildAgentsSection(context, isDark, auth),
                 ],
               ),
             ),
@@ -140,6 +339,274 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildAppShortcuts(BuildContext context, bool isDark, AuthProvider auth) {
+    final shortcuts = [
+      _AppShortcutData(icon: Iconsax.message_add, title: 'Neuer Chat', color: AppColors.primary, action: () {
+        if (auth.ws.isConnected) _navigateTo(context, const ChatScreen());
+      }),
+      _AppShortcutData(icon: Iconsax.repeat, title: 'Agent wechseln', color: AppColors.secondary, action: () {
+        if (auth.ws.isConnected) _navigateTo(context, const AgentsScreen());
+      }),
+      _AppShortcutData(icon: Iconsax.task, title: 'Aufgaben', color: AppColors.info, action: () {
+        if (auth.ws.isConnected) _navigateTo(context, const TasksScreen());
+      }),
+      _AppShortcutData(icon: Iconsax.setting_2, title: 'Einstellungen', color: AppColors.warning, action: () {
+        _navigateTo(context, const SettingsScreen());
+      }),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (MediaQuery.of(context).size.width < AppDimensions.tabletBreakpoint)
+          Text(
+            'Schnellzugriffe',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        const SizedBox(height: AppSpacing.md),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: MediaQuery.of(context).size.width >= 600 ? 4 : 2,
+            crossAxisSpacing: AppSpacing.md,
+            mainAxisSpacing: AppSpacing.md,
+            childAspectRatio: 1,
+          ),
+          itemCount: shortcuts.length,
+          itemBuilder: (context, index) {
+            return _AppShortcutWidget(
+              data: shortcuts[index],
+              isDark: isDark,
+              isEnabled: auth.ws.isConnected || shortcuts[index].title == 'Einstellungen',
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDashboardCards(BuildContext context, bool isDark, AuthProvider auth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Dashboard',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= 600) {
+              // Tablet/Desktop: 2x2 grid
+              return Wrap(
+                spacing: AppSpacing.md,
+                runSpacing: AppSpacing.md,
+                children: [
+                  SizedBox(
+                    width: (constraints.maxWidth - AppSpacing.md) / 2,
+                    child: _DashboardCard(
+                      title: 'Aktive Agents',
+                      value: '${auth.ws.availableAgents.length}',
+                      subtitle: 'online',
+                      icon: Iconsax.robot,
+                      color: AppColors.primary,
+                      isDark: isDark,
+                    ),
+                  ),
+                  SizedBox(
+                    width: (constraints.maxWidth - AppSpacing.md) / 2,
+                    child: _DashboardCard(
+                      title: 'Nachrichten heute',
+                      value: '$_messagesToday',
+                      subtitle: 'gesendet',
+                      icon: Iconsax.messages,
+                      color: AppColors.secondary,
+                      isDark: isDark,
+                    ),
+                  ),
+                  SizedBox(
+                    width: (constraints.maxWidth - AppSpacing.md) / 2,
+                    child: _DashboardCard(
+                      title: 'Letzter Chat',
+                      value: '-', 
+                      subtitle: '',
+                      icon: Iconsax.clock,
+                      color: AppColors.info,
+                      isDark: isDark,
+                    ),
+                  ),
+                  SizedBox(
+                    width: (constraints.maxWidth - AppSpacing.md) / 2,
+                    child: _DashboardCard(
+                      title: 'Verbindung',
+                      value: auth.ws.isConnected ? 'OK' : 'Getrennt',
+                      subtitle: auth.ws.isConnected ? 'verbunden' : '',
+                      icon: auth.ws.isConnected ? Iconsax.global : Iconsax.global_edit,
+                      color: auth.ws.isConnected ? AppColors.success : AppColors.error,
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
+              );
+            }
+            // Mobile: vertical list
+            return Column(
+              children: [
+                _DashboardCard(
+                  title: 'Aktive Agents',
+                  value: '${auth.ws.availableAgents.length}',
+                  subtitle: 'online',
+                  icon: Iconsax.robot,
+                  color: AppColors.primary,
+                  isDark: isDark,
+                  compact: true,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _DashboardCard(
+                  title: 'Nachrichten heute',
+                  value: '$_messagesToday',
+                  subtitle: 'gesendet',
+                  icon: Iconsax.messages,
+                  color: AppColors.secondary,
+                  isDark: isDark,
+                  compact: true,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _DashboardCard(
+                  title: 'Verbindung',
+                  value: auth.ws.isConnected ? 'Verbunden' : 'Getrennt',
+                  subtitle: '',
+                  icon: auth.ws.isConnected ? Iconsax.global : Iconsax.global_edit,
+                  color: auth.ws.isConnected ? AppColors.success : AppColors.error,
+                  isDark: isDark,
+                  compact: true,
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String _formatTimeAgo(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 1) return 'Gerade';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    return '${diff.inDays}d';
+  }
+
+  Widget _buildWelcomeBackOverlay(BuildContext context, bool isDark) {
+    return AnimatedBuilder(
+      animation: _welcomeAnimController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _fadeAnimation.value,
+          child: Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              color: Colors.black54,
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(AppSpacing.xl),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.bgDark : AppColors.bgLight,
+                    borderRadius: BorderRadius.circular(AppRadius.large),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Hero(
+                        tag: 'welcome_icon',
+                        child: Container(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Iconsax.sparkle,
+                            size: 48,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        'Willkommen zurück! 👋',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'Du hast $_messagesToday neue Nachrichten',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _WelcomeStatChip(
+                            icon: Iconsax.message,
+                            text: '$_messagesToday Nachrichten',
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          _WelcomeStatChip(
+                            icon: Iconsax.calendar,
+                            text: '${DateTime.now().day}. ${_getMonthName(DateTime.now().month)}',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      ElevatedButton.icon(
+                        onPressed: _dismissWelcomeBack,
+                        icon: const Icon(Iconsax.arrow_right),
+                        label: const Text('Weiter'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                            vertical: AppSpacing.md,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.medium),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _getMonthName(int month) {
+    const months = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    return months[month - 1];
   }
 
   Widget _buildConnectionStatus(BuildContext context, AuthProvider auth) {
@@ -290,118 +757,31 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDesktopWelcomeCard(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withOpacity(0.1),
-            AppColors.secondary.withOpacity(0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.large),
-        border: Border.all(
-          color: AppColors.primary.withOpacity(0.2),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Iconsax.sparkle, color: AppColors.primary, size: 28),
-              const SizedBox(width: AppSpacing.md),
-              Text(
-                'Willkommen bei ClawChat!',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textDark : AppColors.textLight,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Du kannst ClawChat jetzt wie eine Desktop-App nutzen. Probiere die Schnellzugriffe oder wähle einen Agenten aus.',
-            style: TextStyle(
-              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              _TipChip(icon: Iconsax.keyboard, text: 'Strg+K für Suche'),
-              _TipChip(icon: Iconsax.mouse, text: 'Rechtsklick für Menü'),
-              _TipChip(icon: Iconsax.arrow_up, text: 'Hover für Details'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context, bool isDark, AuthProvider auth) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Schnellzugriff',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        
-        LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth >= 600) {
-              // Tablet: 3 columns
-              return Row(
-                children: [
-                  Expanded(child: _QuickActionCard(icon: Iconsax.messages, title: 'Chat', color: AppColors.primary, onTap: auth.ws.isConnected ? () => _navigateTo(context, const ChatScreen()) : null)),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(child: _QuickActionCard(icon: Iconsax.robot, title: 'Agents', color: AppColors.secondary, onTap: auth.ws.isConnected ? () => _navigateTo(context, const AgentsScreen()) : null)),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(child: _QuickActionCard(icon: Iconsax.task, title: 'Tasks', color: AppColors.info, onTap: auth.ws.isConnected ? () => _navigateTo(context, const TasksScreen()) : null)),
-                ],
-              );
-            }
-            // Mobile: 3 columns in a row
-            return Row(
-              children: [
-                Expanded(child: _QuickActionCard(icon: Iconsax.messages, title: 'Chat', color: AppColors.primary, onTap: auth.ws.isConnected ? () => _navigateTo(context, const ChatScreen()) : null)),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(child: _QuickActionCard(icon: Iconsax.robot, title: 'Agents', color: AppColors.secondary, onTap: auth.ws.isConnected ? () => _navigateTo(context, const AgentsScreen()) : null)),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(child: _QuickActionCard(icon: Iconsax.task, title: 'Tasks', color: AppColors.info, onTap: auth.ws.isConnected ? () => _navigateTo(context, const TasksScreen()) : null)),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildAgentsSection(BuildContext context, bool isDark, AuthProvider auth) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Verfügbare Agents',
-          style: Theme.of(context).textTheme.headlineSmall,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Verfügbare Agents',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (auth.ws.availableAgents.isNotEmpty)
+              TextButton.icon(
+                onPressed: () => _navigateTo(context, const AgentsScreen()),
+                icon: const Icon(Iconsax.arrow_right, size: 16),
+                label: const Text('Alle anzeigen'),
+              ),
+          ],
         ),
         const SizedBox(height: AppSpacing.md),
         
         if (auth.ws.availableAgents.isEmpty && auth.ws.isConnected)
-          Text(
-            'Lade Agents...',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-            ),
-          )
+          _buildLoadingAgentsCard(context, isDark)
         else if (!auth.ws.isConnected)
           Text(
             'Bitte verbinde dich zuerst.',
@@ -435,11 +815,14 @@ class HomeScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
                     tileColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.primary,
-                      child: Text(
-                        agent[0].toUpperCase(),
-                        style: const TextStyle(color: Colors.white),
+                    leading: Hero(
+                      tag: 'agent_avatar_${agent}_home',
+                      child: CircleAvatar(
+                        backgroundColor: AppColors.primary,
+                        child: Text(
+                          agent[0].toUpperCase(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
                     title: Text(agent),
@@ -454,6 +837,19 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLoadingAgentsCard(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.push(
       context,
@@ -464,61 +860,444 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _QuickActionCard extends StatelessWidget {
+// Quick toggle button widget
+class _QuickToggle extends StatefulWidget {
   final IconData icon;
-  final String title;
-  final Color color;
-  final VoidCallback? onTap;
+  final bool isActive;
+  final VoidCallback onTap;
+  final String tooltip;
 
-  const _QuickActionCard({
+  const _QuickToggle({
     required this.icon,
-    required this.title,
-    required this.color,
-    this.onTap,
+    required this.isActive,
+    required this.onTap,
+    required this.tooltip,
   });
 
   @override
+  State<_QuickToggle> createState() => _QuickToggleState();
+}
+
+class _QuickToggleState extends State<_QuickToggle> with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1, end: 0.9).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return MouseRegion(
-      cursor: onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
-      child: Material(
-        color: onTap != null 
-            ? (isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary)
-            : Colors.grey.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.medium),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.small),
-                  ),
-                  child: Icon(icon, color: color),
+    return Tooltip(
+      message: widget.tooltip,
+      child: GestureDetector(
+        onTapDown: (_) => _animController.forward(),
+        onTapUp: (_) {
+          _animController.reverse();
+          widget.onTap();
+        },
+        onTapCancel: () => _animController.reverse(),
+        child: AnimatedBuilder(
+          animation: _scaleAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _scaleAnimation.value,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: widget.isActive 
+                      ? AppColors.primary.withOpacity(0.2)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Icon(
+                  widget.icon,
+                  size: 18,
+                  color: widget.isActive 
+                      ? AppColors.primary 
+                      : (Theme.of(context).brightness == Brightness.dark 
+                          ? AppColors.textDarkSecondary 
+                          : AppColors.textLightSecondary),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 }
 
+// App shortcut data class
+class _AppShortcutData {
+  final IconData icon;
+  final String title;
+  final Color color;
+  final VoidCallback action;
+
+  const _AppShortcutData({
+    required this.icon,
+    required this.title,
+    required this.color,
+    required this.action,
+  });
+}
+
+// App shortcut widget (iOS/Android style)
+class _AppShortcutWidget extends StatefulWidget {
+  final _AppShortcutData data;
+  final bool isDark;
+  final bool isEnabled;
+
+  const _AppShortcutWidget({
+    required this.data,
+    required this.isDark,
+    required this.isEnabled,
+  });
+
+  @override
+  State<_AppShortcutWidget> createState() => _AppShortcutWidgetState();
+}
+
+class _AppShortcutWidgetState extends State<_AppShortcutWidget> with SingleTickerProviderStateMixin {
+  bool _isPressed = false;
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _bounceAnimation = Tween<double>(begin: 1, end: 0.95).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        if (widget.isEnabled) {
+          setState(() => _isPressed = true);
+          _bounceController.forward();
+        }
+      },
+      onTapUp: (_) {
+        if (widget.isEnabled) {
+          setState(() => _isPressed = false);
+          _bounceController.reverse();
+          widget.data.action();
+        }
+      },
+      onTapCancel: () {
+        setState(() => _isPressed = false);
+        _bounceController.reverse();
+      },
+      child: AnimatedBuilder(
+        animation: _bounceAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _bounceAnimation.value,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              decoration: BoxDecoration(
+                color: widget.isEnabled
+                    ? (widget.isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary)
+                    : Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(AppRadius.large),
+                boxShadow: _isPressed
+                    ? [
+                        BoxShadow(
+                          color: widget.data.color.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: widget.isEnabled
+                          ? widget.data.color.withOpacity(0.15)
+                          : Colors.grey.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(AppRadius.large),
+                    ),
+                    child: Icon(
+                      widget.data.icon,
+                      size: 32,
+                      color: widget.isEnabled
+                          ? widget.data.color
+                          : Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    widget.data.title,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: widget.isEnabled
+                          ? (widget.isDark ? AppColors.textDark : AppColors.textLight)
+                          : Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// Dashboard card widget
+class _DashboardCard extends StatefulWidget {
+  final String title;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+  final bool compact;
+
+  const _DashboardCard({
+    required this.title,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.isDark,
+    this.compact = false,
+  });
+
+  @override
+  State<_DashboardCard> createState() => _DashboardCardState();
+}
+
+class _DashboardCardState extends State<_DashboardCard> with SingleTickerProviderStateMixin {
+  bool _isHovered = false;
+  late AnimationController _flipController;
+  late Animation<double> _flipAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _flipController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _flipAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _flipController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _flipController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        transform: _isHovered ? (Matrix4.identity()..scale(1.02)) : Matrix4.identity(),
+        decoration: BoxDecoration(
+          color: widget.isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: widget.color.withOpacity(0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              _flipController.forward().then((_) {
+                _flipController.reverse();
+              });
+            },
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+            child: Padding(
+              padding: EdgeInsets.all(widget.compact ? AppSpacing.md : AppSpacing.lg),
+              child: widget.compact ? _buildCompactContent() : _buildFullContent(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullContent() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: widget.color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+          ),
+          child: Icon(widget.icon, color: widget.color, size: 24),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.title,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: widget.isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                widget.value,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: widget.isDark ? AppColors.textDark : AppColors.textLight,
+                ),
+              ),
+              if (widget.subtitle.isNotEmpty)
+                Text(
+                  widget.subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: widget.isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactContent() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: widget.color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppRadius.small),
+          ),
+          child: Icon(widget.icon, color: widget.color, size: 18),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.title,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: widget.isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              Text(
+                widget.value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: widget.isDark ? AppColors.textDark : AppColors.textLight,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Welcome stat chip
+class _WelcomeStatChip extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _WelcomeStatChip({
+    required this.icon,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.primary),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Desktop nav item
 class _DesktopNavItem extends StatefulWidget {
   final IconData icon;
   final String title;
@@ -596,6 +1375,7 @@ class _DesktopNavItemState extends State<_DesktopNavItem> {
   }
 }
 
+// Agent card with hero animation
 class _AgentCard extends StatefulWidget {
   final String agent;
   final VoidCallback onTap;
@@ -640,11 +1420,14 @@ class _AgentCardState extends State<_AgentCard> {
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: AppColors.primary,
-                    child: Text(
-                      widget.agent[0].toUpperCase(),
-                      style: const TextStyle(color: Colors.white),
+                  Hero(
+                    tag: 'agent_avatar_${widget.agent}_home',
+                    child: CircleAvatar(
+                      backgroundColor: AppColors.primary,
+                      child: Text(
+                        widget.agent[0].toUpperCase(),
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -657,52 +1440,19 @@ class _AgentCardState extends State<_AgentCard> {
                       ),
                     ),
                   ),
-                  Icon(
-                    Iconsax.chevron_right,
-                    color: _isHovered ? AppColors.primary : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+                  AnimatedRotation(
+                    turns: _isHovered ? 0.1 : 0,
+                    duration: const Duration(milliseconds: 150),
+                    child: Icon(
+                      Iconsax.chevron_right,
+                      color: _isHovered ? AppColors.primary : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _TipChip extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _TipChip({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
-        borderRadius: BorderRadius.circular(AppRadius.large),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: AppColors.primary),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
-            ),
-          ),
-        ],
       ),
     );
   }
