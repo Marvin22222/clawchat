@@ -21,6 +21,7 @@ import '../../../models/message.dart';
 import '../../../widgets/animations/app_transitions.dart';
 import 'streaming_text.dart';
 import 'fullscreen_image_viewer.dart';
+import 'video_player_widget.dart';
 import 'package:flutter/gestures.dart';
 import '../../../widgets/animations/skeleton_loaders.dart';
 
@@ -615,6 +616,8 @@ class _AttachmentRow extends StatelessWidget {
           return _ImageAttachment(attachment: attachment, isUser: isUser, isDark: isDark);
         } else if (attachment.mimeType.startsWith('audio/')) {
           return _AudioAttachment(attachment: attachment, isUser: isUser);
+        } else if (attachment.mimeType.startsWith('video/')) {
+          return _VideoAttachment(attachment: attachment, isUser: isUser, isDark: isDark);
         } else {
           return _FileAttachment(attachment: attachment, isUser: isUser, isDark: isDark);
         }
@@ -1012,6 +1015,157 @@ class _FileAttachment extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _VideoAttachment extends StatelessWidget {
+  final MessageAttachment attachment;
+  final bool isUser;
+  final bool isDark;
+
+  const _VideoAttachment({
+    required this.attachment,
+    required this.isUser,
+    required this.isDark,
+  });
+
+  void _showVideoContextMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(top: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ListTile(
+                leading: Icon(Iconsax.play, color: isDark ? AppColors.textDark : AppColors.textLight),
+                title: Text('Video abspielen', style: AppTypography.h4.copyWith(
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        )),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showInlinePlayer(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Iconsax.link, color: isDark ? AppColors.textDark : AppColors.textLight),
+                title: Text('Pfad kopieren', style: AppTypography.h4.copyWith(
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        )),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: attachment.url ?? attachment.path));
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pfad kopiert'), duration: Duration(seconds: 2)),
+                  );
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showInlinePlayer(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.6,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.large)),
+        ),
+        child: Column(
+          children: [
+            // Handle
+            Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(top: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Title
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  Icon(Iconsax.video, color: AppColors.primary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      attachment.fileName,
+                      style: AppTypography.h5.copyWith(
+                        color: isDark ? AppColors.textDark : AppColors.textLight,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(
+                      Iconsax.close_square,
+                      color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Video Player
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  child: VideoPlayerWidget(
+                    videoPath: attachment.path,
+                    videoUrl: attachment.url,
+                    isDark: isDark,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isRemote = attachment.url != null;
+
+    return GestureDetector(
+      onTap: () => _showInlinePlayer(context),
+      onLongPress: () => _showVideoContextMenu(context),
+      child: VideoThumbnail(
+        videoPath: isRemote ? null : attachment.path,
+        videoUrl: isRemote ? attachment.url : null,
+        isDark: isDark,
+        width: 200,
+        height: 150,
       ),
     );
   }
