@@ -11,6 +11,7 @@ import '../../core/services/image_compression_service.dart';
 import '../../core/services/notification_settings_service.dart';
 import '../../core/services/theme_service.dart';
 import '../chat/providers/lazy_notification_provider.dart';
+import '../onboarding/tips_screen.dart';
 import '../chat/templates/templates_widget.dart';
 import '../../core/services/templates_service.dart';
 import '../../models/message_template.dart';
@@ -846,6 +847,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // About Section
           _SectionHeader(title: 'Über'),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.book, color: AppColors.primary, size: 20),
+            ),
+            title: const Text('Tips & Anleitung'),
+            subtitle: const Text('Tipps für Power-User'),
+            trailing: const Icon(Iconsax.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const TipsScreen(),
+                ),
+              );
+            },
+          ),
           
           const ListTile(
             leading: Icon(Iconsax.info_circle),

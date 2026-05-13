@@ -33,6 +33,8 @@ export 'features/tasks/tasks_screen.dart';
 export 'features/settings/settings_screen.dart';
 export 'features/splash/splash_screen.dart';
 export 'features/onboarding/onboarding_screen.dart';
+export 'features/onboarding/tips_screen.dart';
+export 'features/onboarding/whats_new_sheet.dart';
 export 'features/history/session_history_screen.dart';
 export 'features/main/main_navigation.dart';
 

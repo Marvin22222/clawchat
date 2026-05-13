@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/voice_input_service.dart';
+import '../../core/constants/app_config.dart';
 import '../../features/auth/biometric_auth_sheet.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/onboarding/whats_new_sheet.dart';
 import '../../features/tasks/providers/task_provider.dart';
 import '../../providers/auth_provider.dart';
 
@@ -47,12 +51,33 @@ class AppWrapper extends StatefulWidget {
 class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
   bool _showSplash = true;
   bool _isLocked = false;
+  bool _showOnboarding = false;
+  bool _showWhatsNew = false;
   DateTime? _backgroundedAt;
+  String? _lastVersion;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _checkOnboardingStatus();
+  }
+
+  Future<void> _checkOnboardingStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingComplete = prefs.getBool(AppConfig.keyOnboardingComplete) ?? false;
+    final currentVersion = AppConfig.appVersion;
+    _lastVersion = prefs.getString('last_app_version');
+    
+    if (!onboardingComplete) {
+      setState(() => _showOnboarding = true);
+    } else if (_lastVersion != null && _lastVersion != currentVersion) {
+      // App was updated - show what's new
+      setState(() => _showWhatsNew = true);
+    }
+    
+    // Update stored version
+    await prefs.setString('last_app_version', currentVersion);
   }
 
   @override
@@ -97,6 +122,24 @@ class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    if (_showOnboarding) {
+      return OnboardingScreen(
+        onComplete: () async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool(AppConfig.keyOnboardingComplete, true);
+          setState(() => _showOnboarding = false);
+        },
+      );
+    }
+
+    if (_showWhatsNew) {
+      return WhatsNewSheet(
+        onClose: () {
+          setState(() => _showWhatsNew = false);
+        },
+      );
+    }
+
     if (_showSplash) {
       return SplashScreen(
         onComplete: () {
