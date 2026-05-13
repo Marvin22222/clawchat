@@ -515,6 +515,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.arrow_up_1, color: AppColors.info, size: 20),
+            ),
+            title: const Text('Alle Chats exportieren'),
+            subtitle: const Text('Vollständiges Backup erstellen'),
+            trailing: const Icon(Iconsax.chevron_right),
+            onTap: () => _showFullBackupDialog(context),
+          ),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.arrow_down_1, color: AppColors.warning, size: 20),
+            ),
+            title: const Text('Backup wiederherstellen'),
+            subtitle: const Text('Aus Backup wiederherstellen'),
+            trailing: const Icon(Iconsax.chevron_right),
+            onTap: () => _showRestoreBackupDialog(context),
+          ),
 
           const Divider(),
 
@@ -867,6 +899,145 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+}
+
+void _showFullBackupDialog(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+      title: Text(
+        'Alle Chats exportieren',
+        style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Dies erstellt ein vollständiges Backup aller Chat-Nachrichten im JSON-Format.',
+            style: TextStyle(color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Iconsax.info_circle, color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Das Backup kann später über "Backup wiederherstellen" importiert werden.',
+                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.textDark : AppColors.textLight),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Abbrechen'),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.pop(context);
+            // Navigate to ChatExportScreen with full export
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ChatExportScreen(),
+              ),
+            );
+          },
+          icon: const Icon(Iconsax.cloud_download, size: 18),
+          label: const Text('Exportieren'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showRestoreBackupDialog(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+      title: Text(
+        'Backup wiederherstellen',
+        style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Iconsax.warning_2, color: AppColors.warning, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Coming Soon',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppColors.textDark : AppColors.textLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Backup-Wiederherstellung wird in einer zukünftigen Version verfügbar sein.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Um ein Backup wiederherzustellen, benötigst du eine zuvor exportierte JSON-Datei.',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 }
 
 void _showPresetsManager(BuildContext context, AgentPresetsProvider presetsProvider, AuthProvider auth) {

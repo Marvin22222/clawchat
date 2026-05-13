@@ -14,6 +14,7 @@ import '../../core/services/websocket_service.dart';
 import '../../core/services/chat_persistence_service.dart';
 import '../../core/services/haptic_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/chat_export_service.dart';
 import '../../core/utils/logger.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
@@ -60,6 +61,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   // Reply state
   ChatMessage? _replyToMessage;
+  
+  // Export state
+  bool _isExportingPdf = false;
 
   @override
   void initState() {
@@ -1942,6 +1946,22 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
                   _shareExport('Chat als Text exportiert', text, 'clawchat_export.txt');
                 },
               ),
+              ListTile(
+                leading: Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
+                  ),
+                  child: const Icon(Iconsax.paperclip, color: AppColors.error),
+                ),
+                title: const Text('Als PDF'),
+                subtitle: const Text('Druckfertiges Format'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportPdf();
+                },
+              ),
               const SizedBox(height: AppSpacing.md),
             ],
           ),
@@ -2003,6 +2023,51 @@ class _AnimatedSyncIconState extends State<_AnimatedSyncIcon>
         return true;
       } catch (_) {
         return false;
+      }
+    }
+  }
+
+  Future<void> _exportPdf() async {
+    setState(() => _isExportingPdf = true);
+    
+    try {
+      final pdfBytes = await ChatExportService.exportAsPdf(_messages);
+      await ChatExportService.sharePdf(pdfBytes, 'clawchat_export.pdf');
+      HapticService.mediumImpact();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Iconsax.check_circle, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('PDF Export erfolgreich'),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      AppLogger.error('PDF export failed: $e', tag: 'EXPORT');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Iconsax.warning_2, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('PDF Export fehlgeschlagen'),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExportingPdf = false);
       }
     }
   }
