@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/helpers.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
@@ -572,6 +573,18 @@ class MessageBubble extends StatelessWidget {
                   },
                 ),
               ],
+              // Share option (always available)
+              ListTile(
+                leading: Icon(Iconsax.share, color: AppColors.primary),
+                title: Text(
+                  'Teilen',
+                  style: AppTypography.body.copyWith(color: AppColors.primary),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _shareMessage(context);
+                },
+              ),
               // Edit option (only for user messages)
               if (isUser && onEdit != null) ...[
                 ListTile(
@@ -650,6 +663,24 @@ class MessageBubble extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _shareMessage(BuildContext context) async {
+    // Import share_service at runtime to avoid circular dependencies
+    final buffer = StringBuffer();
+    final sender = isUser ? 'Du' : (agentName ?? 'Assistant');
+    final time = '${timestamp.day.toString().padLeft(2, '0')}.${timestamp.month.toString().padLeft(2, '0')}.${timestamp.year} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+    
+    buffer.writeln('Nachricht von $sender ($time):');
+    buffer.writeln();
+    buffer.writeln(content);
+    
+    if (replyToContent != null && replyToContent!.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('Antwort auf: $replyToContent');
+    }
+    
+    await Share.share(buffer.toString().trim());
   }
 }
 

@@ -1,4 +1,5 @@
 // Export all services
+export 'share_service.dart';
 export 'websocket_service.dart';
 export 'voice_input_service.dart';
 export 'voice_recorder_service.dart';
