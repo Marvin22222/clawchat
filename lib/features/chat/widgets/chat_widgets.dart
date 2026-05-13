@@ -45,6 +45,7 @@ class MessageBubble extends StatelessWidget {
   final bool isFirstInGroup; // First message from this sender in a sequence
   final bool isLastInGroup;  // Last message from this sender in a sequence
   final bool isSameSenderAsPrevious; // Same sender as previous message
+  final String? replyToContent; // Content preview of message being replied to
 
   const MessageBubble({
     super.key,
@@ -164,6 +165,52 @@ class MessageBubble extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+            // Reply Banner (if this message is a reply)
+            if (replyToContent != null && replyToContent!.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  top: AppSpacing.sm,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: (isUser ? Colors.white : (isDark ? AppColors.assistantBubbleDark : AppColors.assistantBubbleLight)).withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                  border: Border(
+                    left: BorderSide(
+                      color: AppColors.primary,
+                      width: 3,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Iconsax.reply_up_1,
+                      size: 14,
+                      color: isUser ? Colors.white70 : AppColors.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Flexible(
+                      child: Text(
+                        replyToContent!,
+                        style: AppTypography.captionSmall.copyWith(
+                          color: isUser ? Colors.white70 : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+                          fontStyle: FontStyle.italic,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -1663,6 +1710,8 @@ class ChatInput extends StatefulWidget {
   final bool enabled;
   final bool showVoiceInput;
   final bool pushToTalkMode;
+  final Map<String, String>? replyTo; // {id, content} of message being replied to
+  final VoidCallback? onCancelReply;
 
   const ChatInput({
     super.key,
@@ -1671,6 +1720,8 @@ class ChatInput extends StatefulWidget {
     this.enabled = true,
     this.showVoiceInput = true,
     this.pushToTalkMode = false,
+    this.replyTo,
+    this.onCancelReply,
   });
 
   @override
@@ -1879,6 +1930,65 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Reply Banner
+            if (widget.replyTo != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Iconsax.reply_up_1,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Antworten auf',
+                            style: AppTypography.captionSmall.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            widget.replyTo!['content'] ?? '',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: isDark ? AppColors.textDark : AppColors.textLight,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: widget.onCancelReply,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Iconsax.close_square,
+                          size: 20,
+                          color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             // Voice Message Recording indicator
             if (_isRecordingVoiceMessage)
               Container(

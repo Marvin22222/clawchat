@@ -340,6 +340,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final auth = context.read<AuthProvider>();
     final messageId = retryId ?? DateTime.now().millisecondsSinceEpoch.toString();
     
+    // Capture reply state before clearing
+    final replyTo = _replyToMessage;
+    
     // Add user message (or update if retry)
     setState(() {
       final existingIndex = _messages.indexWhere((m) => m.id == messageId);
@@ -350,6 +353,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         timestamp: DateTime.now(),
         status: MessageStatus.sending,
         attachments: attachments,
+        replyToId: replyTo?.id,
+        replyToContent: replyTo?.content,
       );
       
       if (existingIndex >= 0) {
@@ -358,6 +363,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _messages.add(newMessage);
       }
       _isTyping = true;
+      // Clear reply state after sending
+      _replyToMessage = null;
     });
 
     // Haptic feedback on message send
@@ -371,7 +378,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       });
     }
 
-    // Send with attachments via WebSocket
+    // Send with attachments and reply info via WebSocket
     auth.ws.sendMessage(
       text,
       agent: _currentAgent,
@@ -380,6 +387,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         'fileName': a.fileName,
         'mimeType': a.mimeType,
       }).toList(),
+      replyToId: replyTo?.id,
+      replyToContent: replyTo?.content,
     ).then((_) {
       // Success - update status
       _updateMessageStatus(messageId, MessageStatus.sent);
@@ -859,6 +868,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               messageId: msg.id,
                               onReact: (emoji) => _addReaction(msg.id, emoji),
                               onReply: () => _setReplyTo(msg),
+                              replyToContent: msg.replyToContent,
                               isFirstInGroup: _isFirstInGroup(messageIndex),
                               isLastInGroup: _isLastInGroup(messageIndex),
                               isSameSenderAsPrevious: _isSameSenderAsPrevious(messageIndex),
@@ -929,6 +939,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           onSend: _sendMessage,
           onImageSelected: _onImageSelected,
           enabled: auth.ws.isConnected,
+          replyTo: _replyToMessage != null ? {'id': _replyToMessage!.id, 'content': _replyToMessage!.content.length > 50 ? '${_replyToMessage!.content.substring(0, 50)}...' : _replyToMessage!.content} : null,
+          onCancelReply: _replyToMessage != null ? _clearReplyTo : null,
         ),
       ],
     );
