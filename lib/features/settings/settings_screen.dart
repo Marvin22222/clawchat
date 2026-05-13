@@ -8,6 +8,7 @@ import '../../core/constants/spacing.dart';
 import '../../core/constants/typography.dart';
 import '../../core/services/haptic_service.dart';
 import '../../core/services/image_compression_service.dart';
+import '../../core/services/notification_settings_service.dart';
 import '../chat/providers/lazy_notification_provider.dart';
 import '../chat/templates/templates_widget.dart';
 import '../../core/services/templates_service.dart';
@@ -18,6 +19,7 @@ import '../../widgets/animations/app_transitions.dart';
 import '../../widgets/animations/smooth_bottom_sheet.dart';
 import '../../widgets/animations/skeleton_loaders.dart';
 import '../agents/agents_screen.dart';
+import '../notifications/notification_sheet.dart';
 import 'chat_export_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -169,6 +171,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
             ),
+          ),
+          
+          // Sound & Vibration
+          Consumer<LazyNotificationProvider>(
+            builder: (context, notif, _) => Column(
+              children: [
+                ListTile(
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.small),
+                    ),
+                    child: const Icon(Iconsax.speaker, color: AppColors.secondary, size: 20),
+                  ),
+                  title: const Text('Ton'),
+                  trailing: Switch(
+                    value: notif.soundEnabled,
+                    onChanged: (value) {
+                      notif.setSoundEnabled(value);
+                      HapticService.lightImpact();
+                    },
+                  ),
+                  onTap: () => notif.setSoundEnabled(!notif.soundEnabled),
+                ),
+                ListTile(
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.info.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.small),
+                    ),
+                    child: const Icon(Iconsax.mobile, color: AppColors.info, size: 20),
+                  ),
+                  title: const Text('Vibration'),
+                  trailing: Switch(
+                    value: notif.vibrationEnabled,
+                    onChanged: (value) {
+                      notif.setVibrationEnabled(value);
+                      HapticService.lightImpact();
+                    },
+                  ),
+                  onTap: () => notif.setVibrationEnabled(!notif.vibrationEnabled),
+                ),
+              ],
+            ),
+          ),
+          
+          // Quiet Hours
+          _buildQuietHoursTile(context),
+          
+          // Quick Settings & Test
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.setting_2, color: AppColors.warning, size: 20),
+            ),
+            title: const Text('Schnelleinstellungen'),
+            subtitle: const Text('Alle Benachrichtigungsoptionen'),
+            trailing: const Icon(Iconsax.chevron_right),
+            onTap: () => NotificationQuickSheet.show(context),
+          ),
+          
+          ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.small),
+              ),
+              child: const Icon(Iconsax.notification_circle, color: AppColors.success, size: 20),
+            ),
+            title: const Text('Test-Benachrichtigung'),
+            subtitle: const Text('Prüfen ob Benachrichtigungen funktionieren'),
+            onTap: () => _sendTestNotification(context),
           ),
 
           const Divider(),
@@ -2190,7 +2275,75 @@ class _VoiceSensitivitySheetState extends State<_VoiceSensitivitySheet> {
       ),
     );
   }
-}
+
+  Widget _buildQuietHoursTile(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return FutureBuilder<bool>(
+      future: NotificationSettingsService.getQuietHoursEnabled(),
+      builder: (context, snapshot) {
+        final enabled = snapshot.data ?? false;
+        
+        return FutureBuilder<String>(
+          future: NotificationSettingsService.getQuietHoursStatus(),
+          builder: (context, statusSnapshot) {
+            final status = statusSnapshot.data ?? '';
+            
+            return ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+                child: const Icon(Iconsax.moon, color: AppColors.warning, size: 20),
+              ),
+              title: const Text('Stummzeit'),
+              subtitle: Text(
+                enabled ? status : 'Aus',
+                style: AppTypography.caption.copyWith(
+                  color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                ),
+              ),
+              trailing: Switch(
+                value: enabled,
+                onChanged: (value) async {
+                  await NotificationSettingsService.setQuietHoursEnabled(value);
+                  HapticService.lightImpact();
+                  setState(() {}); // Refresh
+                },
+              ),
+              onTap: () => _showQuietHoursEditor(context),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showQuietHoursEditor(BuildContext context) {
+    showSmoothBottomSheet(
+      context: context,
+      initialChildSize: 0.5,
+      maxChildSize: 0.65,
+      minChildSize: 0.35,
+      snapSizes: const [0.35, 0.5, 0.65],
+      animationDuration: const Duration(milliseconds: 200),
+      builder: (context, scrollController) => _QuietHoursEditor(
+        scrollController: scrollController,
+      ),
+    );
+  }
+
+  void _sendTestNotification(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Test-Benachrichtigung gesendet!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
 void _showVoiceSensitivitySettings(BuildContext context) {
   showSmoothBottomSheet(

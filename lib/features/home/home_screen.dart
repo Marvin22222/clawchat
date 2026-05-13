@@ -5,12 +5,14 @@ import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/services/notification_settings_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
 import '../chat/chat_screen.dart';
 import '../agents/agents_screen.dart';
 import '../tasks/tasks_screen.dart';
 import '../settings/settings_screen.dart';
+import '../notifications/notification_sheet.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -24,6 +26,7 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ClawChat'),
         actions: [
+          _buildNotificationBell(context),
           IconButton(
             icon: const Icon(Iconsax.setting_2),
             onPressed: () {
@@ -47,6 +50,40 @@ class HomeScreen extends StatelessWidget {
           return _buildMobileLayout(context, isDark, auth);
         },
       ),
+    );
+  }
+
+  Widget _buildNotificationBell(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: NotificationSettingsService.getNotificationsEnabled(),
+      builder: (context, snapshot) {
+        final enabled = snapshot.data ?? true;
+        
+        return IconButton(
+          icon: Stack(
+            children: [
+              Icon(
+                enabled ? Iconsax.notification : Iconsax.notification_slash,
+                color: enabled ? null : AppColors.error,
+              ),
+              if (!enabled)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.error,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          onPressed: () => NotificationQuickSheet.show(context),
+        );
+      },
     );
   }
 
