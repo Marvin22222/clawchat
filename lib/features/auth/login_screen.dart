@@ -5,6 +5,8 @@ import '../../core/constants/spacing.dart';
 import '../../core/services/biometric_service.dart';
 import '../../providers/auth_provider.dart';
 
+enum AgentSystem { openClaw, hermes }
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -20,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
   bool _biometricAvailable = false;
   String _biometricTypeName = 'Biometrie';
+  AgentSystem _selectedSystem = AgentSystem.openClaw;
 
   @override
   void initState() {
@@ -58,9 +61,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    if (_gatewayController.text.isEmpty || _tokenController.text.isEmpty) {
-      setState(() => _error = 'Bitte Gateway URL und Token eingeben');
+    if (_tokenController.text.isEmpty) {
+      setState(() => _error = 'Bitte Gateway Token eingeben');
       return;
+    }
+
+    String gatewayUrl;
+    if (_selectedSystem == AgentSystem.hermes) {
+      gatewayUrl = 'hermes://connect';
+    } else {
+      gatewayUrl = _gatewayController.text.isEmpty 
+          ? 'wss://localhost:18789' 
+          : _gatewayController.text;
     }
 
     setState(() {
@@ -70,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final auth = context.read<AuthProvider>();
     final success = await auth.login(
-      _gatewayController.text,
+      gatewayUrl,
       _tokenController.text,
     );
 
@@ -183,24 +195,134 @@ class _LoginScreenState extends State<LoginScreen> {
               
               const SizedBox(height: AppSpacing.xxl),
               
-              // Gateway URL
+              // Agent System Selector
               Text(
-                'Gateway URL',
+                'Agent-System wählen',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: _gatewayController,
-                decoration: const InputDecoration(
-                  hintText: 'z.B. localhost:18789 oder deine.domain.com',
-                  prefixIcon: Icon(Iconsax.link),
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark 
+                      ? AppColors.surfaceDark 
+                      : AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
-                keyboardType: TextInputType.url,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedSystem = AgentSystem.openClaw),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.md,
+                            horizontal: AppSpacing.sm,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _selectedSystem == AgentSystem.openClaw
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(AppRadius.medium - 2),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Iconsax.global,
+                                size: 20,
+                                color: _selectedSystem == AgentSystem.openClaw
+                                    ? Colors.white
+                                    : isDark 
+                                        ? AppColors.textDarkSecondary 
+                                        : AppColors.textLightSecondary,
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Text(
+                                'OpenClaw',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: _selectedSystem == AgentSystem.openClaw
+                                      ? Colors.white
+                                      : isDark 
+                                          ? AppColors.textDarkSecondary 
+                                          : AppColors.textLightSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedSystem = AgentSystem.hermes),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.md,
+                            horizontal: AppSpacing.s,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _selectedSystem == AgentSystem.hermes
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(AppRadius.medium - 2),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Iconsax.code,
+                                size: 20,
+                                color: _selectedSystem == AgentSystem.hermes
+                                    ? Colors.white
+                                    : isDark 
+                                        ? AppColors.textDarkSecondary 
+                                        : AppColors.textLightSecondary,
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Text(
+                                'Hermes',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: _selectedSystem == AgentSystem.hermes
+                                      ? Colors.white
+                                      : isDark 
+                                          ? AppColors.textDarkSecondary 
+                                          : AppColors.textLightSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               
               const SizedBox(height: AppSpacing.lg),
+              
+              // Gateway URL (only for OpenClaw)
+              if (_selectedSystem == AgentSystem.openClaw) ...[
+                Text(
+                  'Gateway URL',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _gatewayController,
+                  decoration: const InputDecoration(
+                    hintText: 'z.B. localhost:18789 oder deine.domain.com',
+                    prefixIcon: Icon(Iconsax.link),
+                  ),
+                  keyboardType: TextInputType.url,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
               
               // Token
               Text(
@@ -278,11 +400,18 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: AppSpacing.xl),
               
               // Help text
-              Text(
-                'Du findest dein Gateway Token in den OpenClaw Einstellungen unter "Gateway".',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              if (_selectedSystem == AgentSystem.openClaw)
+                Text(
+                  'Du findest dein Gateway Token in den OpenClaw Einstellungen unter "Gateway".',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                )
+              else
+                Text(
+                  'Verbindung zu Hermes herstellen.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
             ],
           ),
         ),
