@@ -1,13 +1,14 @@
 {
-    "name": "clawchat",
-    "short_name": "clawchat",
+    "name": "ClawChat",
+    "short_name": "Claw",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
+    "description": "ClawChat - AI Assistant Hub for desktop and mobile",
+    "orientation": "any",
     "prefer_related_applications": false,
+    "categories": ["productivity", "utilities"],
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -30,6 +31,24 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "ClawChat Desktop View"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "New Chat",
+            "short_name": "New",
+            "description": "Start a new conversation",
+            "url": "/?action=new",
+            "icons": [{ "src": "icons/Icon-192.png", "sizes": "192x192" }]
         }
     ]
 }

@@ -1885,6 +1885,7 @@ class ChatInput extends StatefulWidget {
 
 class _ChatInputState extends State<ChatInput> with ChangeNotifier {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   bool _isRecording = false;
   bool _isRecordingVoiceMessage = false;
   bool _isPttHolding = false;
@@ -1935,6 +1936,7 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
     _voiceRecorderService?.dispose();
     _voiceMessageService?.dispose();
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -2267,9 +2269,19 @@ class _ChatInputState extends State<ChatInput> with ChangeNotifier {
                 Expanded(
                   child: CallbackShortcuts(
                     bindings: {
+                      // Ctrl+Enter - Send message
                       const SingleActivator(LogicalKeyboardKey.enter, controlPressed: true): _send,
+                      // Escape - Cancel reply
+                      const SingleActivator(LogicalKeyboardKey.escape): () {
+                        if (widget.replyTo != null && widget.onCancelReply != null) {
+                          widget.onCancelReply!();
+                        } else {
+                          _focusNode.unfocus();
+                        }
+                      },
                     },
                     child: TextField(
+                      focusNode: _focusNode,
                       controller: _controller,
                       enabled: widget.enabled && !_isRecording,
                       maxLines: 5,
