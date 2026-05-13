@@ -20,6 +20,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/agent_presets_provider.dart';
 import '../../models/message.dart';
 import '../../widgets/animations/chat_message_animation.dart';
+import '../../widgets/animations/skeleton_loaders.dart';
 import 'widgets/chat_widgets.dart' hide ThinkingIndicator, ToolCallCard;
 import 'widgets/thinking_indicator.dart';
 import 'widgets/tool_execution_card.dart';
@@ -727,13 +728,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       body: Column(
         children: [
+          // Offline Banner (shown when disconnected but no error banner)
+          if (!auth.ws.isConnected && _messages.isNotEmpty)
+            OfflineBanner(onRetry: () => auth.reconnect()),
           // Connection Status Bar
           _buildConnectionStatusBar(
             isConnected: auth.ws.isConnected,
             status: auth.ws.status,
             isDark: isDark,
           ),
-          // Connection Error Banner
+          // Connection Error Banner (only when no messages yet)
           if (!auth.ws.isConnected && _messages.isEmpty)
             Container(
               width: double.infinity,

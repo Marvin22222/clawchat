@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 
-/// Skeleton loading placeholders for content loading states
+/// Loading skeleton with shimmer effect for realistic content placeholders
 class SkeletonLoader extends StatefulWidget {
   final double width;
   final double height;
   final double borderRadius;
   final bool animate;
+  final bool useShimmer;
 
   const SkeletonLoader({
     super.key,
@@ -15,6 +16,7 @@ class SkeletonLoader extends StatefulWidget {
     required this.height,
     this.borderRadius = AppRadius.small,
     this.animate = true,
+    this.useShimmer = true,
   });
 
   @override
@@ -53,6 +55,17 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
     final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
+
+    if (!widget.animate || !widget.useShimmer) {
+      return Container(
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          color: baseColor,
+        ),
+      );
+    }
 
     return AnimatedBuilder(
       animation: _animation,
@@ -722,6 +735,297 @@ class SettingsScreenSkeleton extends StatelessWidget {
     );
   }
 }
+
+/// Offline mode banner widget with slide-down animation
+class OfflineBanner extends StatefulWidget {
+  final VoidCallback? onRetry;
+
+  const OfflineBanner({
+    super.key,
+    this.onRetry,
+  });
+
+  @override
+  State<OfflineBanner> createState() => _OfflineBannerState();
+}
+
+class _OfflineBannerState extends State<OfflineBanner>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          color: AppColors.warning.withOpacity(0.15),
+          child: Row(
+            children: [
+              const Icon(
+                Iconsax.wifi_slash,
+                color: AppColors.warning,
+                size: 18,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  'Keine Verbindung',
+                  style: AppTypography.label.copyWith(
+                    color: AppColors.warning,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (widget.onRetry != null)
+                TextButton.icon(
+                  onPressed: widget.onRetry,
+                  icon: const Icon(Iconsax.refresh, size: 14),
+                  label: const Text('Erneut'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.warning,
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    minimumSize: const Size(0, 28),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Agent card skeleton for agents screen loading state
+class AgentCardSkeleton extends StatelessWidget {
+  const AgentCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            // Agent icon placeholder
+            SkeletonLoader(
+              height: 56,
+              width: 56,
+              borderRadius: AppRadius.medium,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            // Agent info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SkeletonLoader(
+                    height: 16,
+                    width: 120,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  SkeletonLoader(
+                    height: 13,
+                    width: double.infinity,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            // Action icons
+            Column(
+              children: [
+                SkeletonLoader(
+                  height: 24,
+                  width: 24,
+                  borderRadius: 12,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                SkeletonLoader(
+                  height: 16,
+                  width: 16,
+                  borderRadius: 8,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Agents list skeleton with multiple agent cards
+class AgentsListSkeleton extends StatelessWidget {
+  final int itemCount;
+
+  const AgentsListSkeleton({
+    super.key,
+    this.itemCount = 4,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      itemCount: itemCount,
+      itemBuilder: (context, index) => const AgentCardSkeleton(),
+    );
+  }
+}
+
+/// Home screen skeleton with quick action cards and agent list
+class HomeScreenSkeleton extends StatelessWidget {
+  const HomeScreenSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Connection status card
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+            ),
+            child: Row(
+              children: [
+                SkeletonLoader(
+                  height: 10,
+                  width: 10,
+                  borderRadius: 5,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                SkeletonLoader(
+                  height: 14,
+                  width: 80,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          // Quick actions header
+          SkeletonLoader(
+            height: 20,
+            width: 100,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // Quick action cards
+          Row(
+            children: List.generate(3, (index) => Expanded(
+              child: Container(
+                margin: EdgeInsets.only(right: index < 2 ? AppSpacing.md : 0),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                ),
+                child: Column(
+                  children: [
+                    SkeletonLoader(
+                      height: 32,
+                      width: 32,
+                      borderRadius: AppRadius.small,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    SkeletonLoader(
+                      height: 12,
+                      width: 50,
+                    ),
+                  ],
+                ),
+              ),
+            )),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          // Agents header
+          SkeletonLoader(
+            height: 20,
+            width: 120,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // Agent list items
+          ...List.generate(4, (index) => Container(
+            margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+            ),
+            child: Row(
+              children: [
+                SkeletonLoader(
+                  height: 40,
+                  width: 40,
+                  borderRadius: 20,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: SkeletonLoader(
+                    height: 14,
+                    width: double.infinity,
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+}
+
 /// BlurPlaceholder for image loading states
 class BlurPlaceholder extends StatelessWidget {
   final double width;

@@ -7,6 +7,7 @@ import '../../models/message.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/animations/skeleton_loaders.dart';
 import '../chat/chat_screen.dart';
 
 class AgentsScreen extends StatefulWidget {
@@ -20,11 +21,22 @@ class _AgentsScreenState extends State<AgentsScreen> {
   final AgentPresetService _presetService = AgentPresetService();
   List<AgentPreset> _presets = [];
   bool _showPresets = false;
+  bool _isLoadingAgents = false;
 
   @override
   void initState() {
     super.initState();
     _loadPresets();
+    _loadAgentsWithSkeleton();
+  }
+
+  Future<void> _loadAgentsWithSkeleton() async {
+    setState(() => _isLoadingAgents = true);
+    // Simulate loading delay for skeleton demo
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) {
+      setState(() => _isLoadingAgents = false);
+    }
   }
 
   Future<void> _loadPresets() async {
@@ -59,7 +71,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
           ),
         ],
       ),
-      body: _showPresets ? _PresetsList(
+      body: _isLoadingAgents ? const AgentsListSkeleton() : _showPresets ? _PresetsList(
         presets: _presets,
         isDark: isDark,
         onLoadPreset: _loadPreset,
