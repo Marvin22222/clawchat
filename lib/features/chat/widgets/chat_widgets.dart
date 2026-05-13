@@ -282,19 +282,49 @@ class MessageBubble extends StatelessWidget {
                   // Status indicator for user messages
                   if (isUser) ...[
                     const SizedBox(width: 4),
-                    Icon(
-                      status == MessageStatus.error
-                          ? Iconsax.warning_2_outline
-                          : status == MessageStatus.sending
-                              ? Iconsax.clock
-                              : Iconsax.tick_circle,
-                      size: 12,
-                      color: status == MessageStatus.error
-                          ? Colors.white70
-                          : (status == MessageStatus.sending
-                              ? Colors.white54
-                              : Colors.white70),
-                    ),
+                    // Read receipt: blue double checkmark
+                    if (status == MessageStatus.read)
+                      Tooltip(
+                        message: 'Gelesen',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.done_all,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
+                          ],
+                        ),
+                      )
+                    // Delivered: gray double checkmark
+                    else if (status == MessageStatus.delivered)
+                      Icon(
+                        Icons.done_all,
+                        size: 12,
+                        color: Colors.white54,
+                      )
+                    // Sent: single checkmark
+                    else if (status == MessageStatus.sent)
+                      Icon(
+                        Icons.done,
+                        size: 12,
+                        color: Colors.white70,
+                      )
+                    // Sending: clock
+                    else if (status == MessageStatus.sending)
+                      Icon(
+                        Iconsax.clock,
+                        size: 12,
+                        color: Colors.white54,
+                      )
+                    // Error: warning
+                    else
+                      Icon(
+                        Iconsax.warning_2_outline,
+                        size: 12,
+                        color: Colors.white70,
+                      ),
                   ],
                   if (reactions != null && reactions!.isNotEmpty) ...[
                     const SizedBox(width: AppSpacing.sm),

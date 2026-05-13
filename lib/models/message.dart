@@ -1,6 +1,6 @@
 enum MessageType { user, assistant, system, thinking, toolCall, streaming }
 
-enum MessageStatus { sending, sent, error }
+enum MessageStatus { sending, sent, delivered, read, error }
 
 class MessageAttachment {
   final String path;
@@ -33,6 +33,7 @@ class ChatMessage {
   final bool isEdited; // true if message was edited
   final String? replyToId; // ID of the message being replied to
   final String? replyToContent; // Preview of the message being replied to
+  final DateTime? readAt; // Timestamp when message was read
 
   ChatMessage({
     required this.id,
@@ -49,6 +50,7 @@ class ChatMessage {
     this.isEdited = false,
     this.replyToId,
     this.replyToContent,
+    this.readAt,
   });
 
   ChatMessage copyWith({
@@ -62,6 +64,7 @@ class ChatMessage {
     bool? isEdited,
     String? replyToId,
     String? replyToContent,
+    DateTime? readAt,
   }) {
     return ChatMessage(
       id: id,
@@ -78,6 +81,7 @@ class ChatMessage {
       isEdited: isEdited ?? this.isEdited,
       replyToId: replyToId ?? this.replyToId,
       replyToContent: replyToContent ?? this.replyToContent,
+      readAt: readAt ?? this.readAt,
     );
   }
 }

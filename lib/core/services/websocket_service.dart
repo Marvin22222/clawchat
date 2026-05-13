@@ -26,6 +26,7 @@ class WebSocketService extends ChangeNotifier {
   Function()? onDisconnected;
   Function()? onStreamingStart;  // New: called when assistant starts streaming
   Function()? onStreamingEnd;    // New: called when streaming is complete
+  Function(String messageId)? onMessageRead;  // Called when a message read receipt is received
 
   ConnectionStatus get status => _status;
   List<String> get availableAgents => _availableAgents;
@@ -124,6 +125,9 @@ class WebSocketService extends ChangeNotifier {
         case 'tool_call_progress':
         case 'tool_call_end':
           onToolCall?.call(message);
+          break;
+        case 'message_read':
+          onMessageRead?.call(message['messageId'] ?? '');
           break;
         case 'error':
           onError?.call(message['message'] ?? 'Unknown error');
