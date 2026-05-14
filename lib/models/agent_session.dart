@@ -22,7 +22,7 @@ class AgentSession {
     this.progress = 0.0,
     this.steps = const [],
     this.lastActive,
-    this.startedAt,
+    DateTime? startedAt,
   })  : id = id ?? const Uuid().v4(),
         startedAt = startedAt ?? DateTime.now();
 

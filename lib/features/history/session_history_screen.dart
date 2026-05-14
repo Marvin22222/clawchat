@@ -6,6 +6,7 @@ import '../../models/message.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
 import '../chat/chat_screen.dart';
+import 'package:iconsax/iconsax.dart';
 
 class SessionHistoryScreen extends StatelessWidget {
   const SessionHistoryScreen({super.key});
@@ -80,7 +81,7 @@ class SessionHistoryScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       AppPageTransitions.fadeSlide(
-                        builder: (_) => ChatScreen(initialAgent: session.name.toLowerCase()),
+                        page: ChatScreen(initialAgent: session.name.toLowerCase()),
                       ),
                     );
                   },

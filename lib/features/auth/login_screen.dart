@@ -5,6 +5,7 @@ import '../../core/constants/spacing.dart';
 import '../../core/services/biometric_service.dart';
 import '../../providers/auth_provider.dart';
 import 'biometric_auth_sheet.dart';
+import 'package:iconsax/iconsax.dart';
 
 enum AgentSystem { openClaw, hermes }
 
@@ -162,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(AppRadius.xl),
                   ),
                   child: const Icon(
-                    Iconsax.messages_rounded,
+                    Icons.chat,
                     size: 40,
                     color: Colors.white,
                   ),
@@ -260,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             vertical: AppSpacing.md,
-                            horizontal: AppSpacing.s,
+                            horizontal: AppSpacing.sm,
                           ),
                           decoration: BoxDecoration(
                             color: _selectedSystem == AgentSystem.hermes
@@ -386,8 +387,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         )
                       : Icon(
                           _biometricTypeName == 'Face ID' 
-                              ? Iconsax.face 
-                              : Iconsax.finger_print,
+                              ? Icons.face 
+                              : Icons.fingerprint,
                         ),
                   label: Text('Mit $_biometricTypeName anmelden'),
                   style: OutlinedButton.styleFrom(

@@ -39,7 +39,13 @@ class AppColors {
 
   static const Color border = Color(0xFF2F2F2F);
   static const Color borderLight = Color(0xFF3F3F3F);
+  static const Color borderDark = Color(0xFF2F2F2F);
   static const Color borderFocused = Color(0xFF10A37F);
+
+  static const Color cardDark = Color(0xFF1F1F1F);
+  static const Color cardLight = Color(0xFFFFFFFF);
+  static const Color surfaceDark = Color(0xFF171717);
+  static const Color surfaceLight = Color(0xFFF8FAFC);
 
   static const Color shadow = Color(0x40000000);
   static const Color shadowAccent = Color(0x4010A37F);

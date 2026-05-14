@@ -21,7 +21,7 @@ class TipsScreen extends StatelessWidget {
         children: [
           _TipSection(
             title: '💬 Chatten',
-            icon: Iconsax.messages_rounded,
+            icon: Icons.chat,
             iconColor: AppColors.primary,
             tips: const [
               'Tippe unten auf das Textfeld, um eine Nachricht zu senden',
@@ -33,7 +33,7 @@ class TipsScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           _TipSection(
             title: '🤖 Agenten',
-            icon: Iconsax.robot,
+            icon: Icons.smart_toy,
             iconColor: AppColors.secondary,
             tips: const [
               'Wechsle Agenten über das Agenten-Menü oben rechts',

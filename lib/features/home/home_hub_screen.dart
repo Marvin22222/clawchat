@@ -43,7 +43,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     Navigator.push(
       context,
       AppPageTransitions.fadeSlide(
-        builder: (_) => ChatScreen(
+        page: ChatScreen(
           initialAgent: agent ?? _selectedAgent,
         ),
       ),
@@ -67,7 +67,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           slivers: [
             SliverToBoxAdapter(child: _buildHeader(auth)),
             SliverToBoxAdapter(child: _buildQuickInput()),
-            SliverToBoxAdapter(child: _buildSectionHeader('Agents', Iconsax.robot_outlined)),
+            SliverToBoxAdapter(child: _buildSectionHeader('Agents', Icons.smart_toy_outlined)),
             SliverToBoxAdapter(child: _buildAgentsGrid()),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
@@ -147,7 +147,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         Navigator.push(
           context,
           AppPageTransitions.fadeSlide(
-            builder: (_) => const AgentMonitorScreen(),
+            page: const AgentMonitorScreen(),
           ),
         );
       },
@@ -250,7 +250,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Iconsax.robot, size: 18, color: AppColors.primary),
+            Icon(Icons.smart_toy, size: 18, color: AppColors.primary),
             const SizedBox(width: 4),
             Text(
               'main',
@@ -333,7 +333,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       case 'audio':
         return Iconsax.microphone;
       default:
-        return Iconsax.robot;
+        return Icons.smart_toy;
     }
   }
 
@@ -355,7 +355,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 Navigator.push(
                   context,
                   AppPageTransitions.fadeSlide(
-                    builder: (_) => const TasksScreen(),
+                    page: const TasksScreen(),
                   ),
                 );
               },
@@ -381,7 +381,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         ),
         child: Column(
           children: [
-            Icon(Iconsax.robot_outlined, color: AppColors.textMuted, size: 48),
+            Icon(Icons.smart_toy_outlined, color: AppColors.textMuted, size: 48),
             const SizedBox(height: AppSpacing.md),
             Text(
               'Verbinde dich mit dem Gateway',
@@ -499,7 +499,7 @@ class _AgentCard extends StatelessWidget {
       case 'audio':
         return Iconsax.microphone;
       default:
-        return Iconsax.robot;
+        return Icons.smart_toy;
     }
   }
 

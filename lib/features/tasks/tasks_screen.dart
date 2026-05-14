@@ -81,7 +81,7 @@ class _TasksScreenState extends State<TasksScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Iconsax.warning_2_outline,
+              Icons.warning_outlined,
               size: 64,
               color: AppColors.error,
             ),
@@ -114,7 +114,7 @@ class _TasksScreenState extends State<TasksScreen> {
         subtitle = 'Deine geplanten Tasks erscheinen hier';
       }
       return BetterEmptyState(
-        icon: Iconsax.task_alt,
+        icon: Icons.task_alt,
         title: title,
         subtitle: subtitle,
         isDark: isDark,
@@ -322,7 +322,7 @@ class TaskCard extends StatelessWidget {
   IconData get _statusIcon {
     switch (task.status) {
       case TaskStatus.completed:
-        return Iconsax.tick_square_circle;
+        return Icons.check_circle;
       case TaskStatus.running:
         return Iconsax.play_circle;
       case TaskStatus.failed:
@@ -375,7 +375,7 @@ class TaskCard extends StatelessWidget {
                       children: [
                         if (task.agent != null) ...[
                           Icon(
-                            Iconsax.robot_outlined,
+                            Icons.smart_toy_outlined,
                             size: 12,
                             color: isDark
                                 ? AppColors.textDarkSecondary
@@ -489,7 +489,7 @@ class TaskDetailsSheet extends StatelessWidget {
   IconData get _statusIcon {
     switch (task.status) {
       case TaskStatus.completed:
-        return Iconsax.tick_square_circle;
+        return Icons.check_circle;
       case TaskStatus.running:
         return Iconsax.play_circle;
       case TaskStatus.failed:
@@ -573,14 +573,14 @@ class TaskDetailsSheet extends StatelessWidget {
                 
                 // Details
                 _DetailRow(
-                  icon: Iconsax.finger_print,
+                  icon: Icons.fingerprint,
                   label: 'Task ID',
                   value: task.id,
                   isDark: isDark,
                 ),
                 if (task.agent != null)
                   _DetailRow(
-                    icon: Iconsax.robot_outlined,
+                    icon: Icons.smart_toy_outlined,
                     label: 'Agent',
                     value: task.agent!,
                     isDark: isDark,
@@ -593,7 +593,7 @@ class TaskDetailsSheet extends StatelessWidget {
                 ),
                 if (task.completedAt != null)
                   _DetailRow(
-                    icon: Iconsax.tick_square_circle_outline,
+                    icon: Icons.check_circle_outline,
                     label: 'Abgeschlossen',
                     value: _formatDateTime(task.completedAt!),
                     isDark: isDark,
@@ -625,7 +625,7 @@ class TaskDetailsSheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Iconsax.warning_2_outline,
+                          Icons.warning_outlined,
                           color: AppColors.error,
                           size: 20,
                         ),
@@ -655,7 +655,7 @@ class TaskDetailsSheet extends StatelessWidget {
                           // Task neu starten
                           Navigator.pop(context);
                         },
-                        icon: const Icon(Iconsax.arrow_clockwise),
+                        icon: const Icon(Icons.refresh),
                         label: const Text('Neustarten'),
                       ),
                     ),

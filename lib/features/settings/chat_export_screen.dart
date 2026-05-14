@@ -76,7 +76,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Iconsax.messages_bubble_outline,
+            Icons.chat_bubble_outline,
             size: 64,
             color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
           ),
@@ -182,7 +182,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
             child: Row(
               children: [
                 Icon(
-                  isSelected ? Iconsax.check_circle : Iconsax.circle,
+                  isSelected ? Icons.check_circle : Icons.circle,
                   color: isSelected ? AppColors.primary : Colors.grey,
                   size: 20,
                 ),
@@ -208,7 +208,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
                     ],
                   ),
                 ),
-                Icon(Iconsax.chevron_right, color: Colors.grey[400]),
+                Icon(Icons.chevron_right, color: Colors.grey[400]),
               ],
             ),
           ),
@@ -370,7 +370,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
           const SnackBar(
             content: Row(
               children: [
-                Icon(Iconsax.check_circle, color: Colors.white, size: 20),
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
                 Text('JSON Export erfolgreich'),
               ],
@@ -400,7 +400,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
           const SnackBar(
             content: Row(
               children: [
-                Icon(Iconsax.check_circle, color: Colors.white, size: 20),
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
                 Text('Text Export erfolgreich'),
               ],
@@ -430,7 +430,7 @@ class _ChatExportScreenState extends State<ChatExportScreen> {
           const SnackBar(
             content: Row(
               children: [
-                Icon(Iconsax.check_circle, color: Colors.white, size: 20),
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
                 Text('PDF Export erfolgreich'),
               ],

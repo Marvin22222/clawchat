@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/spacing.dart';
+import 'package:iconsax/iconsax.dart';
 
 enum AgentActivityStatus { idle, running, completed, error }
 
@@ -86,11 +87,11 @@ class _AgentActivityCardState extends State<AgentActivityCard>
   IconData get _statusIcon {
     switch (widget.status) {
       case AgentActivityStatus.idle:
-        return Iconsax.circle;
+        return Icons.circle;
       case AgentActivityStatus.running:
-        return Iconsax.play_circle_filled;
+        return Icons.play_circle_filled;
       case AgentActivityStatus.completed:
-        return Iconsax.tick_square_circle;
+        return Icons.check_circle;
       case AgentActivityStatus.error:
         return Iconsax.warning_2;
     }
@@ -358,7 +359,7 @@ class _AgentStepItem extends StatelessWidget {
     switch (step.status) {
       case StepStatus.pending:
         stepColor = AppColors.textLightSecondary;
-        stepIcon = Iconsax.circle;
+        stepIcon = Icons.circle;
         break;
       case StepStatus.running:
         stepColor = AppColors.warning;
@@ -366,7 +367,7 @@ class _AgentStepItem extends StatelessWidget {
         break;
       case StepStatus.completed:
         stepColor = AppColors.success;
-        stepIcon = Iconsax.tick_square_circle;
+        stepIcon = Icons.check_circle;
         break;
       case StepStatus.error:
         stepColor = AppColors.error;

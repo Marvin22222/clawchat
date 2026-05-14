@@ -1,11 +1,11 @@
 // Deferred imports for cold start optimization
 // Heavy screens loaded only when actually needed
-import 'features/home/home_hub_screen.dart' deferred as home;
-import 'features/chat/chat_screen.dart' deferred as chat;
-import 'features/files/files_screen.dart' deferred as files;
-import 'features/tasks/tasks_screen.dart' deferred as tasks;
-import 'features/history/session_history_screen.dart' deferred as history;
-import 'features/settings/settings_screen.dart' deferred as settings;
+import '../home/home_hub_screen.dart' deferred as home;
+import '../chat/chat_screen.dart' deferred as chat;
+import '../files/files_screen.dart' deferred as files;
+import '../tasks/tasks_screen.dart' deferred as tasks;
+import '../history/session_history_screen.dart' deferred as history;
+import '../settings/settings_screen.dart' deferred as settings;
 
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';

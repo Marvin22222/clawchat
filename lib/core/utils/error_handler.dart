@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
 import '../constants/spacing.dart';
+import 'package:iconsax/iconsax.dart';
 
 class ErrorHandler {
   static void showErrorSnackBar(BuildContext context, String message) {
@@ -8,7 +9,7 @@ class ErrorHandler {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Iconsax.warning_2_outline, color: Colors.white),
+            const Icon(Icons.warning_outlined, color: Colors.white),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(message)),
           ],
@@ -34,7 +35,7 @@ class ErrorHandler {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Iconsax.tick_square_circle_outline, color: Colors.white),
+            const Icon(Icons.check_circle_outline, color: Colors.white),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: Text(message)),
           ],

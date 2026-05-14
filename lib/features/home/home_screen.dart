@@ -75,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final auth = context.watch<AuthProvider>();
     final theme = context.watch<ThemeProvider>();
+    final settings = theme;
 
     return Scaffold(
       appBar: _buildAppBar(context, isDark, settings),
@@ -98,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDark, ThemeProvider theme) {
+    final settings = theme;
     return AppBar(
       title: Row(
         children: [
@@ -109,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Iconsax.claw, color: AppColors.primary, size: 24),
+              child: Icon(Icons.pets, color: AppColors.primary, size: 24),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -125,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             Navigator.push(
               context,
               AppPageTransitions.fadeSlide(
-                builder: (_) => const SettingsScreen(),
+                page: const SettingsScreen(),
               ),
             );
           },
@@ -158,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             builder: (context, snapshot) {
               final notifEnabled = snapshot.data ?? true;
               return _QuickToggle(
-                icon: notifEnabled ? Iconsax.notification : Iconsax.notification_slash,
+                icon: notifEnabled ? Iconsax.notification : Icons.notifications_off,
                 isActive: notifEnabled,
                 onTap: () async {
                   await NotificationSettingsService.setNotificationsEnabled(!notifEnabled);
@@ -203,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Iconsax.robot, size: 16, color: AppColors.primary),
+            Icon(Icons.smart_toy, size: 16, color: AppColors.primary),
             const SizedBox(width: AppSpacing.xs),
             const Text('Agent', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
             const SizedBox(width: AppSpacing.xs),
@@ -241,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           Navigator.push(
             context,
             AppPageTransitions.fadeSlide(
-              builder: (_) => ChatScreen(initialAgent: agent),
+              page: ChatScreen(initialAgent: agent),
             ),
           );
         }
@@ -259,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           icon: Stack(
             children: [
               Icon(
-                enabled ? Iconsax.notification : Iconsax.notification_slash,
+                enabled ? Iconsax.notification : Icons.notifications_off,
                 color: enabled ? null : AppColors.error,
               ),
               if (!enabled)
@@ -416,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       title: 'Aktive Agents',
                       value: '${auth.ws.availableAgents.length}',
                       subtitle: 'online',
-                      icon: Iconsax.robot,
+                      icon: Icons.smart_toy,
                       color: AppColors.primary,
                       isDark: isDark,
                     ),
@@ -457,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   title: 'Aktive Agents',
                   value: '${auth.ws.availableAgents.length}',
                   subtitle: 'online',
-                  icon: Iconsax.robot,
+                  icon: Icons.smart_toy,
                   color: AppColors.primary,
                   isDark: isDark,
                   compact: true,
@@ -537,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            Iconsax.sparkle,
+                            Icons.auto_awesome,
                             size: 48,
                             color: AppColors.primary,
                           ),
@@ -700,7 +702,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   Navigator.push(
                     context,
                     AppPageTransitions.fadeSlide(
-                      builder: (_) => const ChatScreen(),
+                      page: const ChatScreen(),
                     ),
                   );
                 }
@@ -708,14 +710,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
         const SizedBox(height: AppSpacing.sm),
         _DesktopNavItem(
-          icon: Iconsax.robot,
+          icon: Icons.smart_toy,
           title: 'Agents',
           onTap: auth.ws.isConnected
               ? () {
                   Navigator.push(
                     context,
                     AppPageTransitions.fadeSlide(
-                      builder: (_) => const AgentsScreen(),
+                      page: const AgentsScreen(),
                     ),
                   );
                 }
@@ -730,7 +732,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   Navigator.push(
                     context,
                     AppPageTransitions.fadeSlide(
-                      builder: (_) => const TasksScreen(),
+                      page: const TasksScreen(),
                     ),
                   );
                 }
@@ -744,7 +746,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             Navigator.push(
               context,
               AppPageTransitions.fadeSlide(
-                builder: (_) => const SettingsScreen(),
+                page: const SettingsScreen(),
               ),
             );
           },
@@ -822,7 +824,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       ),
                     ),
                     title: Text(agent),
-                    trailing: const Icon(Iconsax.chevron_right),
+                    trailing: const Icon(Icons.chevron_right),
                     onTap: () => _navigateTo(context, ChatScreen(initialAgent: agent)),
                   ),
                 )).toList(),
@@ -850,7 +852,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     Navigator.push(
       context,
       AppPageTransitions.fadeSlide(
-        builder: (_) => screen,
+        page: screen,
       ),
     );
   }
@@ -1440,7 +1442,7 @@ class _AgentCardState extends State<_AgentCard> {
                     turns: _isHovered ? 0.1 : 0,
                     duration: const Duration(milliseconds: 150),
                     child: Icon(
-                      Iconsax.chevron_right,
+                      Icons.chevron_right,
                       color: _isHovered ? AppColors.primary : (isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
                     ),
                   ),
@@ -1495,7 +1497,7 @@ class _StorageDashboardCardState extends State<_StorageDashboardCard> {
         Navigator.push(
           context,
           AppPageTransitions.fadeSlide(
-            builder: (_) => const SettingsScreen(),
+            page: const SettingsScreen(),
           ),
         );
       },
@@ -1519,7 +1521,7 @@ class _StorageDashboardCardState extends State<_StorageDashboardCard> {
             color: AppColors.info.withOpacity(0.1),
             borderRadius: BorderRadius.circular(AppRadius.medium),
           ),
-          child: Icon(Iconsax.database, color: AppColors.info, size: 24),
+          child: Icon(Icons.storage, color: AppColors.info, size: 24),
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
@@ -1553,7 +1555,7 @@ class _StorageDashboardCardState extends State<_StorageDashboardCard> {
           ),
         ),
         Icon(
-          Iconsax.chevron_right,
+          Icons.chevron_right,
           color: widget.isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
           size: 20,
         ),
@@ -1570,7 +1572,7 @@ class _StorageDashboardCardState extends State<_StorageDashboardCard> {
             color: AppColors.info.withOpacity(0.1),
             borderRadius: BorderRadius.circular(AppRadius.small),
           ),
-          child: Icon(Iconsax.database, color: AppColors.info, size: 18),
+          child: Icon(Icons.storage, color: AppColors.info, size: 18),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(

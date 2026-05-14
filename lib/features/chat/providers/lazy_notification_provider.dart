@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../../core/services/notification_service.dart';
+import '../../../core/services/notification_service.dart';
 
 /// LazyNotificationProvider - Deferred initialization for NotificationService
 /// 

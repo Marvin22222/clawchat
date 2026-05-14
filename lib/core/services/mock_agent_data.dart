@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/agent_session.dart';
-import '../models/agent_status.dart';
+import '../../models/agent_session.dart';
+import '../../models/agent_status.dart';
 
 /// Mock data provider for development
 class MockAgentData {

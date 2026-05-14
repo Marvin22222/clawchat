@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../constants/colors.dart';
 import '../constants/spacing.dart';
 import '../utils/logger.dart';
+import 'package:iconsax/iconsax.dart';
 
 class ImageUploadService {
   final ImagePicker _picker = ImagePicker();
@@ -63,7 +64,7 @@ class ImageUploadWidget extends StatelessWidget {
 
     return PopupMenuButton<String>(
       icon: Icon(
-        Iconsax.add_photo_alternate,
+        Icons.add_photo_alternate,
         color: isDark ? AppColors.textDark : AppColors.textLight,
       ),
       onSelected: (value) async {

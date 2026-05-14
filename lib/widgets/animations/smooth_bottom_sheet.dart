@@ -246,7 +246,7 @@ class _SmoothBottomSheetState extends State<SmoothBottomSheet>
           minChildSize: widget.minChildSize,
           maxChildSize: widget.maxChildSize,
           snap: widget.enableSnap,
-          snapSizes: widget.snapSizes.map((s) => FractionSize(s)).toList(),
+          snapSizes: widget.snapSizes,
           builder: (context, scrollController) {
             return _SheetContent(
               scrollController: scrollController,
@@ -418,6 +418,5 @@ Future<T?> showSettingsSheet<T>({
     maxChildSize: maxChildSize,
     snapSizes: const [0.5, 0.7, 0.9],
     builder: builder,
-    scrollController: scrollController,
   );
 }

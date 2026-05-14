@@ -45,6 +45,6 @@ class AppLogger {
   static void agentSwitched(String agent) => info('Agent switched: $agent', tag: 'CHAT');
 
   // Error events
-  static void networkError(String error) => error('Network error: $error', tag: 'NET');
-  static void apiError(String endpoint, String error) => error('API error ($endpoint): $error', tag: 'API');
+  static void networkError(String message) => error('Network error: $message', tag: 'NET');
+  static void apiError(String endpoint, String message) => error('API error ($endpoint): $message', tag: 'API');
 }

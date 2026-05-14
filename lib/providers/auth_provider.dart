@@ -2,12 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/constants/colors.dart';
-import '../../core/services/theme_service.dart';
-import '../../core/services/websocket_service.dart';
-import '../../core/services/api_service.dart';
-import '../../core/utils/logger.dart';
-import '../../models/message.dart';
+import '../core/constants/colors.dart';
+import '../core/services/theme_service.dart';
+import '../core/services/websocket_service.dart';
+import '../core/services/api_service.dart';
+import '../core/utils/logger.dart';
+import '../models/message.dart';
 
 class AuthProvider extends ChangeNotifier {
   final WebSocketService _ws = WebSocketService();

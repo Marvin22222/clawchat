@@ -53,6 +53,47 @@ class ChatMessage {
     this.readAt,
   });
 
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    MessageType parseType(String? value) {
+      switch (value) {
+        case 'assistant': return MessageType.assistant;
+        case 'system': return MessageType.system;
+        case 'thinking': return MessageType.thinking;
+        case 'toolCall': return MessageType.toolCall;
+        case 'streaming': return MessageType.streaming;
+        default: return MessageType.user;
+      }
+    }
+
+    MessageStatus parseStatus(String? value) {
+      switch (value) {
+        case 'sending': return MessageStatus.sending;
+        case 'delivered': return MessageStatus.delivered;
+        case 'read': return MessageStatus.read;
+        case 'error': return MessageStatus.error;
+        default: return MessageStatus.sent;
+      }
+    }
+
+    return ChatMessage(
+      id: json['id']?.toString() ?? '',
+      content: json['content']?.toString() ?? '',
+      type: parseType(json['type'] as String?),
+      timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ?? DateTime.now(),
+      status: parseStatus(json['status'] as String?),
+      agentName: json['agentName'] as String?,
+      toolData: json['toolData'] is Map ? Map<String, dynamic>.from(json['toolData'] as Map) : null,
+      reactions: json['reactions'] is Map
+          ? Map<String, int>.from(json['reactions'] as Map)
+          : null,
+      isStreaming: json['isStreaming'] == true,
+      isEdited: json['isEdited'] == true,
+      replyToId: json['replyToId'] as String?,
+      replyToContent: json['replyToContent'] as String?,
+      readAt: json['readAt'] != null ? DateTime.tryParse(json['readAt'].toString()) : null,
+    );
+  }
+
   ChatMessage copyWith({
     String? content,
     MessageStatus? status,

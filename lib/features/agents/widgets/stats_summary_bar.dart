@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../models/agent_session.dart';
+import 'package:iconsax/iconsax.dart';
 
 /// Horizontal stats bar showing agent count summary
 class StatsSummaryBar extends StatelessWidget {
@@ -46,28 +47,28 @@ class StatsSummaryBar extends StatelessWidget {
               _StatChip(
                 label: 'Agents',
                 value: '$totalAgents',
-                icon: Iconsax.robot_outlined,
+                icon: Icons.smart_toy_outlined,
                 color: AppColors.primary,
               ),
               _divider(isDark),
               _StatChip(
                 label: 'Active',
                 value: '$activeCount',
-                icon: Iconsax.tick_square_circle_outline,
+                icon: Icons.check_circle_outline,
                 color: const Color(0xFF22C55E),
               ),
               _divider(isDark),
               _StatChip(
                 label: 'Busy',
                 value: '$busyCount',
-                icon: Iconsax.timer_pause_outlined,
+                icon: Icons.pause_circle_outline,
                 color: const Color(0xFFEAB308),
               ),
               _divider(isDark),
               _StatChip(
                 label: 'Errors',
                 value: '$errorCount',
-                icon: Iconsax.warning_2_outline,
+                icon: Icons.warning_outlined,
                 color: const Color(0xFFEF4444),
               ),
             ],

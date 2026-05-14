@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../models/agent_status.dart';
+import 'package:iconsax/iconsax.dart';
 
 /// Filter and sort options for agent list
 enum AgentFilter { all, active, idle, error }
@@ -178,7 +179,7 @@ class _SortDropdown extends StatelessWidget {
       case AgentSort.name:
         return Iconsax.sort;
       case AgentSort.status:
-        return Iconsax.circle;
+        return Icons.circle;
       case AgentSort.lastActive:
         return Iconsax.clock;
     }
@@ -302,7 +303,7 @@ class _ViewModeToggle extends StatelessWidget {
             isFirst: true,
           ),
           _ViewModeButton(
-            icon: Iconsax.list,
+            icon: Icons.list,
             isSelected: viewMode == AgentViewMode.list,
             onTap: () => onChanged(AgentViewMode.list),
             isFirst: false,

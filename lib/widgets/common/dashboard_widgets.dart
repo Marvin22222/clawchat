@@ -4,7 +4,8 @@ import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/animations/app_transitions.dart';
-import '../chat/chat_screen.dart';
+import '../../features/chat/chat_screen.dart';
+import 'package:iconsax/iconsax.dart';
 
 class QuickActionWidget extends StatelessWidget {
   const QuickActionWidget({super.key});
@@ -36,7 +37,7 @@ class QuickActionWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             children: [
               _QuickActionCard(
-                icon: Iconsax.add_circle_outline,
+                icon: Icons.add_circle_outline,
                 title: 'Neuer Chat',
                 color: AppColors.primary,
                 isDark: isDark,
@@ -44,13 +45,13 @@ class QuickActionWidget extends StatelessWidget {
                     ? () => Navigator.push(
                         context,
                         AppPageTransitions.fadeSlide(
-                          builder: (_) => const ChatScreen(),
+                          page: const ChatScreen(),
                         ),
                       )
                     : null,
               ),
               _QuickActionCard(
-                icon: Iconsax.robot,
+                icon: Icons.smart_toy,
                 title: 'Agents',
                 color: AppColors.secondary,
                 isDark: isDark,
@@ -64,7 +65,7 @@ class QuickActionWidget extends StatelessWidget {
                 onTap: () {},
               ),
               _QuickActionCard(
-                icon: Iconsax.task_alt,
+                icon: Icons.task_alt,
                 title: 'Tasks',
                 color: AppColors.success,
                 isDark: isDark,
@@ -220,7 +221,7 @@ class AgentChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Iconsax.robot,
+              Icons.smart_toy,
               size: 16,
               color: isSelected ? Colors.white : AppColors.primary,
             ),

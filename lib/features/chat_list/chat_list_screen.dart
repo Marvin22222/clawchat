@@ -8,7 +8,7 @@ import '../../core/constants/typography.dart';
 import '../../models/session.dart';
 import '../../providers/chat_list_provider.dart';
 import '../chat/chat_screen.dart';
-import '../widgets/animations/app_transitions.dart';
+import '../../widgets/animations/app_transitions.dart';
 
 /// Chat list screen with unread-first sorting and swipe actions
 class ChatListScreen extends StatefulWidget {
@@ -81,7 +81,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     Navigator.push(
       context,
       AppPageTransitions.fadeSlide(
-        builder: (_) => ChatScreen(initialAgent: session.name.toLowerCase()),
+        page: ChatScreen(initialAgent: session.name.toLowerCase()),
       ),
     );
   }
@@ -252,7 +252,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 }
 
 class _ChatListItem extends StatelessWidget {
-  final _ChatItem chat;
+  final ChatItem chat;
   final bool isDark;
   final VoidCallback onTap;
   final VoidCallback onDelete;

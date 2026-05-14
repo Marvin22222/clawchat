@@ -1,15 +1,14 @@
 // Models
-export 'message.dart';
+export 'models/message.dart';
 
 // Core
-export 'constants/colors.dart';
-export 'constants/app_config.dart';
-export 'theme/app_theme.dart';
-export 'services/websocket_service.dart';
-export 'services/voice_input_service.dart';
-export 'services/image_upload_service.dart';
-export 'services/notification_service.dart';
-export 'utils/error_handler.dart';
+export 'core/constants/colors.dart';
+export 'core/constants/app_config.dart';
+export 'core/theme/app_theme.dart';
+export 'core/services/websocket_service.dart';
+export 'core/services/voice_input_service.dart';
+export 'core/services/image_upload_service.dart';
+export 'core/services/notification_service.dart';
 
 // Providers
 export 'providers/auth_provider.dart';

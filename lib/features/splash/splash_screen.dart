@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/spacing.dart';
+import 'package:iconsax/iconsax.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -92,7 +93,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ],
                       ),
                       child: const Icon(
-                        Iconsax.messages_rounded,
+                        Icons.chat,
                         size: AppDimensions.iconXLarge,
                         color: Colors.white,
                       ),

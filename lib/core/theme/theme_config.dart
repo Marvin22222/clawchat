@@ -24,7 +24,7 @@ class ThemeConfig {
           fontWeight: FontWeight.w600,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.bgLightSecondary,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -124,7 +124,7 @@ class ThemeConfig {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.bgLight,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -161,7 +161,7 @@ class ThemeConfig {
           fontWeight: FontWeight.w600,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.bgDarkSecondary,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -261,7 +261,7 @@ class ThemeConfig {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.bgDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),

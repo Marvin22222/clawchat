@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../models/agent_session.dart';
+import 'package:iconsax/iconsax.dart';
 
 /// Quick actions menu shown on long press of an agent card
 class QuickActionsSheet extends StatelessWidget {
@@ -100,7 +101,7 @@ class QuickActionsSheet extends StatelessWidget {
               children: [
                 // Send message
                 _ActionTile(
-                  icon: Iconsax.message_text_outlined,
+                  icon: Icons.message_outlined,
                   iconColor: AppColors.primary,
                   title: 'Send Message',
                   subtitle: 'Send a message to this agent',
@@ -332,7 +333,7 @@ class _ActionTile extends StatelessWidget {
         ),
       ),
       trailing: Icon(
-        Iconsax.chevron_right,
+        Icons.chevron_right,
         color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
       ),
     );

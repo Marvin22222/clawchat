@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
-import '../../../core/constants/colors.dart';
-import '../../../core/constants/spacing.dart';
-import '../../../core/constants/typography.dart';
+import '../../core/constants/colors.dart';
+import '../../core/constants/spacing.dart';
+import '../../core/constants/typography.dart';
+import '../../core/services/haptic_service.dart';
 
 /// Command data model
 class Command {
@@ -39,7 +40,7 @@ class CommandData {
       id: 'agents',
       name: 'Agent wechseln',
       description: 'Zu einem anderen Agenten wechseln',
-      icon: Iconsax.robot,
+      icon: Icons.smart_toy,
       action: '/agents',
       keywords: ['agent', 'wechsel', 'switch', 'bot'],
     ),
@@ -55,7 +56,7 @@ class CommandData {
       id: 'export',
       name: 'Chat exportieren',
       description: 'Chat als JSON, Text oder PDF exportieren',
-      icon: Iconsax.cloud_download,
+      icon: Icons.cloud_download,
       action: '/export',
       keywords: ['export', 'speichern', 'download', 'sichern'],
     ),
@@ -71,7 +72,7 @@ class CommandData {
       id: 'help',
       name: 'Hilfe',
       description: 'Hilfe und Tipps anzeigen',
-      icon: Iconsax.question,
+      icon: Icons.help_outline,
       action: '/help',
       keywords: ['hilfe', 'help', 'tipps', 'support'],
     ),
@@ -352,7 +353,7 @@ class _CommandPaletteState extends State<CommandPalette>
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Iconsax.search_normal_1_off,
+              Icons.search_off,
               size: 32,
               color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
             ),

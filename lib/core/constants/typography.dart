@@ -41,6 +41,20 @@ class AppTypography {
     height: 1.4,
   );
 
+  static TextStyle h6 = const TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+    height: 1.4,
+  );
+
+  static TextStyle bodyMedium = const TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+    height: 1.5,
+  );
+
   static TextStyle body = const TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w400,

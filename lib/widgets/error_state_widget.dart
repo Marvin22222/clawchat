@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import '../constants/colors.dart';
-import '../constants/spacing.dart';
-import '../constants/typography.dart';
+import '../core/constants/colors.dart';
+import '../core/constants/spacing.dart';
+import '../core/constants/typography.dart';
 
 /// A reusable error state widget that can be used throughout the app.
 /// Shows an error icon, message, optional details, and a retry button.

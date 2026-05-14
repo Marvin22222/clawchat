@@ -4,6 +4,7 @@ import '../../../models/agent_session.dart';
 import '../../../models/agent_status.dart';
 import 'status_indicator.dart';
 import 'agent_avatar.dart';
+import 'package:iconsax/iconsax.dart';
 
 /// Bottom sheet showing detailed agent information with activity timeline
 class AgentDetailSheet extends StatelessWidget {
@@ -482,24 +483,22 @@ class _ActionButtons extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         // Cancel button
-        if (agent.status == AgentStatus.busy || agent.status == AgentStatus.live) ...[
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onCancelTask,
-              icon: const Icon(Iconsax.close_square, size: 18),
-              label: const Text('Cancel'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.warning,
-                side: const BorderSide(color: AppColors.warning),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onCancelTask,
+            icon: const Icon(Iconsax.close_square, size: 18),
+            label: const Text('Cancel'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.warning,
+              side: const BorderSide(color: AppColors.warning),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
-          const SizedBox(width: 12),
-        ],
+        ),
+        const SizedBox(width: 12),
         // Send Message button
         Expanded(
           child: ElevatedButton.icon(

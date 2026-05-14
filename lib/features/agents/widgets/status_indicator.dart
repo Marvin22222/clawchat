@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/agent_status.dart';
+import 'package:iconsax/iconsax.dart';
 
 /// Widget showing agent status indicator with animations
 /// - LIVE: Slow pulse (2s), green dot

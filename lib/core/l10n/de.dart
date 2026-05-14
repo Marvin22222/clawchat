@@ -86,11 +86,11 @@ const Map<String, String> de = {
   // Settings - Haptics
   'haptic_feedback': 'Haptisches Feedback',
   'haptic_intensity': 'Intensität',
-  'light': 'Leicht',
-  'medium': 'Mittel',
+  'haptic_light': 'Leicht',
+  'haptic_medium': 'Mittel',
   'heavy': 'Stark',
   'off': 'Aus',
-  
+
   // Settings - Image Quality
   'image_quality': 'Bildqualität',
   'low': 'Niedrig',

@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/spacing.dart';
 import '../../../core/constants/typography.dart';
+import '../../../core/services/haptic_service.dart';
 
 /// Inline video player widget for chat attachments
 /// 
@@ -342,7 +343,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                                       child: Container(
                                         padding: const EdgeInsets.all(6),
                                         child: const Icon(
-                                          Iconsax.fullscreen,
+                                          Icons.fullscreen,
                                           color: Colors.white,
                                           size: 18,
                                         ),

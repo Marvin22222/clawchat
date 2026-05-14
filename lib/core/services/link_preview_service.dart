@@ -88,7 +88,7 @@ class LinkPreviewService {
 
     // Extract meta tags (og:*, twitter:*, description, etc.)
     final metaRegex = RegExp(
-      r'<meta[^>]+(content|name|property)=["\']([^"\']+)["\'][^>]*(?:name|property|content)=["\']([^"\']+)["\']',
+      r'''<meta[^>]+(content|name|property)=["']([^"']+)["'][^>]*(?:name|property|content)=["']([^"']+)["']''',
       caseSensitive: false,
     );
 
@@ -116,7 +116,7 @@ class LinkPreviewService {
 
     // Extract favicon
     final faviconMatch = RegExp(
-      r'<link[^>]+rel=["\'](?:shortcut )?icon["\'][^>]+href=["\']([^"\']+)["\']',
+      r'''<link[^>]+rel=["'](?:shortcut )?icon["'][^>]+href=["']([^"']+)["']''',
       caseSensitive: false,
     ).firstMatch(html);
     if (faviconMatch != null) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/spacing.dart';
+import 'package:iconsax/iconsax.dart';
 
 enum ToolStatus { running, completed, error }
 
@@ -78,7 +79,7 @@ class _ToolExecutionCardState extends State<ToolExecutionCard>
       case ToolStatus.running:
         return Iconsax.clock_1;
       case ToolStatus.completed:
-        return Iconsax.tick_square_circle;
+        return Icons.check_circle;
       case ToolStatus.error:
         return Iconsax.warning_2;
     }
@@ -250,9 +251,9 @@ class _ToolExecutionCardState extends State<ToolExecutionCard>
           ),
         ],
       ),
+      ),
     );
   }
-);
 
   Widget _buildExpandedContent() {
     return Container(

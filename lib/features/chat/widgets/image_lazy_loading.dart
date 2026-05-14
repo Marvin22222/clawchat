@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
-import '../../core/constants/colors.dart';
-import '../../core/constants/spacing.dart';
-import '../../core/constants/typography.dart';
+import '../../../core/constants/colors.dart';
+import '../../../core/constants/spacing.dart';
+import '../../../core/constants/typography.dart';
+import 'package:iconsax/iconsax.dart';
 
 /// Image Lazy Loading component using Intersection Observer pattern
 /// 
@@ -232,8 +233,6 @@ class _ImageLazyLoadingState extends State<ImageLazyLoading>
       fit: widget.fit,
       width: widget.width,
       height: widget.height,
-      // Lazy load - only fetch when scrolled into view
-      lazyLoad: true,
       fadeInDuration: const Duration(milliseconds: 200),
       placeholder: (context, url) => const SizedBox.shrink(),
       errorWidget: (context, url, error) {
@@ -544,13 +543,11 @@ class _IntersectionObserverImageState extends State<IntersectionObserverImage> {
 /// Simple visibility detector using GlobalKey
 class VisibilityDetector extends StatefulWidget {
   final Widget child;
-  final Key key;
   final void Function(double visibility) onVisibilityChanged;
 
   const VisibilityDetector({
     super.key,
     required this.child,
-    required this.key,
     required this.onVisibilityChanged,
   });
 
@@ -585,7 +582,8 @@ class _VisibilityDetectorState extends State<VisibilityDetector> {
     );
     
     final intersection = viewportRect.intersect(widgetRect);
-    final visibility = intersection.isNotEmpty
+    final hasOverlap = intersection.width > 0 && intersection.height > 0;
+    final visibility = hasOverlap
         ? (intersection.width * intersection.height) / (size.width * size.height)
         : 0.0;
     
@@ -594,7 +592,7 @@ class _VisibilityDetectorState extends State<VisibilityDetector> {
 
   @override
   Widget build(BuildContext context) {
-    return WidgetBuilder(
+    return Builder(
       builder: (context) => widget.child,
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
+import 'package:iconsax/iconsax.dart';
 
 class SettingsTile extends StatelessWidget {
   final IconData icon;
@@ -40,7 +41,7 @@ class SettingsTile extends StatelessWidget {
               ),
             )
           : null,
-      trailing: trailing ?? (onTap != null ? const Icon(Iconsax.chevron_right) : null),
+      trailing: trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
       onTap: onTap,
     );
   }

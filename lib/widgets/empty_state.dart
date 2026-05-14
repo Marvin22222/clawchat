@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/colors.dart';
 import '../core/constants/spacing.dart';
 import '../core/constants/typography.dart';
+import 'package:iconsax/iconsax.dart';
 
 class BetterEmptyState extends StatefulWidget {
   final IconData icon;

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
-import '../../models/agent_session.dart';
-import '../../models/agent_status.dart';
+import '../../../models/agent_session.dart';
+import '../../../models/agent_status.dart';
 import 'status_indicator.dart';
+import 'package:iconsax/iconsax.dart';
 
 /// Card widget displaying agent status, name, and current task
 /// with animations based on agent status
@@ -240,7 +241,7 @@ class _AgentCardState extends State<AgentCard>
                     Row(
                       children: [
                         Icon(
-                          Iconsax.list,
+                          Icons.list,
                           size: 14,
                           color: isDark
                               ? AppColors.textDarkSecondary

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/spacing.dart';
+import 'package:iconsax/iconsax.dart';
 
 class FullscreenImageViewer extends StatefulWidget {
   final String imagePath;
@@ -90,14 +91,14 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
         title: const Text('Foto', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
-            icon: const Icon(Iconsax.zoom_in_1),
+            icon: const Icon(Icons.zoom_in),
             onPressed: () {
               _transformationController.value = Matrix4.identity()..scale(2.0);
               setState(() => _currentScale = 2.0);
             },
           ),
           IconButton(
-            icon: const Icon(Iconsax.zoom_out_1),
+            icon: const Icon(Icons.zoom_out),
             onPressed: () {
               _transformationController.value = Matrix4.identity();
               setState(() => _currentScale = 1.0);

@@ -1,10 +1,14 @@
+import 'dart:convert';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/atom-one-dark.dart';
 import 'package:flutter_highlight/themes/atom-one-light.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../core/theme/theme.dart';
+import '../../../core/constants/colors.dart';
+import '../../../core/constants/typography.dart';
+import '../../../core/constants/spacing.dart';
 
 /// Widget that renders markdown-formatted text with syntax highlighting for code blocks
 class MarkdownRenderer extends StatelessWidget {
@@ -298,12 +302,6 @@ class MarkdownRenderer extends StatelessWidget {
     return GestureDetector(
       onLongPress: () {
         Clipboard.setData(ClipboardData(text: code));
-        ScaffoldMessenger.of(NavigatorState().key.currentContext!).showSnackBar(
-          const SnackBar(
-            content: Text('Code copied to clipboard'),
-            duration: Duration(seconds: 2),
-          ),
-        );
       },
       child: Container(
         width: double.infinity,

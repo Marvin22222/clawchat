@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
 import '../../core/services/biometric_service.dart';
+import '../../core/constants/spacing.dart';
+import '../../core/constants/spacing.dart';
 
 enum BiometricAuthState {
   idle,
@@ -325,9 +327,9 @@ class _BiometricAuthSheetState extends State<BiometricAuthSheet>
               color: AppColors.primary,
               size: 50,
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

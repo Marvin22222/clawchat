@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
+import 'package:iconsax/iconsax.dart';
+import '../../core/constants/typography.dart';
 
 /// Loading skeleton with shimmer effect for realistic content placeholders
 class SkeletonLoader extends StatefulWidget {
@@ -799,7 +801,7 @@ class _OfflineBannerState extends State<OfflineBanner>
           child: Row(
             children: [
               const Icon(
-                Iconsax.wifi_slash,
+                Icons.wifi_off,
                 color: AppColors.warning,
                 size: 18,
               ),
@@ -1069,7 +1071,7 @@ class BlurPlaceholder extends StatelessWidget {
             // Center icon
             Center(
               child: Icon(
-                Iconsax.image_outlined,
+                Icons.image_outlined,
                 size: 32,
                 color: isDark ? Colors.grey[600] : Colors.grey[400],
               ),

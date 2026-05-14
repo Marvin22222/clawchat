@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import '../../core/constants/colors.dart';
-import '../../core/constants/spacing.dart';
-import '../../core/constants/typography.dart';
-import '../../core/services/haptic_service.dart';
-import '../../core/services/templates_service.dart';
-import '../../models/message_template.dart';
+import '../../../core/constants/colors.dart';
+import '../../../core/constants/spacing.dart';
+import '../../../core/constants/typography.dart';
+import '../../../core/services/haptic_service.dart';
+import '../../../core/services/templates_service.dart';
+import '../../../models/message_template.dart';
 
 /// Widget for displaying and selecting message templates
 class TemplatesWidget extends StatefulWidget {

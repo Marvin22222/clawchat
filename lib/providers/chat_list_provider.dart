@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/constants/colors.dart';
-import '../../core/constants/spacing.dart';
-import '../../core/constants/typography.dart';
+import '../core/constants/colors.dart';
+import '../core/constants/spacing.dart';
+import '../core/constants/typography.dart';
 import '../models/session.dart';
 
 /// Chat list provider to manage sessions with read/unread state
 class ChatListProvider extends ChangeNotifier {
-  final List<_ChatItem> _chats = [];
+  final List<ChatItem> _chats = [];
   
-  List<_ChatItem> get chats => List.unmodifiable(_chats);
+  List<ChatItem> get chats => List.unmodifiable(_chats);
   
   // Get chats sorted: unread first, then by last message time
-  List<_ChatItem> get sortedChats {
-    final sorted = List<_ChatItem>.from(_chats);
+  List<ChatItem> get sortedChats {
+    final sorted = List<ChatItem>.from(_chats);
     sorted.sort((a, b) {
       // Unread first
       if (a.isUnread != b.isUnread) {
@@ -28,7 +28,7 @@ class ChatListProvider extends ChangeNotifier {
   }
 
   void addChat(Session session) {
-    _chats.insert(0, _ChatItem(session: session));
+    _chats.insert(0, ChatItem(session: session));
     notifyListeners();
   }
 
@@ -67,14 +67,14 @@ class ChatListProvider extends ChangeNotifier {
   }
 
   void undoDelete(Session session) {
-    _chats.insert(0, _ChatItem(session: session, isUnread: true));
+    _chats.insert(0, ChatItem(session: session, isUnread: true));
     notifyListeners();
   }
 
   void setChats(List<Session> sessions) {
     _chats.clear();
     for (final session in sessions) {
-      _chats.add(_ChatItem(session: session));
+      _chats.add(ChatItem(session: session));
     }
     notifyListeners();
   }
@@ -85,20 +85,20 @@ class ChatListProvider extends ChangeNotifier {
   }
 }
 
-class _ChatItem {
+class ChatItem {
   final Session session;
   final bool isUnread;
 
-  _ChatItem({
+  ChatItem({
     required this.session,
     this.isUnread = true,
   });
 
-  _ChatItem copyWith({
+  ChatItem copyWith({
     Session? session,
     bool? isUnread,
   }) {
-    return _ChatItem(
+    return ChatItem(
       session: session ?? this.session,
       isUnread: isUnread ?? this.isUnread,
     );

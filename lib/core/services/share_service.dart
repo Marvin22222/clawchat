@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../models/message.dart';
+import 'package:iconsax/iconsax.dart';
 
 /// Service for sharing chat content externally
 class ShareService {

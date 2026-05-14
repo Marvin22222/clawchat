@@ -86,8 +86,8 @@ const Map<String, String> en = {
   // Settings - Haptics
   'haptic_feedback': 'Haptic Feedback',
   'haptic_intensity': 'Intensity',
-  'light': 'Light',
-  'medium': 'Medium',
+  'haptic_light': 'Light',
+  'haptic_medium': 'Medium',
   'heavy': 'Heavy',
   'off': 'Off',
   

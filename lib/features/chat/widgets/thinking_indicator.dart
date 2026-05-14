@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/spacing.dart';
+import 'package:iconsax/iconsax.dart';
 
 class ThinkingIndicator extends StatefulWidget {
   final String? message;

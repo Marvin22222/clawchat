@@ -4,6 +4,7 @@ import '../../core/constants/colors.dart';
 import '../../core/constants/spacing.dart';
 import '../../core/constants/app_constants.dart';
 import '../../providers/auth_provider.dart';
+import 'package:iconsax/iconsax.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -20,13 +21,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingPage> _pages = [
     OnboardingPage(
-      icon: Iconsax.messages_rounded,
+      icon: Icons.chat,
       title: 'Willkommen bei ClawChat',
       description: 'Dein direkter Zugang zu OpenClaw - jetzt mit voller Transparenz!',
       color: AppColors.primary,
     ),
     OnboardingPage(
-      icon: Iconsax.robot,
+      icon: Icons.smart_toy,
       title: 'Agent Management',
       description: 'Wechsle zwischen verschiedenen Agents - Main, Coding, Research und mehr!',
       color: AppColors.secondary,

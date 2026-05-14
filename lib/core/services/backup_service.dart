@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../models/message.dart';
+import '../../models/message.dart';
 import 'chat_persistence_service.dart';
 
 /// Service for backing up and restoring chat data

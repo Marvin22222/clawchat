@@ -35,7 +35,7 @@ class WhatsNewSheet extends StatelessWidget {
                       ),
                       borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
-                    child: const Icon(Iconsax.sparkle, color: Colors.white, size: 24),
+                    child: const Icon(Icons.auto_awesome, color: Colors.white, size: 24),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
@@ -59,7 +59,7 @@ class WhatsNewSheet extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: onClose,
-                    icon: const Icon(Iconsax.close-circle),
+                    icon: const Icon(Icons.cancel),
                   ),
                 ],
               ),
@@ -73,7 +73,7 @@ class WhatsNewSheet extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: const [
                   _NewFeatureItem(
-                    icon: Iconsax.user_rounded,
+                    icon: Icons.person,
                     iconColor: AppColors.primary,
                     title: 'Agent Management',
                     description: 'Wechsle zwischen verschiedenen Agents für unterschiedliche Aufgaben - Coding, Research und mehr!',
@@ -87,7 +87,7 @@ class WhatsNewSheet extends StatelessWidget {
                   ),
                   SizedBox(height: AppSpacing.md),
                   _NewFeatureItem(
-                    icon: Iconsax.messages_rounded,
+                    icon: Icons.chat,
                     iconColor: AppColors.secondary,
                     title: 'Verbessertes Chat-Erlebnis',
                     description: 'Elegantes Interface mit Dark/Light Mode Support.',

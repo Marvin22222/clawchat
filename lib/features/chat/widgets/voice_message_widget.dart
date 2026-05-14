@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/colors.dart';
-import '../../core/constants/typography.dart';
-import '../../core/constants/spacing.dart';
-import '../../core/services/voice_recorder_service.dart';
-import '../../core/services/voice_message_service.dart';
-import '../settings/settings_screen.dart';
+import '../../../core/constants/colors.dart';
+import '../../../core/constants/typography.dart';
+import '../../../core/constants/spacing.dart';
+import '../../../core/services/voice_recorder_service.dart';
+import '../../../core/services/voice_message_service.dart';
+import '../../../providers/voice_settings_provider.dart';
+import '../../settings/settings_screen.dart';
 
 /// VoiceMessageWidget - Recording and playback UI for voice messages
 /// 
@@ -646,7 +647,7 @@ class VoiceMessageIndicator extends StatelessWidget {
               )
             else
               Icon(
-                Iconsax.voice,
+                Icons.mic,
                 size: 18,
                 color: isDark ? Colors.white70 : AppColors.primary,
               ),

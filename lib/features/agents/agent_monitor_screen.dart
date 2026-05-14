@@ -268,7 +268,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             ),
           ),
           const SizedBox(width: 12),
-          const Text(
+          Text(
             '🔮 Agent Control Center',
             style: AppTypography.h5,
           ),
@@ -309,7 +309,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
       message: 'Agent-Verbindung fehlgeschlagen',
       details: 'Verbindung zum Agenten-Service konnte nicht hergestellt werden',
       onRetry: _reconnect,
-      icon: Iconsax.cloud_no_update,
+      icon: Icons.cloud_off,
       isDark: Theme.of(context).brightness == Brightness.dark,
     );
   }
@@ -578,7 +578,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     '➕ New Task',
                     style: AppTypography.h5,
                   ),
@@ -589,7 +589,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 ],
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Agent',
                 style: AppTypography.label,
               ),
@@ -623,7 +623,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Task Description',
                 style: AppTypography.label,
               ),
@@ -704,7 +704,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   '📊 Detailed Statistics',
                   style: AppTypography.h4,
                 ),
@@ -721,7 +721,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
               children: [
                 Expanded(
                   child: _StatCard(
-                    icon: Iconsax.robot,
+                    icon: Icons.smart_toy,
                     label: 'Total Agents',
                     value: '$totalAgents',
                     color: AppColors.primary,
@@ -731,7 +731,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
-                    icon: Iconsax.tick_square_circle,
+                    icon: Icons.check_circle,
                     label: 'Active',
                     value: '$activeCount',
                     color: const Color(0xFF22C55E),
@@ -831,7 +831,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
     Navigator.push(
       context,
       AppPageTransitions.fadeSlide(
-        builder: (_) => ChatScreen(initialAgent: agent.name),
+        page: ChatScreen(initialAgent: agent.name),
       ),
     );
   }
@@ -916,7 +916,7 @@ class _AgentMonitorScreenState extends State<AgentMonitorScreen>
     Navigator.push(
       context,
       AppPageTransitions.fadeSlide(
-        builder: (_) => _AgentHistoryScreen(agent: agent),
+        page: _AgentHistoryScreen(agent: agent),
       ),
     );
   }
@@ -1152,7 +1152,7 @@ class _ConnectionStatusIndicator extends StatelessWidget {
 
     if (!isConnected) {
       return IconButton(
-        icon: const Icon(Iconsax.cloud_no_update, color: AppColors.error),
+        icon: const Icon(Icons.cloud_off, color: AppColors.error),
         onPressed: onReconnect,
         tooltip: 'Connection lost. Tap to reconnect.',
       );

@@ -263,7 +263,7 @@ class _NotificationQuickSheetState extends State<NotificationQuickSheet> {
 
                     // Agent only toggle
                     _buildToggleRow(
-                      icon: Iconsax.robot,
+                      icon: Icons.smart_toy,
                       title: 'Nur Agent-Nachrichten',
                       subtitle: _agentOnly ? 'Agent meldet nur eigene Nachrichten' : 'Alle Benachrichtigungen',
                       iconColor: AppColors.info,

@@ -77,10 +77,13 @@ class AgentAvatar extends StatelessWidget {
 enum AgentAvatarSize {
   sm,
   md,
-  lg;
+  lg,
+  xl;
 
   double get pixelSize {
     switch (this) {
+      case AgentAvatarSize.xl:
+        return 80;
       case AgentAvatarSize.sm:
         return 32;
       case AgentAvatarSize.md:
@@ -98,6 +101,8 @@ enum AgentAvatarSize {
         return 24;
       case AgentAvatarSize.lg:
         return 32;
+      case AgentAvatarSize.xl:
+        return 40;
     }
   }
 
@@ -109,6 +114,8 @@ enum AgentAvatarSize {
         return 12;
       case AgentAvatarSize.lg:
         return 16;
+      case AgentAvatarSize.xl:
+        return 20;
     }
   }
 }

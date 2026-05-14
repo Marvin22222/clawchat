@@ -2,8 +2,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
-import '../../core/constants/colors.dart';
-import '../../core/constants/spacing.dart';
+import '../core/constants/colors.dart';
+import '../core/constants/spacing.dart';
+import '../core/services/haptic_service.dart';
 
 class QuickAction {
   final IconData icon;
@@ -183,7 +184,7 @@ class _QuickActionFabState extends State<QuickActionFab>
               backgroundColor: AppColors.primary,
               elevation: 8,
               child: Icon(
-                _isExpanded ? Iconsax.close : Iconsax.add,
+                _isExpanded ? Icons.close : Iconsax.add,
                 color: Colors.white,
                 size: 24,
               ),

@@ -100,9 +100,9 @@ class _FilesScreenState extends State<FilesScreen> {
               SnackBar(
                 content: Row(
                   children: [
-                    const Icon(Iconsax.tick_square_circle, color: Colors.white, size: 20),
+                    const Icon(Icons.check_circle, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
-                    Expanded(Text('${file.name} hochgeladen')),
+                    Expanded(child: Text('${file.name} hochgeladen')),
                   ],
                 ),
                 backgroundColor: AppColors.success,
@@ -118,9 +118,9 @@ class _FilesScreenState extends State<FilesScreen> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Iconsax.warning_2_outline, color: Colors.white, size: 20),
+                const Icon(Icons.warning_outlined, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                Expanded(Text('Upload fehlgeschlagen: $e')),
+                Expanded(child: Text('Upload fehlgeschlagen: $e')),
               ],
             ),
             backgroundColor: AppColors.error,
@@ -376,7 +376,7 @@ class _FilesScreenState extends State<FilesScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Iconsax.warning_2_outline,
+                Icons.warning_outlined,
                 size: 64,
                 color: AppColors.error,
               ),
@@ -452,7 +452,7 @@ class _FilesScreenState extends State<FilesScreen> {
               const SizedBox(height: AppSpacing.lg),
               FilledButton.icon(
                 onPressed: _pickAndUploadFile,
-                icon: const Icon(Iconsax.cloud_upload),
+                icon: const Icon(Icons.cloud_upload),
                 label: const Text('Datei hochladen'),
               ),
             ],
@@ -472,7 +472,7 @@ class _FilesScreenState extends State<FilesScreen> {
           child: Row(
             children: [
               Icon(
-                Iconsax.server,
+                Icons.dns,
                 size: 16,
                 color: isDark
                     ? AppColors.textDarkSecondary
@@ -613,7 +613,7 @@ class _FileCard extends StatelessWidget {
       case 'wav':
       case 'm4a':
       case 'aac':
-        return Iconsax.music_cues;
+        return Icons.music_note;
       case 'mp4':
       case 'mov':
       case 'avi':
@@ -624,7 +624,7 @@ class _FileCard extends StatelessWidget {
       case '7z':
       case 'tar':
       case 'gz':
-        return Iconsax.folder_zip;
+        return Icons.folder_zip;
       case 'js':
       case 'ts':
       case 'py':
@@ -785,7 +785,7 @@ class _FileCard extends StatelessWidget {
                 tooltip: 'Teilen',
               ),
               IconButton(
-                icon: const Icon(Iconsax.trash_outline, size: 20),
+                icon: const Icon(Icons.delete_outline, size: 20),
                 color: AppColors.error,
                 onPressed: onDelete,
                 tooltip: 'Löschen',

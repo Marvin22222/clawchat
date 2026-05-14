@@ -9,6 +9,7 @@ import '../../widgets/animations/app_transitions.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/animations/skeleton_loaders.dart';
 import '../chat/chat_screen.dart';
+import 'package:iconsax/iconsax.dart';
 
 class AgentsScreen extends StatefulWidget {
   const AgentsScreen({super.key});
@@ -57,7 +58,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(_showPresets ? Iconsax.robot : Iconsax.bookmark),
+            icon: Icon(_showPresets ? Icons.smart_toy : Iconsax.bookmark),
             onPressed: () {
               setState(() => _showPresets = !_showPresets);
             },
@@ -76,7 +77,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
         isDark: isDark,
         onLoadPreset: _loadPreset,
         onDeletePreset: _deletePreset,
-        onAddPreset: _addPreset,
+        onAddPreset: (_) => _addPreset(),
         availableAgents: auth.ws.availableAgents,
       ) : (auth.ws.availableAgents.isEmpty
           ? _EmptyState(isDark: isDark, onRefresh: () => auth.connect())
@@ -88,7 +89,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
                 Navigator.push(
                   context,
                   AppPageTransitions.fadeSlide(
-                    builder: (_) => ChatScreen(initialAgent: agent),
+                    page: ChatScreen(initialAgent: agent),
                   ),
                 );
               },
@@ -166,7 +167,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
     Navigator.push(
       context,
       AppPageTransitions.fadeSlide(
-        builder: (_) => ChatScreen(initialAgent: preset.agentId),
+        page: ChatScreen(initialAgent: preset.agentId),
       ),
     );
   }
@@ -215,7 +216,7 @@ class _PresetsList extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Iconsax.bookmark_border,
+                  Icons.bookmark_border,
                   size: 48,
                   color: AppColors.primary,
                 ),
@@ -353,7 +354,7 @@ class _PresetCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Iconsax.trash_outline, color: AppColors.error),
+                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -398,7 +399,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BetterEmptyState(
-      icon: Iconsax.robot_outlined,
+      icon: Icons.smart_toy_outlined,
       title: 'Verbinde dich mit einem Gateway um Agenten zu sehen',
       subtitle: 'Deine verfügbaren Agents erscheinen hier',
       actionLabel: 'Erneut versuchen',
@@ -479,7 +480,7 @@ class _AgentsList extends StatelessWidget {
       return Iconsax.search_normal_1;
     }
     if (lower.contains('write') || lower.contains('content')) {
-      return Iconsax.edit_document;
+      return Icons.edit_document;
     }
     if (lower.contains('analyst') || lower.contains('data')) {
       return Iconsax.chart;
@@ -490,7 +491,7 @@ class _AgentsList extends StatelessWidget {
     if (lower.contains('voice') || lower.contains('audio')) {
       return Iconsax.microphone;
     }
-    return Iconsax.robot;
+    return Icons.smart_toy;
   }
 
   Color _getAgentColor(String agent) {
@@ -663,7 +664,7 @@ class _AgentCard extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: Icon(
-                        isSelected ? Iconsax.star_1 : Iconsax.star_1_border,
+                        isSelected ? Iconsax.star_1 : Icons.star_outline,
                         color: isSelected 
                             ? AppColors.warning 
                             : (isDark 
