@@ -5,6 +5,7 @@ class Session {
   final String name;
   final DateTime createdAt;
   final DateTime? lastMessageAt;
+  final String? lastMessage;  // For search
   final int messageCount;
   final String? agentId;
   final bool isActive;
@@ -14,15 +15,18 @@ class Session {
     required this.name,
     DateTime? createdAt,
     this.lastMessageAt,
+    this.lastMessage,
     this.messageCount = 0,
     this.agentId,
     this.isActive = true,
   }) : id = id ?? const Uuid().v4(),
        createdAt = createdAt ?? DateTime.now();
 
+
   Session copyWith({
     String? name,
     DateTime? lastMessageAt,
+    String? lastMessage,
     int? messageCount,
     String? agentId,
     bool? isActive,
@@ -32,6 +36,7 @@ class Session {
       name: name ?? this.name,
       createdAt: createdAt,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      lastMessage: lastMessage ?? this.lastMessage,
       messageCount: messageCount ?? this.messageCount,
       agentId: agentId ?? this.agentId,
       isActive: isActive ?? this.isActive,
@@ -44,6 +49,7 @@ class Session {
       'name': name,
       'createdAt': createdAt.toIso8601String(),
       'lastMessageAt': lastMessageAt?.toIso8601String(),
+      'lastMessage': lastMessage,
       'messageCount': messageCount,
       'agentId': agentId,
       'isActive': isActive,
@@ -58,6 +64,7 @@ class Session {
       lastMessageAt: json['lastMessageAt'] != null 
           ? DateTime.parse(json['lastMessageAt']) 
           : null,
+      lastMessage: json['lastMessage'],
       messageCount: json['messageCount'] ?? 0,
       agentId: json['agentId'],
       isActive: json['isActive'] ?? true,

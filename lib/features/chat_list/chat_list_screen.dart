@@ -21,6 +21,9 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   final Map<String, Session> _deletedSessions = {};
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -74,6 +77,34 @@ class _ChatListScreenState extends State<ChatListScreen> {
     provider.markAsUnread('1'); // Main Agent unread
     provider.markAsUnread('2'); // Coding Helper unread
     // Research, Image Analyzer, Voice Assistant are read (older)
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+        _searchFocusNode.unfocus();
+      } else {
+        _searchFocusNode.requestFocus();
+      }
+    });
+  }
+
+  List<_ChatItem> _filterChats(List<_ChatItem> chats, String query) {
+    if (query.isEmpty) return chats;
+    final lowerQuery = query.toLowerCase();
+    return chats.where((chat) {
+      return chat.session.name.toLowerCase().contains(lowerQuery) ||
+          (chat.session.lastMessage?.toLowerCase().contains(lowerQuery) ?? false);
+    }).toList();
   }
 
   void _openChat(Session session, ChatListProvider provider) {
@@ -178,25 +209,57 @@ class _ChatListScreenState extends State<ChatListScreen> {
       backgroundColor: AppColors.bgPrimary,
       appBar: AppBar(
         backgroundColor: AppColors.bgPrimary,
-        title: Text(
-          'Chats',
-          style: AppTypography.h3.copyWith(color: AppColors.textPrimary),
-        ),
+        leading: _isSearching
+            ? IconButton(
+                icon: const Icon(Iconsax.arrow_left, color: AppColors.textSecondary),
+                onPressed: _toggleSearch,
+              )
+            : null,
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                style: AppTypography.body.copyWith(color: AppColors.textPrimary),
+                decoration: InputDecoration(
+                  hintText: 'Chats durchsuchen...',
+                  hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
+                  border: InputBorder.none,
+                ),
+                onChanged: (_) => setState(() {}),
+              )
+            : Text(
+                'Chats',
+                style: AppTypography.h3.copyWith(color: AppColors.textPrimary),
+              ),
         actions: [
-          IconButton(
-            icon: const Icon(Iconsax.search_normal_1, color: AppColors.textSecondary),
-            onPressed: () {
-              // TODO: Implement search
-            },
-          ),
+          if (!_isSearching)
+            IconButton(
+              icon: const Icon(Iconsax.search_normal_1, color: AppColors.textSecondary),
+              onPressed: _toggleSearch,
+            ),
+          if (_isSearching && _searchController.text.isNotEmpty)
+            IconButton(
+              icon: const Icon(Iconsax.close_circle, color: AppColors.textSecondary),
+              onPressed: () {
+                _searchController.clear();
+                setState(() {});
+              },
+            ),
         ],
       ),
       body: Consumer<ChatListProvider>(
         builder: (context, provider, _) {
-          final chats = provider.sortedChats;
+          var chats = provider.sortedChats;
+          final query = _searchController.text;
+          
+          if (_isSearching && query.isNotEmpty) {
+            chats = _filterChats(chats, query);
+          }
 
           if (chats.isEmpty) {
-            return _buildEmptyState(isDark);
+            return _isSearching
+                ? _buildNoResultsState(isDark, query)
+                : _buildEmptyState(isDark);
           }
 
           return ListView.builder(
@@ -217,6 +280,35 @@ class _ChatListScreenState extends State<ChatListScreen> {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildNoResultsState(bool isDark, String query) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Iconsax.search_normal_1,
+            size: 64,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'Keine Ergebnisse gefunden',
+            style: AppTypography.body.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Für "$query"',
+            style: AppTypography.captionSmall.copyWith(
+              color: AppColors.textMuted,
+            ),
+          ),
+        ],
       ),
     );
   }
