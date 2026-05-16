@@ -8,8 +8,36 @@ import '../../widgets/animations/app_transitions.dart';
 import '../chat/chat_screen.dart';
 import 'package:iconsax/iconsax.dart';
 
-class SessionHistoryScreen extends StatelessWidget {
+class SessionHistoryScreen extends StatefulWidget {
   const SessionHistoryScreen({super.key});
+
+  @override
+  State<SessionHistoryScreen> createState() => _SessionHistoryScreenState();
+}
+
+class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isSearching = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+        _searchFocusNode.unfocus();
+      } else {
+        _searchFocusNode.requestFocus();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +45,7 @@ class SessionHistoryScreen extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
 
     // Demo sessions - in real app these would come from storage
-    final sessions = [
+    final allSessions = [
       _SessionData(
         id: '1',
         name: 'Main Agent',
@@ -41,9 +69,54 @@ class SessionHistoryScreen extends StatelessWidget {
       ),
     ];
 
+    // Filter sessions based on search
+    List<_SessionData> sessions = allSessions;
+    if (_isSearching && _searchController.text.isNotEmpty) {
+      final query = _searchController.text.toLowerCase();
+      sessions = allSessions.where((s) {
+        return s.name.toLowerCase().contains(query) ||
+            s.lastMessage.toLowerCase().contains(query);
+      }).toList();
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat Verlauf'),
+        leading: _isSearching
+            ? IconButton(
+                icon: const Icon(Iconsax.arrow_left),
+                onPressed: _toggleSearch,
+              )
+            : null,
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                decoration: InputDecoration(
+                  hintText: 'Verlauf durchsuchen...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary,
+                  ),
+                ),
+                onChanged: (_) => setState(() {}),
+              )
+            : const Text('Chat Verlauf'),
+        actions: [
+          if (!_isSearching)
+            IconButton(
+              icon: const Icon(Iconsax.search_normal_1),
+              onPressed: _toggleSearch,
+            ),
+          if (_isSearching && _searchController.text.isNotEmpty)
+            IconButton(
+              icon: const Icon(Iconsax.close_circle),
+              onPressed: () {
+                _searchController.clear();
+                setState(() {});
+              },
+            ),
+        ],
       ),
       body: sessions.isEmpty
           ? Center(
@@ -51,7 +124,7 @@ class SessionHistoryScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Iconsax.messages,
+                    _isSearching ? Iconsax.search_normal_1 : Iconsax.messages,
                     size: 64,
                     color: isDark 
                         ? AppColors.textDarkSecondary 
@@ -59,13 +132,26 @@ class SessionHistoryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Noch keine Chats',
+                    _isSearching ? 'Keine Ergebnisse' : 'Noch keine Chats',
                     style: TextStyle(
                       color: isDark 
                           ? AppColors.textDarkSecondary 
                           : AppColors.textLightSecondary,
                     ),
                   ),
+                  if (_isSearching)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      child: Text(
+                        'Für "${_searchController.text}"',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark 
+                              ? AppColors.textDarkSecondary 
+                              : AppColors.textLightSecondary,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             )
