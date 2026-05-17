@@ -67,6 +67,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           slivers: [
             SliverToBoxAdapter(child: _buildHeader(auth)),
             SliverToBoxAdapter(child: _buildQuickInput()),
+            SliverToBoxAdapter(child: _buildSectionHeader('Zuletzt', Iconsax.clock_1)),
+            SliverToBoxAdapter(child: _buildRecentChats()),
+            SliverToBoxAdapter(child: _buildSectionHeader('Schnellzugriff', Iconsax.flash_circle_1)),
+            SliverToBoxAdapter(child: _buildQuickShortcuts()),
             SliverToBoxAdapter(child: _buildSectionHeader('Agents', Icons.smart_toy_outlined)),
             SliverToBoxAdapter(child: _buildAgentsGrid()),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -337,6 +341,89 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     }
   }
 
+  Widget _buildRecentChats() {
+    final auth = context.watch<AuthProvider>();
+    final recentChats = auth.chatThreads.take(4).toList();
+
+    if (recentChats.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: AppColors.bgSecondary,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          children: [
+            Icon(Iconsax.chat_circle_outline, color: AppColors.textMuted, size: 32),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Noch keine Chats',
+              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Column(
+        children: recentChats.map((chat) {
+          return _RecentChatTile(
+            title: chat.title ?? 'Chat',
+            agent: chat.agentName ?? 'main',
+            timestamp: chat.updatedAt,
+            onTap: () => _startChat(agent: chat.agentName),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildQuickShortcuts() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        children: [
+          _QuickShortcutChip(
+            icon: Iconsax.code,
+            label: 'Coding',
+            color: AppColors.primary,
+            onTap: () => _startChat(agent: 'coding'),
+          ),
+          _QuickShortcutChip(
+            icon: Iconsax.search_normal_1,
+            label: 'Research',
+            color: AppColors.success,
+            onTap: () => _startChat(agent: 'research'),
+          ),
+          _QuickShortcutChip(
+            icon: Iconsax.image,
+            label: 'Vision',
+            color: AppColors.warning,
+            onTap: () => _startChat(agent: 'image'),
+          ),
+          _QuickShortcutChip(
+            icon: Iconsax.microphone,
+            label: 'Voice',
+            color: AppColors.error,
+            onTap: () => _startChat(agent: 'voice'),
+          ),
+          _QuickShortcutChip(
+            icon: Iconsax.message,
+            label: 'General',
+            color: AppColors.info,
+            onTap: () => _startChat(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title, IconData icon, {bool showViewAll = false}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.lg, AppSpacing.md, AppSpacing.sm),
@@ -413,7 +500,151 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 }
 
-class _AgentCard extends StatelessWidget {
+class _RecentChatTile extends StatelessWidget {
+  final String title;
+  final String agent;
+  final DateTime? timestamp;
+  final VoidCallback onTap;
+
+
+  const _RecentChatTile({
+    required this.title,
+    required this.agent,
+    this.timestamp,
+    required this.onTap,
+  });
+
+  String _formatTimestamp(DateTime? dt) {
+    if (dt == null) return '';
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 1) return 'Gerade';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    if (diff.inDays < 7) return '${diff.inDays}d';
+    return '${dt.day}.${dt.month}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.bgSecondary,
+      borderRadius: BorderRadius.circular(AppRadius.medium),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Iconsax.chat, size: 16, color: AppColors.primary),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      agent,
+                      style: AppTypography.captionSmall.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                _formatTimestamp(timestamp),
+                style: AppTypography.captionSmall.copyWith(
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickShortcutChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickShortcutChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.bgSecondary,
+      borderRadius: BorderRadius.circular(AppRadius.large),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.large),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, size: 14, color: color),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                label,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
   final String agent;
   final VoidCallback onTap;
 
