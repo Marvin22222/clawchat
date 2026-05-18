@@ -199,6 +199,28 @@ class _PresetsList extends StatelessWidget {
     required this.availableAgents,
   });
 
+  IconData _getAgentIcon(String agentId) {
+    final lower = agentId.toLowerCase();
+    if (lower.contains('code') || lower.contains('dev')) return Iconsax.code;
+    if (lower.contains('research') || lower.contains('search')) return Iconsax.search_normal_1;
+    if (lower.contains('write') || lower.contains('content')) return Icons.edit_document;
+    if (lower.contains('analyst') || lower.contains('data')) return Iconsax.chart;
+    if (lower.contains('image') || lower.contains('vision')) return Iconsax.image;
+    if (lower.contains('voice') || lower.contains('audio')) return Iconsax.microphone;
+    return Icons.smart_toy;
+  }
+
+  Color _getAgentColor(String agentId) {
+    final lower = agentId.toLowerCase();
+    if (lower.contains('code') || lower.contains('dev')) return AppColors.success;
+    if (lower.contains('research') || lower.contains('search')) return AppColors.info;
+    if (lower.contains('write') || lower.contains('content')) return AppColors.secondary;
+    if (lower.contains('analyst') || lower.contains('data')) return AppColors.warning;
+    if (lower.contains('image') || lower.contains('vision')) return Colors.pink;
+    if (lower.contains('voice') || lower.contains('audio')) return Colors.orange;
+    return AppColors.primary;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (presets.isEmpty) {
@@ -255,10 +277,65 @@ class _PresetsList extends StatelessWidget {
         return _PresetCard(
           preset: preset,
           isDark: isDark,
+          agentIcon: _getAgentIcon(preset.agentId),
+          agentColor: _getAgentColor(preset.agentId),
           onTap: () => onLoadPreset(preset),
           onDelete: () => onDeletePreset(preset.id),
+          onEdit: () => _showEditPresetDialog(context, preset),
         );
       },
+    );
+  }
+
+  Future<void> _showEditPresetDialog(BuildContext context, AgentPreset preset) async {
+    final nameController = TextEditingController(text: preset.name);
+    final systemPromptController = TextEditingController(text: preset.systemPrompt ?? '');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.bgDarkSecondary : AppColors.bgLightSecondary,
+        title: Text(
+          'Preset bearbeiten',
+          style: TextStyle(color: isDark ? AppColors.textDark : AppColors.textLight),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Name',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.medium)),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: systemPromptController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'System Prompt (optional)',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.medium)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.trim().isEmpty) return;
+              // Update via provider would go here
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Speichern'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -268,16 +345,25 @@ class _PresetCard extends StatelessWidget {
   final bool isDark;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback? onEdit;
+  final IconData? agentIcon;
+  final Color? agentColor;
 
   const _PresetCard({
     required this.preset,
     required this.isDark,
     required this.onTap,
     required this.onDelete,
+    this.onEdit,
+    this.agentIcon,
+    this.agentColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final icon = agentIcon ?? Iconsax.bookmark;
+    final color = agentColor ?? AppColors.primary;
+    
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
@@ -304,12 +390,12 @@ class _PresetCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
-                  child: const Icon(
-                    Iconsax.bookmark,
-                    color: AppColors.primary,
+                  child: Icon(
+                    icon,
+                    color: color,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -353,33 +439,45 @@ class _PresetCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Preset löschen?'),
-                        content: Text('"${preset.name}" wirklich löschen?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            child: const Text('Abbrechen'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              onDelete();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.error,
-                            ),
-                            child: const Text('Löschen', style: TextStyle(color: Colors.white)),
-                          ),
-                        ],
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onEdit != null)
+                      IconButton(
+                        icon: Icon(Iconsax.edit, color: isDark ? AppColors.textDarkSecondary : AppColors.textLightSecondary),
+                        onPressed: onEdit,
+                        tooltip: 'Bearbeiten',
+                        iconSize: 20,
                       ),
-                    );
-                  },
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Preset löschen?'),
+                            content: Text('"${preset.name}" wirklich löschen?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('Abbrechen'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  onDelete();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.error,
+                                ),
+                                child: const Text('Löschen', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
