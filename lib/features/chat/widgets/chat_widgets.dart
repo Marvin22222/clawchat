@@ -224,28 +224,88 @@ class _ThinkingIndicatorState extends State<ThinkingIndicator>
   }
 }
 
+import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
+import '../../../core/constants/colors.dart';
+import '../../../core/constants/spacing.dart';
+import '../../../core/services/voice_recorder_service.dart';
+import '../../../core/services/voice_message_service.dart';
+import '../../../models/message.dart';
+
 class ChatInput extends StatefulWidget {
   final Function(String) onSend;
   final bool enabled;
   final bool showVoiceInput;
+  final VoiceRecorderService? recorderService;
+  final VoiceMessageService? playbackService;
+  final Function(String path)? onVoiceSend;
 
   const ChatInput({
     super.key,
     required this.onSend,
     this.enabled = true,
     this.showVoiceInput = true,
+    this.recorderService,
+    this.playbackService,
+    this.onVoiceSend,
   });
 
   @override
   State<ChatInput> createState() => _ChatInputState();
 }
 
-class _ChatInputState extends State<ChatInput> {
+class _ChatInputState extends State<ChatInput>
+    with SingleTickerProviderStateMixin {
   final _controller = TextEditingController();
   bool _isRecording = false;
+  Duration _recordingDuration = Duration.zero;
+  
+  // Voice animation
+  late AnimationController _voiceAnimController;
+  late Animation<double> _voiceAnimation;
+  
+  // Services
+  VoiceRecorderService? _recorder;
+  VoiceMessageService? _playback;
+
+  @override
+  void initState() {
+    super.initState();
+    _recorder = widget.recorderService;
+    _playback = widget.playbackService;
+    
+    // Setup voice animation
+    _voiceAnimController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _voiceAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _voiceAnimController, curve: Curves.easeInOut),
+    );
+    
+    // Listen to recorder updates
+    _recorder?.addListener(_onRecorderUpdate);
+  }
+
+  void _onRecorderUpdate() {
+    if (!mounted || _recorder == null) return;
+    setState(() {
+      _isRecording = _recorder!.isRecording;
+      _recordingDuration = _recorder!.recordingDuration;
+    });
+    
+    if (_isRecording && !_voiceAnimController.isAnimating) {
+      _voiceAnimController.repeat(reverse: true);
+    } else if (!_isRecording && _voiceAnimController.isAnimating) {
+      _voiceAnimController.stop();
+      _voiceAnimController.reset();
+    }
+  }
 
   @override
   void dispose() {
+    _recorder?.removeListener(_onRecorderUpdate);
+    _voiceAnimController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -258,20 +318,43 @@ class _ChatInputState extends State<ChatInput> {
     }
   }
 
-  void _toggleVoiceInput() {
-    setState(() {
-      _isRecording = !_isRecording;
-    });
-    if (_isRecording) {
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted && _isRecording) {
-          setState(() {
-            _isRecording = false;
-            _controller.text = "Voice input placeholder";
-          });
-        }
-      });
+  Future<void> _toggleVoiceInput() async {
+    if (_recorder == null) {
+      // Fallback: placeholder
+      setState(() => _isRecording = !_isRecording);
+      if (_isRecording) {
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted && _isRecording) {
+            setState(() {
+              _isRecording = false;
+              _controller.text = "Voice input placeholder";
+            });
+          }
+        });
+      }
+      return;
     }
+
+    if (_isRecording) {
+      // Stop recording
+      final path = await _recorder!.stopRecording();
+      if (path != null && widget.onVoiceSend != null) {
+        widget.onVoiceSend!(path);
+      }
+      setState(() => _isRecording = false);
+    } else {
+      // Start recording
+      final success = await _recorder!.startRecording();
+      if (success) {
+        setState(() => _isRecording = true);
+      }
+    }
+  }
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 
   @override
@@ -289,56 +372,165 @@ class _ChatInputState extends State<ChatInput> {
         ),
       ),
       child: SafeArea(
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (widget.showVoiceInput)
-              IconButton(
-                icon: Icon(
-                  _isRecording ? Icons.stop : Icons.mic,
-                  color: _isRecording ? AppColors.error : AppColors.primary,
-                ),
-                onPressed: widget.enabled ? _toggleVoiceInput : null,
-              ),
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                enabled: widget.enabled && !_isRecording,
-                maxLines: 5,
-                minLines: 1,
-                decoration: InputDecoration(
-                  hintText: _isRecording ? 'Sprich jetzt...' : 'Nachricht eingeben...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.large),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                ),
-                onSubmitted: (_) => _send(),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              decoration: BoxDecoration(
-                color: widget.enabled ? AppColors.primary : Colors.grey,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: Icon(
-                  _isRecording ? Icons.stop : Icons.send,
-                  color: Colors.white,
-                ),
-                onPressed: widget.enabled 
-                    ? (_isRecording ? _toggleVoiceInput : _send)
-                    : null,
-              ),
+            // Recording indicator
+            if (_isRecording) _buildRecordingIndicator(isDark),
+            
+            // Main input row
+            Row(
+              children: [
+                if (widget.showVoiceInput) _buildVoiceButton(isDark),
+                Expanded(child: _buildTextField(isDark)),
+                const SizedBox(width: AppSpacing.sm),
+                _buildSendButton(isDark),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRecordingIndicator(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.error.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Pulsing dot
+          AnimatedBuilder(
+            animation: _voiceAnimation,
+            builder: (context, child) => Transform.scale(
+              scale: _voiceAnimation.value,
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.8),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          // Duration timer
+          Text(
+            _formatDuration(_recordingDuration),
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              color: AppColors.error,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          // Waveform (simplified bars)
+          SizedBox(
+            height: 20,
+            width: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(5, (index) {
+                return AnimatedBuilder(
+                  animation: _voiceAnimController,
+                  builder: (context, child) {
+                    final height = 4 + (8 * (0.5 + 0.5 * _voiceAnimation.value));
+                    return Container(
+                      width: 4,
+                      height: height,
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVoiceButton(bool isDark) {
+    return AnimatedBuilder(
+      animation: _voiceAnimation,
+      builder: (context, child) {
+        final scale = _isRecording ? _voiceAnimation.value : 1.0;
+        final color = _isRecording ? AppColors.error : AppColors.primary;
+        
+        return Transform.scale(
+          scale: scale,
+          child: Container(
+            margin: const EdgeInsets.only(right: AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(
+                _isRecording ? Iconsax.stop_circle : Iconsax.microphone,
+                color: color,
+              ),
+              onPressed: widget.enabled ? _toggleVoiceInput : null,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTextField(bool isDark) {
+    return TextField(
+      controller: _controller,
+      enabled: widget.enabled && !_isRecording,
+      maxLines: 5,
+      minLines: 1,
+      decoration: InputDecoration(
+        hintText: _isRecording ? 'Sprich jetzt...' : 'Nachricht eingeben...',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.large),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: isDark ? AppColors.bgDark : AppColors.bgLight,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+      ),
+      onSubmitted: (_) => _send(),
+    );
+  }
+
+  Widget _buildSendButton(bool isDark) {
+    final isActive = widget.enabled && (_controller.text.isNotEmpty || _isRecording);
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: isActive ? AppColors.primary : Colors.grey.withOpacity(0.3),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(
+          _isRecording ? Iconsax.send_square : Iconsax.paper_plane,
+          color: Colors.white,
+        ),
+        onPressed: isActive 
+            ? (_isRecording ? _toggleVoiceInput : _send)
+            : null,
       ),
     );
   }
