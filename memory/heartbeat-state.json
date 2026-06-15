@@ -1,0 +1,108 @@
+{
+  "lastHB": 2729,
+  "lastTime": "2026-06-15T02:26:17Z",
+  "berlinTime": "2026-06-15 04:26 Berlin Mo",
+  "balance": 993.47,
+  "equity": 1005.82,
+  "totalUnrl": 12.4,
+  "openPos": 2,
+  "openSymbols": [
+    "ETHUSD",
+    "BTCUSD"
+  ],
+  "ethNew": {
+    "entry": 1674.96,
+    "current": 1722.255,
+    "size": 0.32,
+    "direction": "BUY",
+    "pnl": 12.79,
+    "pnlPct": 4.77,
+    "note": "ETH +$12.79 (PNL +$0.53 vs HB2726, ETH 1720.30 \u2192 1722.25, +$1.95) \u2014 Streak-Breaker weiter offen"
+  },
+  "streak": {
+    "type": "loss",
+    "length": 6,
+    "note": "6 LOSS in Folge unver\u00e4ndert"
+  },
+  "hwm": 1276.19,
+  "hwmShift": {
+    "from": 1248.96,
+    "to": 1276.19,
+    "delta": 27.23,
+    "reason": "30d-Rolling-Window-HWM-Recalc (MASSIVER UP-Shift, alter Peak 17.05. im Fenster)"
+  },
+  "ddPct": -21.19,
+  "ddAbs": -270.37,
+  "puffer985": 20.82,
+  "puffer980": 25.82,
+  "puffer975": 30.82,
+  "puffer970": 36.48,
+  "deep18Puffer": -3.19,
+  "deep19Puffer": -2.19,
+  "deep20Puffer": -1.19,
+  "ksTrigger": 1130.65,
+  "notional": 668.98,
+  "marginUsed": 288.31,
+  "marginPct": 29.02,
+  "freeMarginPct": 70.98,
+  "status": "critical_ssh_escalation_dd21_in_4_5_triggers",
+  "deep18": "IN (Puffer -3.19pp)",
+  "deep19": "IN (Puffer -2.19pp)",
+  "deep20": "IN (Puffer -1.19pp, 1. Mal)",
+  "deep21": "IN (Puffer -0.19pp, 1. Mal)",
+  "sshTrigger": {
+    "fired": true,
+    "count": 4,
+    "triggers": [
+      "ddPct18",
+      "ddPct19",
+      "ddPct20",
+      "ddPct21"
+    ],
+    "details": {
+      "margin": "29.02% < 50% (CLEARED)",
+      "equity": "$1005.82 > $985 (OK, Puffer +$20.82, BREACH CLEARED)",
+      "ddPct18": "-21.19% < -18% (DEEP-21 IN)",
+      "ddPct19": "-21.19% < -19% (DEEP-21 IN)",
+      "ddPct20": "-21.19% < -20% (DEEP-21 IN, 1. Mal!)",
+      "ddPct21": "-21.19% < -21% (DEEP-21 IN, 1. Mal!)"
+    },
+    "action": "OBSERVE-MODE \u2014 4/5 SSH-Trigger FIRED (DD only, Margin+Equity CLEARED). SSH nicht m\u00f6glich (Marvin offline). HWM-Recalc-Artefakt."
+  },
+  "trend4HB": {
+    "hwm": "1248.96 \u2192 1276.19 (+$27.23 MASSIVER UP-Shift durch 30d-Window Recalc)",
+    "equity": "1000.64 \u2192 1005.82 (+$5.18 BESSER, aber HWM-Recalc dr\u00fcckt DD%)",
+    "ddPct": "-19.88% \u2192 -21.19% (-1.31pp TIEFER trotz Equity-Erholung, HWM-Artefakt)",
+    "balance": "990.88 \u2192 993.47 (+$2.59)",
+    "deep20Puffer": "+0.12pp \u2192 -1.19pp (\u00dcBERSCHRITTEN, 1. Mal DEEP-20)",
+    "deep21Puffer": "NEU: -0.19pp (1. Mal DEEP-21)"
+  },
+  "performance1d": {
+    "winRate": 0,
+    "profitFactor": 0.0,
+    "trades": 5,
+    "totalProfit": -9.01,
+    "verdict": "TERRIBLE"
+  },
+  "performance7d": {
+    "winRate": 34.6,
+    "profitFactor": 0.54,
+    "trades": 107,
+    "totalProfit": -126.26,
+    "verdict": "TERRIBLE"
+  },
+  "performanceAll": {
+    "winRate_overview": 37.5,
+    "profitFactor_overview": null,
+    "totalProfit_overview": -1609.77,
+    "trades_overview": 2264,
+    "wr_metrics": 39.6,
+    "pf_metrics": 0.76,
+    "totalProfit_metrics": -652.76,
+    "trades_metrics": 1280,
+    "verdict": "WEAK"
+  },
+  "notes": "SSH-ESCALATION 4/5! HWM-Recalc-Artefakt dr\u00fcckt DD% auf -21.19% obwohl Equity stieg. Equity +.18, HWM +7.23 \u2192 DD% -1.31pp TIEFER. 1. Mal DEEP-20 + 1. Mal DEEP-21! Equity erholt sich eigentlich, aber HWM-Basis verschiebt sich. SSH nicht m\u00f6glich (Marvin 38+ Tage offline).",
+  "puffer1000": 5.82,
+  "deep21Puffer": -0.19
+}
