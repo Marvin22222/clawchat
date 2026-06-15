@@ -9,7 +9,7 @@ _Letztes Update: 2026-04-30 20:43 UTC_
 ### P0 - Must Have (Critical)
 | Task | Beschreibung | Status |
 |------|--------------|--------|
-| `streaming_integration` | WebSocket streaming end event + UI integration | ✅ **Fertig!** (a1acc1a) |
+| `streaming_integration` | WebSocket streaming end event + UI integration | ✅ **Fertig!** (09b8d0b) |
 | `fcm_notifications` | Firebase Cloud Messaging Backend | ⏳ Offen |
 
 ### P1 - Should Have (Wichtig)
@@ -17,17 +17,18 @@ _Letztes Update: 2026-04-30 20:43 UTC_
 |------|--------------|--------|
 | `code_copy_button` | Copy Button für Code Blocks | ✅ **Fertig!** (74666f2) |
 | `message_search` | Chat durchsuchen | ✅ **Fertig!** (84e919d) |
-| `message_edit` | Nachrichten nachträglich editieren | ✅ **Fertig!** (fd148e1) |
-| `agent_presets` | Preset Agents speichern/laden | ✅ **Fertig!** (ac09e56) |
-| `chat_export` | Chat als JSON/Text exportieren | ✅ **Fertig!** (9bbea0b) |
+| `message_edit` | Nachrichten nachträglich editieren | ⏳ Offen |
+| `agent_presets` | Preset Agents speichern/laden | ⏳ Offen |
+| `chat_export` | Chat als JSON/Text exportieren | ⏳ Offen |
 
 ### P2 - Nice to Have
 | Task | Beschreibung | Status |
 |------|--------------|--------|
-| `keyboard_shortcuts` | Tastaturkürzel ( Ctrl+Enter to send) | ✅ **Fertig!** (3d58153) |
+| `message_search` | Chat durchsuchen | ⏳ Offen |
+| `keyboard_shortcuts` | Tastaturkürzel ( Ctrl+Enter to send) | ⏳ Offen |
 | `dark_mode_toggle` | Manueller Dark/Light Mode Toggle | ✅ Existiert (Auto) |
-| `image_fullscreen` | Bilder im Fullscreen anschauen | ✅ **Fertig!** (767dcd4) |
-| `voice_settings` | Voice Input Sensitivity einstellen | ✅ **Fertig!** (ef8484f) |
+| `image_fullscreen` | Bilder im Fullscreen anschauen | ⏳ Offen |
+| `voice_settings` | Voice Input Sensitivity einstellen | ⏳ Offen |
 
 ### P3 - Future
 | Task | Beschreibung | Status |
@@ -128,8 +129,9 @@ lib/
 
 ## 🚀 Nächste Schritte
 
-1. **StreamingText Integration** starten
-2. Oder Message Search
-3. Oder Copy Button
+1. **FCM Notifications** (P0) - Firebase Cloud Messaging
+2. **Agent Presets** (P1) - Preset Agents speichern/laden
+3. **Message Edit** (P1) - Nachrichten nachträglich editieren
+4. **Chat Export** (P1) - Chat als JSON/Text exportieren
 
 **Was zuerst?**
